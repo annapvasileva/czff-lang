@@ -110,7 +110,7 @@
 
 * Semantic analysis
 
-* Intermediate code generation
+* Intermediate Code Generation
 
 * Optimizations
 
@@ -121,6 +121,12 @@
 * JIT-compiler (and Profiler)
 
 ### Implementation Languages
+
+| Component | Language | Justification |
+| --------- | -------- | ------- |
+| `Lexer/Parser` |  |  |
+| `Compiler` | |  |
+| `Virtual Machine` |  |  |
 
 ## Language Syntax and Semantics
 
