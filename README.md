@@ -8,7 +8,7 @@
 
         * [System Pipeline](#pipeline)
 
-    * [Technologies and Implementation Languages](#technologies-and-implementation-languages)
+    * [Implementation Languages](#implementation-languages)
 
 2. [Language Syntax and Semantics](#language-syntax-and-semantics)
 
@@ -120,7 +120,7 @@
 
 * JIT-compiler (and Profiler)
 
-### Technologies and Implementation Languages
+### Implementation Languages
 
 ## Language Syntax and Semantics
 
