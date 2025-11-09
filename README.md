@@ -6,6 +6,8 @@
 
     * [System Architecture](#system-architecture)
 
+        * [Schematic Diagram](#schematic-diagram)
+
         * [System Pipeline](#pipeline)
 
     * [Implementation Languages](#implementation-languages)
