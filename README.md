@@ -2,7 +2,7 @@
 
 1. [Overview](#overview)
 
-    * [Purpose and Concepts](#purpose-concepts)
+    * [Purpose and Concepts](#purpose-and-concepts)
 
     * [System Architecture](#system-architecture)
 
