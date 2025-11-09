@@ -126,7 +126,7 @@
 | --------- | -------- | ------- |
 | `Lexer/Parser` |  |  |
 | `Compiler` | |  |
-| `Virtual Machine` |  |  |
+| `Virtual Machine` | C++ | High performance and low-level access |
 
 ## Language Syntax and Semantics
 
