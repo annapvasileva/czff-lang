@@ -102,6 +102,10 @@
 
 ### System Architecture
 
+#### Schematic Diagram
+
+![Pipeline Schema](docs/assets/pipeline-schema.png)
+
 #### Pipeline
 
 * Lexer
