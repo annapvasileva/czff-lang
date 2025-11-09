@@ -236,6 +236,14 @@ for, while + break, continue, return(?), (?) do-while, (?) foreach
 
 #### VM Architecture
 
+The Czff programming language virtual machine has stack-based architecture.
+
+The first thing that runs in the virtual machine is the class loader, which loads `.ball` files (containing bytecode) into RAM, performs linking, and initializes static variables.
+
+The Runtime Data Area is divided into five areas, into which objects are placed according to specific rules.
+
+Program execution is handled by the Execution Engine, which consists of an interpreter that translates bytecode into machine code, a Garbage Collector that removes objects unreachable from the program, a Profiler that identifies areas of optimization for the JIT compiler, and the JIT compiler itself.
+
 #### Memory Model and Management
 
 Memory model and management + how to pass data (by value/reference)
