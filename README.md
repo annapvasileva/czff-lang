@@ -1,8 +1,16 @@
 # CZFF-lang specification
 
-1. [Purpose, concepts](#purpose-concepts)
+1. [Overview](#overview)
 
-2. [Syntax and semantics](#syntax-and-semantics)
+    * [Purpose and Concepts](#purpose-concepts)
+
+    * [System Architecture](#system-architecture)
+
+        * [System Pipeline](#pipeline)
+
+    * [Technologies and Implementation Languages](#technologies-and-implementation-languages)
+
+2. [Language Syntax and Semantics](#language-syntax-and-semantics)
 
     * [Characters](#characters)
 
@@ -14,63 +22,71 @@
 
     * [Constants](#constants)
 
-3. [Types](#types)
+    * [Types](#types)
 
-    * [Primitive types](#primitive-types)
+        * [Primitive Types](#primitive-types)
 
-    * [Composite types](#composite-types)
+        * [Composite Types](#composite-types)
 
-    * (?) [User-defined data types](#user-defined-data-types)
+        * [User-defined Data Types](#user-defined-data-types)
 
-4. [Expressions and operators](#expressions-and-operators)
+    * [Expressions and Operators](#expressions-and-operators)
 
-    * [Function calls](#function-calls)
+        * [Function Calls](#function-calls)
 
-    * [Arithmetic operators](#arithmetic-operators)
+        * [Arithmetic Operators](#arithmetic-operators)
 
-    * [Comparison operators](#comparison-operators)
+        * [Comparison Operators](#comparison-operators)
 
-    * [Logical operators](#logical-operators)
+        * [Logical Operators](#logical-operators)
 
-    * [Assignment](#assignment)
+        * [Assignment](#assignment)
 
-    * (?) [Ternary conditional operator](#-ternary-conditional-operator)
+        * [Ternary Conditional Operator](#ternary-conditional-operator)
 
-    * [Conversions](#conversions)
+        * [Conversions](#conversions)
 
-    * [Priority and order of operations](#priority-and-order-of-operations)
+        * [Priority and Order of Operations](#priority-and-order-of-operations)
 
-5. [Blocks, scopes, declarations](#blocks-scopes-declarations)
+    * [Blocks, Scopes and Declarations](#blocks-scopes-and-declarations)
 
-    * [Constant declarations](#constant-declarations)
+        * [Constant Declarations](#constant-declarations)
 
-    * [Variable declarations](#variable-declarations)
+        * [Variable Declarations](#variable-declarations)
 
-    * [Function declarations](#function-declarations)
+        * [Function Declarations](#function-declarations)
 
-    * (?) [Class structure declarations](#class-structure-declarations)
+        * [Class Declarations](#class-declarations)
 
-6. [Control Flow](#control-flow)
+    * [Control Flow](#control-flow)
 
-    * [Conditions](#conditions)
+        * [Conditions](#conditions)
 
-    * [Loops](#loops)
+        * [Loops](#loops)
 
-    * [Exceptions](#exceptions)
+        * [Exceptions](#exceptions)
 
-7. [Memory model and management](#memory-model-and-management)
+3. [System Components](#system-components)
 
-8. [Standard library](#standard-library)
+    * [Lexer and Parser](#lexer-and-parser)
 
-9. [Pipeline](#pipeline)
+    * [Bytecode Compiler](#bytecode-compiler)
 
-10. [Code examples](#code-examples)
+    * [Virtual Machine (Runtime)](#virtual-machine-runtime)
 
-11. [Other](#other)
+        * [VM Architecuture](#vm-architecture)
 
-<hr>
+        * [Memory Model and Management](#memory-model-and-management)
 
-## Purpose, concepts
+        * [Just-In-Time (JIT) Compiler](#jit-compiler)
+
+4. [Standard Library](#standard-library)
+
+5. [Code Examples](#code-examples)
+
+## Overview
+
+### Purpose and Concepts
 
 * Imperative programming language
 
@@ -84,8 +100,29 @@
 
 * Entry point - точка входа - (например, функция int main();)
 
+### System Architecture
 
-## Syntax and semantics
+#### Pipeline
+
+* Lexer
+
+* Parser
+
+* Semantic analysis
+
+* Intermediate code generation
+
+* Optimizations
+
+* Virtual machine
+
+* Garbage Collector
+
+* JIT-compiler (and Profiler)
+
+### Technologies and Implementation Languages
+
+## Language Syntax and Semantics
 
 ### Characters
 
@@ -113,75 +150,87 @@ Newline, whitespace…, decimal digits, letters
 
 ### Constants
 
-## Types
+### Types
 
-### Primitive types
+#### Primitive Types
 
 * Bool
 
 * Integer
 
-### Composite types
+#### Composite Types
 
 * String
 
 * Array
 
-### (?) User-defined data types
+#### User-Defined Data Types
 
 * Classes
 
 * Structures
 
-## Expressions and operators
+### Expressions and Operators
 
-### Function calls
+#### Function Calls
 
-### Arithmetic operators
+#### Arithmetic Operators
 
-### Comparison operators
+#### Comparison Operators
 
-### Logical operators
+#### Logical Operators
 
-### Assignment
+#### Assignment
 
-### (?) Ternary conditional operator
+#### Ternary Conditional Operator
 
 ### Conversions
 
-* неявные (типа из int в bool)
+* Implicit
 
-* явные (возможно, нам это не надо)
+* Explicit
 
-### Priority and order of operations
+### Priority and Order of Operations
 
-## Blocks, scopes, declarations
+### Blocks, Scopes and Declarations
 
-### Constant declarations
+#### Constant Declarations
 
-### Variable declarations
+#### Variable Declarations
 
-### Function declarations
+#### Function Declarations
 
-### (?) Class structure declarations
+#### Class Declarations
 
-## Control Flow
+### Control Flow
 
-### Conditions
+#### Conditions
 
 if, else, elif...
 
-### Loops
+#### Loops
 
 for, while + break, continue, return(?), (?) do-while, (?) foreach
 
-### Exceptions
+#### Exceptions
 
-## Memory model and management
+## System Components
+
+### Lexer and Parser
+
+### Bytecode Compiler
+
+### Virtual Machine (Runtime)
+
+#### VM Architecture
+
+#### Memory Model and Management
 
 Memory model and management + how to pass data (by value/reference)
 
-## Standard library
+#### JIT Compiler
+
+## Standard Library
 
 * input, output
 
@@ -193,25 +242,7 @@ Memory model and management + how to pass data (by value/reference)
 
 * ...
 
-## Pipeline
-
-* Lexer
-
-* Parser
-
-* Semantic analysis
-
-* Intermediate code generation
-
-* Optimizations
-
-* Virtual machine 
-
-* Garbage Collector
-
-* JIT-compiler (and Profiler)
-
-## Code examples
+## Code Examples
 
 * Factorial calculation
 
@@ -229,9 +260,3 @@ Memory model and management + how to pass data (by value/reference)
         var arr := sieve(n);
 
 * Maybe smth else
-
-## Other
-
-* Brackets: “()”, “{}”, “[]”
-
-* Quotation marks (“”, ‘’)
