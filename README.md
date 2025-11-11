@@ -225,6 +225,8 @@ for, while + break, continue, return(?), (?) do-while, (?) foreach
 ### Lexer and Parser
 
 ### Bytecode Compiler
+- [Bytecode specification](./docs/bytecode.md)
+- [Compiler specification](./docs/compiler.md)
 
 ### Virtual Machine (Runtime)
 
@@ -252,7 +254,7 @@ Memory model and management + how to pass data (by value/reference)
 
 * Factorial calculation
 
-        var n = 10;
+        var int n = 10;
         print(factorial(n));
 
 * Array Sorting
@@ -262,7 +264,7 @@ Memory model and management + how to pass data (by value/reference)
 
 * Prime Number Generation
 
-        var n = 10;
-        var arr := sieve(n);
+        var int n = 10;
+        var array<int> arr := sieve(n);
 
 * Maybe smth else
