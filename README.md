@@ -248,7 +248,7 @@ Memory management is accomplished through two main components:
 
 #### JIT Compiler
 
-On JIT compilation see [JIT Compiler section](./docs/virtual-machine/execution-engine/jit-compiler.md).
+On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/jit-compiler.md) section.
 
 ## Standard Library
 
