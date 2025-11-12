@@ -6,7 +6,7 @@
 
 ### [Class Loader](./class-loader.md)
 
-The first thing that runs in the virtual machine is the class loader, which loads `.ball` files (containing bytecode) into RAM, performs linking, and initializes static variables.
+The first thing that runs in the Czff virtual machine (CVM) is the class loader, which loads `.ball` files (containing bytecode) into RAM, performs linking, and initializes static variables.
 
 ### [Runtime Data Area](./runtime-data-area.md)
 
