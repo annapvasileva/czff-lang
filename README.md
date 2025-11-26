@@ -32,9 +32,21 @@
 
         * [User-defined Data Types](#user-defined-data-types)
 
-    * [Expressions and Operators](#expressions-and-operators)
+    * [Blocks, Scopes and Declarations](#blocks-scopes-and-declarations)
 
-        * [Function Calls](#function-calls)
+        * [Blocks](#blocks)
+
+        * [Scopes](#scopes)
+
+        * [Declarations](#declarations)
+
+            * [Variable Declarations](#variable-declarations)
+
+            * [Function Declarations](#function-declarations)
+
+            * [Class Declarations](#class-declarations)
+
+    * [Expressions and Operators](#expressions-and-operators)
 
         * [Arithmetic Operators](#arithmetic-operators)
 
@@ -42,31 +54,25 @@
 
         * [Logical Operators](#logical-operators)
 
-        * [Assignment](#assignment)
+        * [Function Calls](#function-calls)
+
+        * [Array Access](#array-access)
+
+        * [Member Access](#member-access)
 
         * [Ternary Conditional Operator](#ternary-conditional-operator)
 
-        * [Conversions](#conversions)
+    * [Statements](#statements)
+    
+        * [Assignment](#assignment)
 
-        * [Priority and Order of Operations](#priority-and-order-of-operations)
+        * [Control Flow](#control-flow)
 
-    * [Blocks, Scopes and Declarations](#blocks-scopes-and-declarations)
+            * [Conditions](#conditions)
 
-        * [Constant Declarations](#constant-declarations)
+            * [Loops](#loops)
 
-        * [Variable Declarations](#variable-declarations)
-
-        * [Function Declarations](#function-declarations)
-
-        * [Class Declarations](#class-declarations)
-
-    * [Control Flow](#control-flow)
-
-        * [Conditions](#conditions)
-
-        * [Loops](#loops)
-
-        * [Exceptions](#exceptions)
+    * [Exceptions](#exceptions)
 
 3. [System Components](#system-components)
 
@@ -138,93 +144,210 @@
 
 ### Characters
 
-Newline, whitespace…, decimal digits, letters
+    new_line = "\n" ;
+    whitespace = " " ;
+    decimal_digit = "0" ... "9" ;
+    letter = "A" ... "Z" | "a" ... "z" ;
 
 ### Comments
 
-* One line
+One-line comments start with the character sequence // and stop at the end of the line
 
-* Multiple lines
+General comments start with the character sequence =/ and stop with the first subsequent character sequence /=
 
 ### Tokens
 
-* Identifiers (названия переменных и типов)
+* Identifiers
 
-* Keywords (if, for, while…)
+        identifier = letter , { letter | decimal_digit | "_" } ;
 
-* Operators (+, -, %...)
+* Keywords
+
+        break   class  continue else    
+        for     func    if      new     
+        return  while
+
+* Operators
+
+        +   -   *   /   %
+        &&  ||  !   ==  =
+        <   >   <=  =>  !=
+        ++ --
+
+* Puncuation
+
+        ,   .   ;   :   
+        (   )   {   }   [   ]
 
 ### Literals
 
-* numeric
+    integer_literal = decimal_digit , { decimal_digit } ;
+    string_literal = "\"" , { character - forbidden_character } , "\""
+    bool_literal = "true" | "false" ;
+    literal = integer_literal | string_literal | bool_literal ;
 
-* string
+    forbidden_character = "\"" | new_line
 
-### Constants
+character - arbitrary Unicode symbol
 
 ### Types
 
 #### Primitive Types
 
-* Bool
+* bool - *true* or *false*
 
-* Integer
+* int - the set of all signed 64-bit integers
 
 #### Composite Types
 
-* String
+* string - sequence of characters
 
-* Array
+* array<*type*> - sequence of elements of a single type
 
 #### User-Defined Data Types
 
-* Classes
-
-* Structures
-
-### Expressions and Operators
-
-#### Function Calls
-
-#### Arithmetic Operators
-
-#### Comparison Operators
-
-#### Logical Operators
-
-#### Assignment
-
-#### Ternary Conditional Operator
-
-### Conversions
-
-* Implicit
-
-* Explicit
-
-### Priority and Order of Operations
+* class - a set of of named elements, called fields, and functions, called methods.
 
 ### Blocks, Scopes and Declarations
 
-#### Constant Declarations
+#### Blocks
+
+A block is a sequence of declarations and statements within matching brace brackets
+
+    block = "{" , { statement , ";" } , "}" ;
+
+#### Scopes
+
+Scope is the context in which a name is visible. Scope types:
+
+* Class scope
+
+* Function scope
+
+* Statement scope (*if*, *for*...)
+
+#### Declarations
+
+    declaration = variable_declaration | function_declaration | class_declaration ;
 
 #### Variable Declarations
 
+    type = bool | int | string | array | identifier
+    variable_declaration = "var" , type , [ "=" , expression ] , ";" ;
+
 #### Function Declarations
 
+    function_declaration = "func" , type , function_name , "(" , [ parameter_list ] , ")" , function_body ; 
+    function_name = identifier ;
+    parameter_list = parameter , { "," , parameter } ;
+    parameter = type , identifier ;
+    function_body = block ;
+
 #### Class Declarations
+
+    class_declaration = "class" , class_name , class_body ;
+    class_name = identifier ;
+    class_body = "{", { class_member } , "}" ;
+    class_member = field | constructor | method ;
+    field = variable_declaration ;
+    method = function_declaration ;
+    constructor = class_name , "(" , [ parameter_list ] , ")" , function_body ;
+
+### Expressions and Operators
+
+Expression is a piece of code that can be evaluated to a value
+
+    expression = unary_expression | expression , binary_operation expression ;
+    unary_expression  = primary_expression | unary_operator , unary_expression ;
+    unary_operator = "-" | "!"  ;
+    binary_operation = arithmetic_operator | logical_operator | comparison_operator ;
+    primary_expression = literal 
+                         | identifier 
+                         | function_call 
+                         | array_access 
+                         | member_access 
+                         | ternary_expression ;
+
+#### Arithmetic Operators
+
+    arithmetic_operator = "+" | "-" | "*" | "/" | "%" ;
+
+### Increment and Decrement
+
+    increment_decrement = "++" | "--" ;
+
+#### Comparison Operators
+
+    comparison_operator = "==" | "!=" | "<" | "<=" | ">" | ">=" ;
+
+#### Logical Operators
+
+    logical_operator = "&&" | "||" | "!" ;
+
+#### Function Calls
+
+    function_call = function_name , "(" , [ arguments ] , ")" ;
+    arguments = expression , { "," , expression } ;
+
+#### Array access
+
+    array_access = identifier , "[" , expression , "]" ;
+
+#### Member access
+
+    member_access = identifier , "." , identifier ;
+
+#### Ternary Conditional Operator
+
+    ternary_expression = expression , "?" , expression , ":" , expression ;
+
+### Statements
+
+Statement is the piece of code that tells the computer to do something
+
+    statement = expression_statement
+                | increment_decrement_statement
+                | assigment 
+                | declaration 
+                | break_statement
+                | continue_statement
+                | return_statement  
+                | if_statement
+                | for_statement
+                | while_statement
+    expression_statement = expression ;
+    increment_decrement_statement = expression , increment_decrement  ;
+
+#### Assignment
+
+    assigment = identifier | array_access | member_access , "=" | expression ;
 
 ### Control Flow
 
 #### Conditions
 
-if, else, elif...
+    if_statement = "if" , "(" , expression , ")" , block , { "elif" , "(" , expression , ")" , block } [ "else" , block ] ;
 
 #### Loops
 
-for, while + break, continue, return(?), (?) do-while, (?) foreach
+    break_statement = "break" ;
+    continue_statement = "continue" ;
+    return_statement = "return" , [ expression ] ;
 
-#### Exceptions
+<br>
+
+    for_statement = "for" , "(" , for_init , ";" , for_condition , ";" , for_post  ")" , block ;
+    for_init = varaible_declaration ;
+    for_condition = expression ;
+    for_post = expression ;
+
+<br>
+
+    while_statement = "while" , "(" , expression ")" , block ;
+
+### Exceptions
+
+If an exception occurs, we will stop the program, write the error code, and display an error message
 
 ## System Components
 
@@ -262,6 +385,8 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
 
     * ...
 
+* работа со строками и массивами
+
 * ...
 
 ## Code Examples
@@ -280,5 +405,3 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
 
         var int n = 10;
         var array<int> arr := sieve(n);
-
-* Maybe smth else
