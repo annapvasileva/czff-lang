@@ -5,7 +5,7 @@
 
 ## Structure
 
-### Next points are being serialized in row in .ball file: 
+### The following objects are serialized into a .ball file in the order listed: 
 
 1. **Header** includes:
     1.  **Magical number** — 62616c6c ("ball" in 0x format) — byte[4], 4 bytes
@@ -18,22 +18,22 @@
     2. **Array of elemnts** in view: (tag, data) — tag, 1 byte; data, $x$ bytes 
     
     >[!IMPORTANT]
-    >All constants are stored here. In [Types](#types) section I will mention types for data, everything excluding *count* and *length* is stored here. 
+    >All constants are stored here. In [Types](#types) section will be mentioned types for data, everything excluding *length* is stored here. 
 3. **Classes pool** includes:
-    1. **Classes count**, uint_16
-    2. **Class**, class[x]
+    1. **Classes length**, uint_16
+    2. **Classes**, class[x]
 
 ## Types
 
 ### Class
 1. **Name**, string
-2. **Fields count**, uint_16 
+2. **Fields length**, uint_16 
 3. **Fields**, field[]
-4. **Methods count**, uint_16
+4. **Methods length**, uint_16
 5. **Methods**, method[]
 
 ### Field
-Method is a variable inside a class, all fields are public
+Field is a variable inside a class, all fields are public
 
 1. **Name**, string
 2. **Type link**, string descriptor
@@ -46,7 +46,7 @@ Method is a function inside a class, all methods are public
 3. **Parameters**, string descriptor
 4. **Return type link**, string descriptor
 6. **Max stack used**, uint_16
-7. **Locals count**, uint_16 
+7. **Locals length**, uint_16 
 6. **Code length**, uint_16
 7. **Code**, op_code[]
 
@@ -64,7 +64,7 @@ Tags list:
 
 ### Operation Codes
 - **Operation code**, byte
-- **Argument count**, uint_16
+- **Argument length**, uint_16
 - **Arguments**, string descriptor
 
 ## String Descriptor
