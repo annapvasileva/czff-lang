@@ -237,8 +237,9 @@ Scope is the context in which a name is visible. Scope types:
 
 #### Function Declarations
 
-    function_declaration = "func" , type , function_name , "(" , [ parameter_list ] , ")" , function_body ; 
+    function_declaration = "func" , func_return_type , function_name , "(" , [ parameter_list ] , ")" , function_body ; 
     function_name = identifier ;
+    func_return_type = type | "void" ;
     parameter_list = parameter , { "," , parameter } ;
     parameter = type , identifier ;
     function_body = block ;
@@ -393,15 +394,107 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
 
 * Factorial calculation
 
-        var int n = 10;
-        print(factorial(n));
+        =/
+        Factorial calculation
+        /=
+        class FactorialCalculator {
+            func int Calculate(int n) {
+                if (n <= 1) {
+                    retrun 1;
+                }
+
+                return n * Calculate(n - 1);
+            }
+
+            func void Main(array<string> args) {
+                var int n = 10;
+                print(Factorial(n));
+            }
+        }
 
 * Array Sorting
 
-        array<int> arr
-        merge_sort(arr)
+        =/
+        Merge Sort Implementation
+        /=
+        class ArrayMergeSorter {
+            func void Merge(array<int> arr, int left, int mid, int right) {
+                var int it1 = 0;
+                var int it2 = 0;
+                var array<int> result = new (right - left)[]; // create array with size right - left
+
+                while (left + it1 < mid && mid + it2 < right) {
+                    if (arr[left + it1] <= arr[mid + it2]) {
+                        result[it1 + it2] = arr[left + it1];
+                        it1++;
+                    } else {
+                        result[it1 + it2] = arr[mid + it2];
+                        it2++;
+                    }
+                }
+
+                while (left + it1 < mid) {
+                    result[it1 + it2] = arr[left + it1];
+                    it1++;
+                }
+                                
+                while (mid + it2 < right) {
+                    result[it1 + it2] = arr[mid + it2];
+                    it2++;
+                }
+
+                for (var int i = 0; i < it1 + it2; i++) {
+                    arr[left + i] = resilt[i];
+                }
+            }
+
+            func void MergeSort(array<int> arr, int left, int right) {
+                if (left + 1 >= right) {
+                    return;
+                }
+
+                var int mid = (left + right) / 2;
+                MergeSort(arr, left, mid);
+                MergeSort(arr, mid, right);
+                Merge(arr, left, mid, right);
+            }
+
+            func void Main(array<string> args) {
+                var int n;
+                read(n);
+                var array<int> arr = new (n)[]; // create array with size n
+                for (var int i = 0; i < n; i++) {
+                    read(arr[i]);
+                }
+                MergeSort(arr, 0, n);
+                for (var int i = 0; i < n; i++) {
+                    print(arr[i], " ");
+                }
+            }
+        }
 
 * Prime Number Generation
 
-        var int n = 10;
-        var array<int> arr := sieve(n);
+        class EratosthenesSieve {
+            func void Main(array<string> args) {
+                var int n;
+                read(n);
+                array<bool> prime = new (n + 1)[];
+                for (var int i = 2; i < n + 1; i++) {
+                    prime[i] = true;
+                }
+                for (var int p = 2; p * p <= n; p++) {
+                    if (prime[p] == true) {
+                        for (var int i = p * p; i <= n; i = i + p) {
+                            prime[i] = false;
+                        }
+                    }
+                }
+                print("Prime numbers up to ", n, "\n");
+                for (var int i = 2; i <= n; i++) {
+                    if (prime[i] == true) {
+                        print(i, " ")
+                    }
+                }
+            }
+        }
