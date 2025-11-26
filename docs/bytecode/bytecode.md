@@ -17,8 +17,8 @@
     1. **Length** of pool — uint_16, shorted to $n$
     2. **Array of elemnts** in view: (tag, data) — tag, 1 byte; data, $x$ bytes 
     
-    >[!IMPORTANT]
-    >All constants are stored here. In [Types](#types) section will be mentioned types for data, everything excluding *length* is stored here. 
+>[!IMPORTANT]
+>All constants are stored here. In [Types](#types) section will be mentioned types for data, everything excluding *length* is stored here. 
 3. **Classes pool** includes:
     1. **Classes length**, uint_16
     2. **Classes**, class[x]
