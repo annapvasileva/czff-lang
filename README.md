@@ -232,8 +232,12 @@ Scope is the context in which a name is visible. Scope types:
 
 #### Variable Declarations
 
-    type = bool | int | string | array | identifier
-    variable_declaration = "var" , type , [ "=" , expression ] , ";" ;
+    type = "bool" | "int" | "string" | "array<" , type ">" | identifier
+    primitive_type_declaration = "var" , int | bool , identifier , [ "=" , expression ] , ";" ;
+    string_declaration = "var" , "string" , identifier , [ "=" , expression ] , ";" ;
+    array_declaration = "var" , "array<" , type ">" , identifier , [ "=" , new , "(" , integer_literal , ")" , "[" , { , identifier , "," , } "]" ] , ";"
+    class_declaration = "var" , identifier , identifier , [ "=" , expression ] ,  ";" ;
+    variable_declaration = primitive_type_declaration | string_declaration | array_declaration | class_declaration ;
 
 #### Function Declarations
 
@@ -316,6 +320,7 @@ Statement is the piece of code that tells the computer to do something
                 | if_statement
                 | for_statement
                 | while_statement
+                | io_statement
     expression_statement = expression ;
     increment_decrement_statement = expression , increment_decrement  ;
 
@@ -354,6 +359,32 @@ If an exception occurs, we will stop the program, write the error code, and disp
 
 ### Lexer and Parser
 
+Step 1. Lexer
+
+Program which will convert a text into lexical tokens belonging to categories include identifiers, operators, data types, language keywords.
+
+Step 2. Parser
+
+The tokens are then parsed into AST (abstract syntax tree) by the parser.
+
+Step 3. Semantic Analysis
+
+* Type checking
+    * Check operands types (for example, adding string to int is prohibited)
+    * Data types of operands in expressions match the expected data type
+    * Check argument types for function calls 
+
+* Undefined and unassigned variables checking
+
+* Scope checking
+
+    Check that variables are used within the scope they were defined
+
+* Flow control check 
+    Check that statements like "return" or "break" are used correctly.
+
+Also we may do some optimizations like Constant Folding and detecting unreachable code (for example, after "return" statement)
+
 ### Bytecode Compiler
 - [Bytecode specification](./docs/bytecode/bytecode.md)
 - [Compiler specification](./docs/bytecode/compiler.md)
@@ -378,17 +409,21 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
 
 ## Standard Library
 
-* input, output
+* Input and Output
 
-* built-in functions
+    * print
+    
+    * prinln
+    
+    * read (until end of line or whitespace)
+    
+    * readline (until end of line)
 
-    * min, max
+    <br>
 
-    * ...
-
-* работа со строками и массивами
-
-* ...
+        io_statement = print_statement | read_statement ;
+        print_statement = "print" | "println" , "(" , [ expression , { "," , expression } ] , ")" , ";"
+        read_statement = "read" | "readln" , "(" , identifier , ")" , ";"
 
 ## Code Examples
 
@@ -479,7 +514,7 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
             func void Main(array<string> args) {
                 var int n;
                 read(n);
-                array<bool> prime = new (n + 1)[];
+                var array<bool> prime = new (n + 1)[];
                 for (var int i = 2; i < n + 1; i++) {
                     prime[i] = true;
                 }
