@@ -130,7 +130,8 @@ To begin execution:
 
 The VM enters the main loop:
 
-```pseudocode
+```python
+# The example is in pseudocode
 while (true):
     opcode = currentFrame.code[PC]
     PC += 1
@@ -213,7 +214,7 @@ When a return instruction is executed:
 
 4. If the call stack is empty:
 
-    * halt execution
+    * halt execution returning corresponding exit code
 
 ### 6. Program Termination
 
