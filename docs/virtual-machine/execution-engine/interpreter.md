@@ -220,8 +220,8 @@ When a return instruction is executed:
 
 Execution stops when:
 
-1. A return instruction eliminates the last frame.
+1. A return instruction eliminates the last frame (`exit code 0`).
 
-2. A dedicated halt instruction is executed.
+2. A dedicated halt instruction is executed (default `exit code 0`, else `exit code n` if `n` is passed as a parameter).
 
-3. An unhandled exception occurs.
+3. An unhandled exception occurs(`exit code 1`).
