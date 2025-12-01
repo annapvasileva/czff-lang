@@ -52,6 +52,18 @@ Includes:
 
 * Invocation subsystem (creating new frames)
 
+#### Frame Structure
+
+Each frame is created on method invocation and destroyed on method return. It includes:
+
+* Operand Stack — used for all evaluations and storing intermediate results.
+
+* Locals Table — fixed-size array of variables (parameters + declared locals).
+
+* PC Register — instruction pointer for the method’s bytecode array.
+
+* Return Address — host VM mechanism to resume when return instruction is executed.
+
 #### Call Stack
 
 A stack of frames, where each frame contains:
@@ -69,18 +81,6 @@ A stack of frames, where each frame contains:
 * Method metadata (parameters count, return type, code length, etc.)
 
 * Only the top frame is active during execution.
-
-#### Frame Structure
-
-Each frame is created on method invocation and destroyed on method return. It includes:
-
-* Operand Stack — used for all evaluations and storing intermediate results.
-
-* Locals Table — fixed-size array of variables (parameters + declared locals).
-
-* PC Register — instruction pointer for the method’s bytecode array.
-
-* Return Address — host VM mechanism to resume when return instruction is executed.
 
 ## Execution Algorithm
 
