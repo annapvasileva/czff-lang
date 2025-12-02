@@ -2,5 +2,5 @@
 
 public class GeneratorSettings
 {
-    public byte[] Version { get; set; } = new byte[] { 0, 0, 0 };
+    public byte[] Version { get; set; } = [0, 0, 0];
 }

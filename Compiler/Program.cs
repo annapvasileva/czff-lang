@@ -1,12 +1,14 @@
 ﻿using Compiler.Util;
-using Compiler.Compiler;
-using Compiler.Serializer;
+using Compiler.Generation;
+using Compiler.Serialization;
 using Compiler.SourceFiles;
 
 using Newtonsoft.Json;
 using CommandLine;
 
-class Options
+namespace Compiler;
+
+internal abstract class Options
 {
     [Value(0, Required = true, HelpText = "Path to file with code, that will be compiled into bytecode")]
     public string Source { get; set; } = "";
@@ -15,7 +17,7 @@ class Options
     public string? Target { get; set; }
 }
 
-internal class Program
+internal abstract class Program
 {
     public static void Main(string[] args)
     {
@@ -40,10 +42,7 @@ internal class Program
                 }
             });
 
-        if (target == null)
-        {
-            target = AppContext.BaseDirectory;
-        }
+        target ??= AppContext.BaseDirectory;
         
 //------------------------------------------------------------------------------------------
 //                                   Configuration Part
