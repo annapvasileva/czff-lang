@@ -6,6 +6,8 @@
 
     * [System Architecture](#system-architecture)
 
+        * [Schematic Diagram](#schematic-diagram)
+
         * [System Pipeline](#pipeline)
 
     * [Implementation Languages](#implementation-languages)
@@ -102,6 +104,10 @@
 
 ### System Architecture
 
+#### Schematic Diagram
+
+![Pipeline Schema](docs/assets/pipeline-schema.png)
+
 #### Pipeline
 
 * Lexer
@@ -126,7 +132,7 @@
 | --------- | -------- | ------- |
 | `Lexer/Parser` |  |  |
 | `Compiler` | |  |
-| `Virtual Machine` |  |  |
+| `Virtual Machine` | C++ | High performance and low-level access |
 
 ## Language Syntax and Semantics
 
@@ -232,11 +238,19 @@ for, while + break, continue, return(?), (?) do-while, (?) foreach
 
 #### VM Architecture
 
+Czff programming language virtual machine's architecture is _stack-based_ and is based on the practices of the specifications for JVM. For detailed information, see [VM Architecture section](./docs/virtual-machine/vm-architecture.md).
+
 #### Memory Model and Management
 
-Memory model and management + how to pass data (by value/reference)
+Memory management is accomplished through two main components:
+
+1) [Runtime Data Area](./docs/virtual-machine/runtime-data-area.md) (storing objects according to their type)
+
+2) [Garbage Collector](./docs/virtual-machine/execution-engine/garbage-collector.md) (removing inaccessible objects from memory)
 
 #### JIT Compiler
+
+On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/jit-compiler.md) section.
 
 ## Standard Library
 
