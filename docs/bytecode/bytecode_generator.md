@@ -1,16 +1,16 @@
 # Bytecode Generator
 
-## Algorithm of work
+## Algorithm of operation
 
-1. Getting AST from parser
-2. Creating object, that will be serialized into bytecode. Object called **Ball**
-3. Going through AST
-4. Adding source from it to **Ball**
-5. Seriallizing **Ball**
+1. Receiving the AST from the parser
+2. Creating an intermediate object of type **Ball** that will be serialized into bytecode.
+3. Going through the AST
+4. Translating AST nodes into bytecode instructions and storing them in the **Ball** object
+5. Seriallizing the **Ball** object into bytecode
 
 ## Ball
 
-It is object, that will be serialized into [bytecode](./bytecode.md).
+Ball object is an object that will be serialized into the final [bytecode](./bytecode.md).
 
 ```
 Ball  {
