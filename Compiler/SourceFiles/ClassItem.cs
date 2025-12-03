@@ -4,7 +4,7 @@ public class ClassItem
 {
     public int NameIndex { get; set; }
     
-    public int FiledsLength => Fields.Count;
+    public int FieldsLength => Fields.Count;
     
     public List<Field> Fields { get; set; }
     

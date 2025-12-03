@@ -31,7 +31,7 @@ public class ConstantPool
     
     public int GetIndex(ConstantItem constantItem)
     {
-        return _mapping[constantItem];
+        return _mapping.GetValueOrDefault(constantItem, -1);
     }
 
     public void AddConstant(ConstantItem constantItem)
