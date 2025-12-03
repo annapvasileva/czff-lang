@@ -1,12 +1,10 @@
 ﻿namespace Compiler.SourceFiles;
 
-public struct Header
+public struct Header(byte[] version, byte flags)
 {
-    public readonly byte[] MagicalNumber = "ball"u8.ToArray();
+    public readonly byte[] MagicalNumber { get; }= "ball"u8.ToArray();
 
-    public readonly byte[] Version = [0, 0, 1];
-    
-    public Header()
-    {
-    }
+    public readonly byte[] Version { get; } = version;
+
+    public byte Flags { get; set; } = flags;
 }
