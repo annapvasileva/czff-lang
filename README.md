@@ -231,8 +231,8 @@ for, while + break, continue, return(?), (?) do-while, (?) foreach
 ### Lexer and Parser
 
 ### Bytecode Compiler
-- [Bytecode specification](./docs/bytecode.md)
-- [Compiler specification](./docs/compiler.md)
+- [Bytecode specification](./docs/bytecode/bytecode.md)
+- [Compiler specification](./docs/bytecode/compiler.md)
 
 ### Virtual Machine (Runtime)
 
