@@ -42,11 +42,10 @@ Field is a variable inside a class, all fields are public
 Method is a function inside a class, all methods are public
 
 1. **Name**, string
-2. **Parameters number**, uint_16
-3. **Parameters**, string descriptor
-4. **Return type link**, string descriptor
-6. **Max stack used**, uint_16
-7. **Locals length**, uint_16 
+2. **Parameters**, string descriptor
+3. **Return type link**, string descriptor
+4. **Max stack used**, uint_16
+5. **Locals length**, uint_16 
 6. **Code length**, uint_16
 7. **Code**, op_code[]
 
@@ -64,7 +63,6 @@ Tags list:
 
 ### Operation Codes
 - **Operation code**, byte
-- **Argument length**, uint_16
 - **Arguments**, string descriptor
 
 ## String Descriptor
