@@ -1,4 +1,6 @@
-.idea
+virtual-machine/build*
+.vscode/
+.idea/
 obj/
 bin/
 *.user
