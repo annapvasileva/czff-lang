@@ -119,11 +119,11 @@ target_include_directories(czff_garbage_collector
 )
 
 # ===== Executable =====
-add_executable(czff_virtual_machine
+add_executable(czffvm
     src/main.cpp
 )
 
-target_link_libraries(czff_virtual_machine
+target_link_libraries(czffvm
     PRIVATE
         czff_jit_${JIT_ARCH}
         czff_virtual_machine_lib
