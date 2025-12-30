@@ -6,9 +6,7 @@ public class Method
 {
     public int NameIndex { get; set; }
     
-    public int ParameterLength => ParameterIndexes.Count;
-    
-    public List<int> ParameterIndexes { get; set; }
+    public int ParameterDescriptorIndex { get; set; }
     
     public int ReturnTypeIndex { get; set; }
 
