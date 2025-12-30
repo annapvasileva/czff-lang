@@ -109,6 +109,15 @@ target_include_directories(czff_jit_${JIT_ARCH}
 )
 
 
+add_library(czff_garbage_collector
+    src/garbage_collector/classic_garbage_collector.cpp
+)
+
+target_include_directories(czff_garbage_collector
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+)
+
 # ===== Executable =====
 add_executable(czff_virtual_machine
     src/main.cpp
@@ -118,4 +127,5 @@ target_link_libraries(czff_virtual_machine
     PRIVATE
         czff_jit_${JIT_ARCH}
         czff_virtual_machine_lib
+        czff_garbage_collector
 )
