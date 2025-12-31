@@ -60,8 +60,6 @@
 
         * [Member Access](#member-access)
 
-        * [Ternary Conditional Operator](#ternary-conditional-operator)
-
     * [Statements](#statements)
     
         * [Assignment](#assignment)
@@ -270,8 +268,7 @@ Expression is a piece of code that can be evaluated to a value
                          | identifier 
                          | function_call 
                          | array_access 
-                         | member_access 
-                         | ternary_expression ;
+                         | member_access ;
 
 #### Arithmetic Operators
 
@@ -301,10 +298,6 @@ Expression is a piece of code that can be evaluated to a value
 #### Member access
 
     member_access = identifier , "." , identifier ;
-
-#### Ternary Conditional Operator
-
-    ternary_expression = expression , "?" , expression , ":" , expression ;
 
 ### Statements
 
