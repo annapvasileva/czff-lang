@@ -406,7 +406,7 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
 
     * print
     
-    * prinln
+    * println
     
     * read (until end of line or whitespace)
     
@@ -518,7 +518,7 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
                         }
                     }
                 }
-                print("Prime numbers up to ", n, "\n");
+                println("Prime numbers up to ", n);
                 for (var int i = 2; i <= n; i++) {
                     if (prime[i] == true) {
                         print(i, " ")
