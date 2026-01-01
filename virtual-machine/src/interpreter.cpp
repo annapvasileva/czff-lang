@@ -1,3 +1,5 @@
+#include "interpreter.hpp"
+
 namespace czffvm {
 
 // TODO
