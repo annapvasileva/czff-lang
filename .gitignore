@@ -1,0 +1,3 @@
+virtual-machine/build*
+.vscode/
+.idea/
