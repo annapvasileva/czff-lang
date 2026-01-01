@@ -2,7 +2,7 @@
 
 namespace czffvm_gc {
 
-struct GarbageCollector {
+class GarbageCollector {
     // TODO
 };
 

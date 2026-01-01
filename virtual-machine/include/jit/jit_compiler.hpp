@@ -2,7 +2,7 @@
 
 namespace czffvm_jit {
 
-struct JitCompiler {
+class JitCompiler {
     // TODO
 };
 
