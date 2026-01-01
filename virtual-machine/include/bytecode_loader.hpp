@@ -2,8 +2,8 @@
 
 namespace czffvm {
 
-class BytecodeLoader {
-    BytecodeLoader() {
+class ClassLoader {
+    ClassLoader() {
         // TODO
     }
 };
