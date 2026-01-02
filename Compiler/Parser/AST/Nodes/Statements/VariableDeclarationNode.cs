@@ -7,7 +7,7 @@ public class VariableDeclarationNode : DeclarationNode
 {
     public TypeAnnotationNode Type { get; }
     public IdentifierNode Identifier { get; }
-    public ExpressionNode Expression { get; }
+    public ExpressionNode? Expression { get; }
 
     public VariableDeclarationNode(TypeAnnotationNode type, IdentifierNode identifier,
         ExpressionNode expression)

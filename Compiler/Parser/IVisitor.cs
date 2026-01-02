@@ -16,11 +16,13 @@ public interface IVisitor
     void VisitFunctionCallExpressionNode(FunctionCallExpressionNode functionCallExpressionNode);
     void VisitVariableDeclarationNode(VariableDeclarationNode variableDeclarationNode);
     void VisitFunctionDeclarationNode(FunctionDeclarationNode functionDeclarationNode);
+    void VisitClassDeclarationNode(ClassDeclarationNode classDeclarationNode);
     void VisitFunctionParameterNode(FunctionParameterNode functionParameterNode);
     void VisitExpressionStatementNode(ExpressionStatementNode expressionStatementNode);
     void VisitAssignmentStatementNode(AssignmentStatementNode assigmentStatementNode);
     void VisitBlockNode(BlockNode blockNode);
     void VisitArrayIndexExpressionNode(ArrayIndexExpressionNode arrayIndexExpressionNode);
+    void VisitMemberAccessNode(MemberAccessNode memberAccessNode);
     void VisitBreakStatementNode(BreakStatementNode breakStatementNode);
     void VisitContinueStatementNode(ContinueStatementNode continueStatementNode);
     void VisitReturnStatementNode(ReturnStatementNode returnStatementNode);
