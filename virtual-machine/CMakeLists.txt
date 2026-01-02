@@ -18,9 +18,13 @@ option(CZFF_ENABLE_SANITIZERS "Enable sanitizers (debug only)" ON)
 # ===== Library =====
 add_library(czff_virtual_machine_lib
     src/virtual_machine.cpp
-    src/bytecode_loader.cpp
-    src/call_frame.cpp
     src/interpreter.cpp
+    src/class_loader.cpp
+
+    src/call_frame.cpp
+    src/runtime_data_area.cpp
+    src/heap_data_area.cpp
+    src/stack_data_area.cpp
 )
 
 target_include_directories(czff_virtual_machine_lib

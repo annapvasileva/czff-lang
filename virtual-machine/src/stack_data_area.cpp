@@ -1,4 +1,4 @@
-#include "interpreter.hpp"
+#include "stack_data_area.hpp"
 
 namespace czffvm {
 

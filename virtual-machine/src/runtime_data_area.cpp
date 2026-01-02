@@ -1,4 +1,4 @@
-#include "interpreter.hpp"
+#include "runtime_data_area.hpp"
 
 namespace czffvm {
 
