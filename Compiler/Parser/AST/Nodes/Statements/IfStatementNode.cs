@@ -18,7 +18,7 @@ public class IfStatementNode : StatementNode
         ElseBlock = elseBlock;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitIfStatementNode(this);
     }

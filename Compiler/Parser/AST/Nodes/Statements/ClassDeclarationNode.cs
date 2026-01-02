@@ -17,7 +17,7 @@ public class ClassDeclarationNode : DeclarationNode
         Methods = methods;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitClassDeclarationNode(this);
     }

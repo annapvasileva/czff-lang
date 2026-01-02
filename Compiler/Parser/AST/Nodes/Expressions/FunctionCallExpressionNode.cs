@@ -11,7 +11,7 @@ public class FunctionCallExpressionNode : ExpressionNode
         Arguments = arguments;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitFunctionCallExpressionNode(this);
     }

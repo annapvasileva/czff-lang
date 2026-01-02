@@ -15,7 +15,7 @@ public class ForStatementNode : StatementNode
         Post = post;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitForStatementNode(this);
     }

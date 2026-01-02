@@ -13,7 +13,7 @@ public class MemberAccessNode : ExpressionNode
         Member = member;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitMemberAccessNode(this);
     }

@@ -11,7 +11,7 @@ public class UnaryExpressionNode : ExpressionNode
         Expression = expression;
     }
 
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitUnaryExpressionNode(this);
     }

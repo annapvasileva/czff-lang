@@ -16,7 +16,7 @@ public class BinaryExpressionNode : ExpressionNode
         BinaryOperator = binaryOperator;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitBinaryExpressionNode(this);
     }

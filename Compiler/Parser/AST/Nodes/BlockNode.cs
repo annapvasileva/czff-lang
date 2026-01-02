@@ -11,7 +11,7 @@ public class BlockNode : AstNode
         Statements = statements;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitBlockNode(this);
     }

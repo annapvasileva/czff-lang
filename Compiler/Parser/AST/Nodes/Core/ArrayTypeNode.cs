@@ -10,7 +10,7 @@ public class ArrayTypeNode : TypeAnnotationNode
         ElementType = elementType;
     }
 
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitArrayTypeNode(this);
     }

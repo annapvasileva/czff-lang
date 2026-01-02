@@ -11,7 +11,7 @@ public class ArrayIndexExpressionNode : ExpressionNode
         Index = index;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitArrayIndexExpressionNode(this);
     }

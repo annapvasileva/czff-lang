@@ -11,7 +11,7 @@ public class FunctionParameterNode : AstNode
         Type = type;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitFunctionParameterNode(this);
     }

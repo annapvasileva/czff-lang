@@ -11,7 +11,7 @@ public class ReturnStatementNode : StatementNode
         Expression = expression;
     }
 
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitReturnStatementNode(this);
     }

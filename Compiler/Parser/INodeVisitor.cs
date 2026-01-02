@@ -5,7 +5,7 @@ using Compiler.Parser.AST.Nodes.Statements;
 
 namespace Compiler.Parser;
 
-public interface IVisitor
+public interface INodeVisitor
 {
     void VisitLiteralNode(LiteralNode literalNode);
     void VisitIdentifierNode(IdentifierNode identifierNode);

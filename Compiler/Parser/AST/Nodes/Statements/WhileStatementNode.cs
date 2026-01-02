@@ -13,7 +13,7 @@ public class WhileStatementNode : StatementNode
         Body = body;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitWhileStatementNode(this);
     }

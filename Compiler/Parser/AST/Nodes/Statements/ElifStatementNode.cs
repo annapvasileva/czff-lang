@@ -13,7 +13,7 @@ public class ElifStatementNode : StatementNode
         Block = block;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitElifStatementNode(this);
     }

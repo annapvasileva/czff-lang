@@ -11,7 +11,7 @@ public class PrintStatementNode : StatementNode
         Expressions = expressions;
     }
 
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitPrintStatementNode(this);
     }

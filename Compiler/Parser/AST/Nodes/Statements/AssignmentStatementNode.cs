@@ -16,7 +16,7 @@ public class AssignmentStatementNode : StatementNode
         Right = right;
     }
     
-    public override void Accept(IVisitor visitor)
+    public override void Accept(INodeVisitor visitor)
     {
         visitor.VisitAssignmentStatementNode(this);
     }
