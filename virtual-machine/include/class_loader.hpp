@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <memory>
 
+#include "common.hpp"
+#include "runtime_data_area.hpp"
+
 namespace czffvm {
 
 class ClassLoaderError : public std::runtime_error {
@@ -33,65 +36,18 @@ private:
     size_t offset_;
 };
 
-enum class ConstantTag : uint8_t {
-    U1 = 0x1,
-    U2 = 0x2,
-    U4 = 0x3,
-    I4 = 0x4,
-    STRING = 0x5,
-    CLASS = 0xF,
-};
-
-struct Constant {
-    ConstantTag tag;
-    std::string str;
-};
-
-struct RuntimeField {
-    std::string name;
-    std::string type;
-    uint16_t offset = 0;
-};
-
-struct RuntimeMethod {
-    std::string name;
-    std::string params;
-    std::string returnType;
-
-    uint16_t maxStack;
-    uint16_t locals;
-    std::vector<uint8_t> code;
-};
-
-struct RuntimeClass {
-    std::string name;
-    std::vector<RuntimeField> fields;
-    std::vector<RuntimeMethod> methods;
-};
-
-struct RuntimeFunction {
-    std::string name;
-    std::string params;
-    std::string returnType;
-
-    uint16_t maxStack;
-    uint16_t locals;
-    std::vector<uint8_t> code;
-};
-
 class ClassLoader {
 public:
-    ClassLoader();
+    explicit ClassLoader(RuntimeDataArea& rda);
 
     void LoadStdlib(const std::string& path);
     void LoadProgram(const std::string& path);
 
-    RuntimeFunction* entryPoint() const;
+    RuntimeFunction* EntryPoint() const;
 private:
-    std::unordered_map<std::string, RuntimeClass> classes_;
-    std::unordered_map<std::string, RuntimeFunction> functions_;
-    std::vector<Constant> constantPool_;
-    RuntimeFunction* entryPoint_ = nullptr;
+    RuntimeDataArea& rda_;
+    RuntimeFunction* entry_point_ = nullptr;
+    std::vector<Constant> file_constants_;
 
     void LoadFile(const std::string& path);
     void Verify();
