@@ -18,6 +18,6 @@ public class BinaryExpressionNode : ExpressionNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitBinaryExpressionNode(this);
+        visitor.Visit(this);
     }
 }

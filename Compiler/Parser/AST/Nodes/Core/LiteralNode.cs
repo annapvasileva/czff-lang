@@ -14,6 +14,6 @@ public class LiteralNode : AstNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitLiteralNode(this);
+        visitor.Visit(this);
     }
 }

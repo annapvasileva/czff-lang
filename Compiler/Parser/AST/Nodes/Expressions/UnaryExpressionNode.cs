@@ -13,6 +13,6 @@ public class UnaryExpressionNode : ExpressionNode
 
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitUnaryExpressionNode(this);
+        visitor.Visit(this);
     }
 }

@@ -15,6 +15,6 @@ public class ElifStatementNode : StatementNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitElifStatementNode(this);
+        visitor.Visit(this);
     }
 }

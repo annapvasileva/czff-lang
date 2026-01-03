@@ -13,6 +13,6 @@ public class BlockNode : AstNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitBlockNode(this);
+        visitor.Visit(this);
     }
 }

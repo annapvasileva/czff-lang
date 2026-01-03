@@ -8,6 +8,6 @@ public class IdentifierNode : AstNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitIdentifierNode(this);
+        visitor.Visit(this);
     }
 }

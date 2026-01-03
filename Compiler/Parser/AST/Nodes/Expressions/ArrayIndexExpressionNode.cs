@@ -13,6 +13,6 @@ public class ArrayIndexExpressionNode : ExpressionNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitArrayIndexExpressionNode(this);
+        visitor.Visit(this);
     }
 }

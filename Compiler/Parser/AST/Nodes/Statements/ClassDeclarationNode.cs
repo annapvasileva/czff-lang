@@ -19,6 +19,6 @@ public class ClassDeclarationNode : DeclarationNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitClassDeclarationNode(this);
+        visitor.Visit(this);
     }
 }

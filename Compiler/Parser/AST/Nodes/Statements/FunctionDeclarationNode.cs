@@ -21,6 +21,6 @@ public class FunctionDeclarationNode : DeclarationNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitFunctionDeclarationNode(this);
+        visitor.Visit(this);
     }
 }
