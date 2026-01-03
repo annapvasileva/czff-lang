@@ -12,43 +12,42 @@ enum class ConstantTag : uint8_t {
     U4 = 0x3,
     I4 = 0x4,
     STRING = 0x5,
-    CLASS = 0xF,
+    BOOL = 0x6,
 };
 
 struct Constant {
     ConstantTag tag;
-    std::string str;
+    std::vector<uint8_t> data;
 };
 
 struct RuntimeField {
-    std::string name;
-    std::string type;
-    uint16_t offset = 0;
+    uint16_t name_index;
+    uint16_t field_descriptor_index;
 };
 
 struct RuntimeMethod {
-    std::string name;
-    std::string params;
-    std::string returnType;
+    uint16_t name_index;
+    uint16_t params_descriptor_index;
+    uint16_t return_type_index;
 
-    uint16_t maxStack;
-    uint16_t locals;
+    uint16_t max_stack;
+    uint16_t locals_count;
     std::vector<uint8_t> code;
 };
 
 struct RuntimeClass {
-    std::string name;
+    uint16_t name_index;
     std::vector<RuntimeField> fields;
     std::vector<RuntimeMethod> methods;
 };
 
 struct RuntimeFunction {
-    std::string name;
-    std::string params;
-    std::string returnType;
+    uint16_t name_index;
+    uint16_t params_descriptor_index;
+    uint16_t return_type_index;
 
-    uint16_t maxStack;
-    uint16_t locals;
+    uint16_t max_stack;
+    uint16_t locals_count;
     std::vector<uint8_t> code;
 };
 }
