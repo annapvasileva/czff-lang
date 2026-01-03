@@ -66,8 +66,6 @@ void ClassLoader::LoadStdlib(const std::string& path) {
 
 void ClassLoader::LoadProgram(const std::string& path) {
     LoadFile(path);
-    Verify();
-    Link();
     ResolveEntryPoint();
 }
 
@@ -205,48 +203,6 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
         rda_.RegisterFunction(fn);
     }
 }
-
-void ClassLoader::Verify() {
-    VerifyFunctions();
-    VerifyClasses();
-}
-
-void ClassLoader::VerifyClasses() {
-    for (auto& [name, cls] : rda_.Classes()) {
-        std::vector<uint8_t> class_name_raw = rda_.GetConstant(cls->name_index).data;
-        std::string class_name(class_name_raw.begin(), class_name_raw.end());
-        if (rda_.GetClass(class_name)) {
-            throw ClassLoaderError("Verification", "Duplicate class", class_name);
-        }
-
-        std::unordered_map<std::string, bool> seen;
-
-        for (auto& f : cls->fields) {
-            std::vector<uint8_t> field_name_raw = rda_.GetConstant(f.name_index).data;
-            std::string field_name(field_name_raw.begin(), field_name_raw.end());
-            if (seen[field_name]) {
-                throw ClassLoaderError("Verification", "Duplicate field", field_name);
-            }
-            seen[field_name] = true;
-        }
-    }
-}
-
-void ClassLoader::VerifyFunctions() {
-    for (auto& [name, fn] : rda_.Functions()) {
-        std::vector<uint8_t> functions_name_raw = rda_.GetConstant(fn->name_index).data;
-        std::string function_name(functions_name_raw.begin(), functions_name_raw.end());
-        if (rda_.GetClass(function_name)) {
-            throw ClassLoaderError("Verification", "Duplicate function", function_name);
-        }
-        
-        if (fn->max_stack == 0){
-            throw ClassLoaderError("Verification", "max_stack == 0", name);
-        }
-    }
-}
-
-void ClassLoader::Link() {}
 
 void ClassLoader::ResolveEntryPoint() {
     auto it = rda_.Functions().find("Main");
