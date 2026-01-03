@@ -5,7 +5,7 @@
 
 namespace czffvm {
 
-const int32_t kByteInBits = 8;
+const int32_t kBitsInByte = 8;
 const uint32_t kMagicNumber = 0x62616c6c;
 
 ClassLoaderError::ClassLoaderError(
@@ -28,18 +28,18 @@ uint8_t ByteReader::ReadU1() {
 }
 
 uint16_t ByteReader::ReadU2() {
-    uint16_t v = data_.at(offset_) |
-                 (data_.at(offset_ + 1) << kByteInBits);
+    uint16_t v = (data_.at(offset_) << kBitsInByte) |
+                 data_.at(offset_ + 1);
     offset_ += 2;
 
     return v;
 }
 
 uint32_t ByteReader::ReadU4() {
-    uint32_t v = data_.at(offset_) |
-                 (data_.at(offset_ + 1) << kByteInBits) |
-                 (data_.at(offset_ + 2) << (2 * kByteInBits)) |
-                 (data_.at(offset_ + 3) << (3 * kByteInBits));
+    uint32_t v = (data_.at(offset_) << (3 * kBitsInByte)) |
+                 (data_.at(offset_ + 1) << ( 2 * kBitsInByte)) |
+                 (data_.at(offset_ + 2) << kBitsInByte) |
+                 data_.at(offset_ + 3);
     offset_ += 4;
 
     return v;
@@ -90,17 +90,17 @@ void ClassLoader::LoadFile(const std::string& path) {
 
     LoadHeader(reader);
     LoadConstantPool(reader);
-    LoadClasses(reader);
     LoadFunctions(reader);
+    LoadClasses(reader);
 
     file_constants_.clear();
 }
 
-// TODO: осуществлять проверку хедера
 void ClassLoader::LoadHeader(ByteReader& r) {
     uint32_t magic = r.ReadU4();
-    if (magic != kMagicNumber)
+    if (magic != kMagicNumber) {
         throw ClassLoaderError("Header", "Invalid magic number");
+    }
 
     r.ReadU1(); // version major
     r.ReadU1(); // version minor
@@ -117,7 +117,30 @@ void ClassLoader::LoadConstantPool(ByteReader& r) {
     for (uint16_t i = 0; i < count; ++i) {
         Constant c;
         c.tag = static_cast<ConstantTag>(r.ReadU1());
-        c.str = r.ReadString();
+        switch (c.tag) {
+            case ConstantTag::U1:
+                c.data.push_back(r.ReadU1());
+                break;
+            case ConstantTag::U2:
+                c.data.push_back(r.ReadU1());
+                c.data.push_back(r.ReadU1());
+                break;
+            case ConstantTag::U4:
+                for (int i = 0; i < 4; i++) {
+                    c.data.push_back(r.ReadU1());
+                }
+                break;
+            case ConstantTag::STRING: {
+                std::string s = r.ReadString();
+                c.data = std::vector<uint8_t>(s.begin(), s.end());
+                break;
+            }
+            case ConstantTag::BOOL:
+                c.data.push_back(r.ReadU1());
+                break;
+            default:
+                throw ClassLoaderError("FileLoading", "Cannot determine the type of constant in constant pool");
+        }
         file_constants_.push_back(c);
         rda_.InternConstant(c);
     }
@@ -128,29 +151,31 @@ void ClassLoader::LoadClasses(ByteReader& r) {
 
     for (uint16_t i = 0; i < count; ++i) {
         auto* cls = rda_.Allocate<RuntimeClass>();
-        cls->name = r.ReadString();
+        cls->name_index = r.ReadU2();
 
-        uint16_t fields = r.ReadU2();
-        for (uint16_t f = 0; f < fields; ++f) {
+        uint16_t fields_count = r.ReadU2();
+        for (uint16_t f = 0; f < fields_count; ++f) {
             RuntimeField field;
-            field.name = r.ReadString();
-            field.type = r.ReadString();
+            field.name_index = r.ReadU2();
+            field.field_descriptor_index = r.ReadU2();
             cls->fields.push_back(field);
         }
 
-        uint16_t methods = r.ReadU2();
-        for (uint16_t m = 0; m < methods; ++m) {
+        uint16_t methods_count = r.ReadU2();
+        for (uint16_t m = 0; m < methods_count; ++m) {
             RuntimeMethod method;
-            method.name       = r.ReadString();
-            method.params     = r.ReadString();
-            method.returnType = r.ReadString();
-            method.maxStack   = r.ReadU2();
-            method.locals     = r.ReadU2();
+            method.name_index = r.ReadU2();
+            method.params_descriptor_index = r.ReadU2();
+            method.return_type_index = r.ReadU2();
 
-            uint16_t codeLen = r.ReadU2();
-            method.code.resize(codeLen);
-            for (uint16_t b = 0; b < codeLen; ++b)
+            method.max_stack = r.ReadU2();
+            method.locals_count = r.ReadU2();
+
+            uint16_t code_len = r.ReadU2();
+            method.code.resize(code_len);
+            for (uint16_t b = 0; b < code_len; ++b){
                 method.code[b] = r.ReadU1();
+            }
 
             cls->methods.push_back(method);
         }
@@ -165,15 +190,16 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
     for (uint16_t i = 0; i < count; ++i) {
         auto* fn = rda_.Allocate<RuntimeFunction>();
 
-        fn->name       = r.ReadString();
-        fn->params     = r.ReadString();
-        fn->returnType = r.ReadString();
-        fn->maxStack   = r.ReadU2();
-        fn->locals     = r.ReadU2();
+        fn->name_index = r.ReadU2();
+        fn->params_descriptor_index = r.ReadU2();
+        fn->return_type_index = r.ReadU2();
 
-        uint16_t codeLen = r.ReadU2();
-        fn->code.resize(codeLen);
-        for (uint16_t b = 0; b < codeLen; ++b)
+        fn->max_stack = r.ReadU2();
+        fn->locals_count = r.ReadU2();
+
+        uint16_t code_len = r.ReadU2();
+        fn->code.resize(code_len);
+        for (uint16_t b = 0; b < code_len; ++b)
             fn->code[b] = r.ReadU1();
 
         rda_.RegisterFunction(fn);
@@ -181,53 +207,64 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
 }
 
 void ClassLoader::Verify() {
-    VerifyClasses();
     VerifyFunctions();
+    VerifyClasses();
 }
 
 void ClassLoader::VerifyClasses() {
     for (auto& [name, cls] : rda_.Classes()) {
+        std::vector<uint8_t> class_name_raw = rda_.GetConstant(cls->name_index).data;
+        std::string class_name(class_name_raw.begin(), class_name_raw.end());
+        if (rda_.GetClass(class_name)) {
+            throw ClassLoaderError("Verification", "Duplicate class", class_name);
+        }
+
         std::unordered_map<std::string, bool> seen;
 
         for (auto& f : cls->fields) {
-            if (seen[f.name]) {
-                throw ClassLoaderError("Verification", "Duplicate field", cls->name);
+            std::vector<uint8_t> field_name_raw = rda_.GetConstant(f.name_index).data;
+            std::string field_name(field_name_raw.begin(), field_name_raw.end());
+            if (seen[field_name]) {
+                throw ClassLoaderError("Verification", "Duplicate field", field_name);
             }
-            seen[f.name] = true;
+            seen[field_name] = true;
         }
     }
 }
 
 void ClassLoader::VerifyFunctions() {
     for (auto& [name, fn] : rda_.Functions()) {
-        if (fn->maxStack == 0){
+        std::vector<uint8_t> functions_name_raw = rda_.GetConstant(fn->name_index).data;
+        std::string function_name(functions_name_raw.begin(), functions_name_raw.end());
+        if (rda_.GetClass(function_name)) {
+            throw ClassLoaderError("Verification", "Duplicate function", function_name);
+        }
+        
+        if (fn->max_stack == 0){
             throw ClassLoaderError("Verification", "max_stack == 0", name);
         }
     }
 }
 
-void ClassLoader::Link() {
-    PrepareLayouts();
-}
-
-void ClassLoader::PrepareLayouts() {
-    for (auto& [_, cls] : rda_.Classes()) {
-        uint16_t offset = 0;
-        for (auto& f : cls->fields) {
-            f.offset = offset++;
-        }
-    }
-}
+void ClassLoader::Link() {}
 
 void ClassLoader::ResolveEntryPoint() {
     auto it = rda_.Functions().find("Main");
-    if (it == rda_.Functions().end())
+    if (it == rda_.Functions().end()) {
         throw ClassLoaderError("EntryPoint", "Main not found");
+    }
 
     auto fn = it->second;
 
-    if (fn->returnType != "void" || fn->params != "")
+    std::vector<uint8_t> return_type_raw = rda_.GetConstant(fn->return_type_index).data;
+    std::string return_type(return_type_raw.begin(), return_type_raw.end());
+
+    std::vector<uint8_t> params_raw = rda_.GetConstant(fn->params_descriptor_index).data;
+    std::string params(params_raw.begin(), params_raw.end());
+
+    if (return_type != "void" || params != "") {
         throw ClassLoaderError("EntryPoint", "Invalid Main signature");
+    }
 
     entry_point_ = fn;
 }

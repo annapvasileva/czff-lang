@@ -22,7 +22,7 @@ public:
 
     RuntimeClass* GetClass(const std::string& name) const;
     RuntimeFunction* GetFunction(const std::string& name) const;
-    const Constant& GetConstant(uint32_t index) const;
+    const Constant& GetConstant(uint16_t index) const;
 
     const std::unordered_map<std::string, RuntimeClass*>& Classes() const;
     const std::unordered_map<std::string, RuntimeFunction*>& Functions() const;

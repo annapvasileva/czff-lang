@@ -61,8 +61,6 @@ private:
 
     void VerifyClasses();
     void VerifyFunctions();
-
-    void PrepareLayouts();
 };
 
 }  // namespace czffvm
