@@ -10,8 +10,8 @@ public class ConstantsHandler: Handler
         ConstantPool pool = source.ConstantPool;
         byte[] length = ByteConverter.IntToU2(pool.Length);
         
-        target.Add(length[1]);
         target.Add(length[0]);
+        target.Add(length[1]);
         
         IList<ConstantItem> items = pool.GetConstants();
         
