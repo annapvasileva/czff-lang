@@ -76,8 +76,8 @@ internal abstract class Program
         
         Ball ball = generator.Generate();;
         
-        var serializer = new Serializer(ball, target);
-        serializer.Serialize();
+        var serializer = new Serializer();
+        serializer.Serialize(ball, target);
     }
 }
 

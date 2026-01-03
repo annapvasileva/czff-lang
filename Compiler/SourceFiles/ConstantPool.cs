@@ -1,4 +1,6 @@
-﻿namespace Compiler.SourceFiles;
+﻿using System.Reflection.Metadata;
+
+namespace Compiler.SourceFiles;
 
 public class ConstantPool
 {
@@ -14,9 +16,9 @@ public class ConstantPool
         _mapping = new Dictionary<ConstantItem, int>();
     }
     
-    public ConstantPool(List<ConstantItem> pool)
+    public ConstantPool(IList<ConstantItem> pool)
     {
-        _pool = pool;
+        _pool = pool.ToList();
         _mapping = new Dictionary<ConstantItem, int>();
         for (int i = 0; i < _pool.Count; i++)
         {
@@ -49,5 +51,13 @@ public class ConstantPool
         {
             AddConstant(constant);
         }
+    }
+
+    public IList<ConstantItem> GetConstants()
+    {
+        var list = new List<ConstantItem>();
+        list.AddRange(_pool);
+        
+        return list;
     }
 }
