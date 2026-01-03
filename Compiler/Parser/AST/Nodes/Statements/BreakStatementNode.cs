@@ -4,6 +4,6 @@ public class BreakStatementNode : StatementNode
 {
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitBreakStatementNode(this);
+        visitor.Visit(this);
     }
 }

@@ -11,6 +11,6 @@ public class SimpleTypeNode : TypeAnnotationNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitSimpleTypeNode(this);
+        visitor.Visit(this);
     }
 }

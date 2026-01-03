@@ -19,6 +19,6 @@ public class VariableDeclarationNode : DeclarationNode
 
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitVariableDeclarationNode(this);
+        visitor.Visit(this);
     }
 }

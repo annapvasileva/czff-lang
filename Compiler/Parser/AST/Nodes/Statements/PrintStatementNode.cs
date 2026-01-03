@@ -13,6 +13,6 @@ public class PrintStatementNode : StatementNode
 
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitPrintStatementNode(this);
+        visitor.Visit(this);
     }
 }

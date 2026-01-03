@@ -13,6 +13,6 @@ public class FunctionParameterNode : AstNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitFunctionParameterNode(this);
+        visitor.Visit(this);
     }
 }

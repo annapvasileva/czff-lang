@@ -20,6 +20,6 @@ public class IfStatementNode : StatementNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitIfStatementNode(this);
+        visitor.Visit(this);
     }
 }

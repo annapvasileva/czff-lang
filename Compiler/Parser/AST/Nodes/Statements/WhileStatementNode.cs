@@ -15,6 +15,6 @@ public class WhileStatementNode : StatementNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitWhileStatementNode(this);
+        visitor.Visit(this);
     }
 }

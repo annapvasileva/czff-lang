@@ -13,6 +13,6 @@ public class ExpressionStatementNode : StatementNode
 
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitExpressionStatementNode(this);
+        visitor.Visit(this);
     }
 }

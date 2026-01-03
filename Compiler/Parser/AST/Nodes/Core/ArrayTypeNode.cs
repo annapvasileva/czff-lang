@@ -12,6 +12,6 @@ public class ArrayTypeNode : TypeAnnotationNode
 
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitArrayTypeNode(this);
+        visitor.Visit(this);
     }
 }

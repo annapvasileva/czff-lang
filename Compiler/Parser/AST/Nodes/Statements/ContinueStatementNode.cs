@@ -4,6 +4,6 @@ public class ContinueStatementNode : StatementNode
 {
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitContinueStatementNode(this);
+        visitor.Visit(this);
     }
 }

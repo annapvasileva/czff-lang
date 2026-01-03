@@ -18,6 +18,6 @@ public class AssignmentStatementNode : StatementNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitAssignmentStatementNode(this);
+        visitor.Visit(this);
     }
 }

@@ -13,6 +13,6 @@ public class FunctionCallExpressionNode : ExpressionNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitFunctionCallExpressionNode(this);
+        visitor.Visit(this);
     }
 }

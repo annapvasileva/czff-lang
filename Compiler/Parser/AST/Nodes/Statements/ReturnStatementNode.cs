@@ -13,6 +13,6 @@ public class ReturnStatementNode : StatementNode
 
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitReturnStatementNode(this);
+        visitor.Visit(this);
     }
 }

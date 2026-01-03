@@ -15,6 +15,6 @@ public class MemberAccessNode : ExpressionNode
     
     public override void Accept(INodeVisitor visitor)
     {
-        visitor.VisitMemberAccessNode(this);
+        visitor.Visit(this);
     }
 }
