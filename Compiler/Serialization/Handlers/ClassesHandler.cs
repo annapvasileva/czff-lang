@@ -73,7 +73,8 @@ public class ClassesHandler(IOperationVisitor visitor) : Handler
                     operation.Accept(_visitor);
                 }
             }
-
+            
+            Next?.Handle(source, target);
         }
     }
 }

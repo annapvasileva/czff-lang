@@ -2,7 +2,7 @@
 
 namespace Compiler.SourceFiles;
 
-public class Method
+public class Function
 {
     public int NameIndex { get; set; }
     

@@ -18,6 +18,7 @@ public class Serializer
         visitor = new SerializingVisitor(_buffer);
         _handlers = new HeaderHandler()
             .AddNextHandler(new ConstantsHandler())
+            .AddNextHandler(new FunctionsHandler(visitor))
             .AddNextHandler(new ClassesHandler(visitor));
     }
     

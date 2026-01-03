@@ -10,5 +10,5 @@ public class ClassItem
     
     public int MethodsLength => Methods.Count;
     
-    public List<Method> Methods { get; set; }
+    public List<Function> Methods { get; set; }
 }
