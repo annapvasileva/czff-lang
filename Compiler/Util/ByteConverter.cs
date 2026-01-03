@@ -5,7 +5,7 @@ public static class ByteConverter
     public static byte[] IntToU2(int value)
     {
         UInt16 value16 = (UInt16)value;
-        byte[] result = [(byte)(value16 / 8 % 8), (byte)(value16 % 8)];
+        byte[] result = [(byte)(value16 >> 8 % 256), (byte)(value16 % 256)];
 
         return result;
     }
