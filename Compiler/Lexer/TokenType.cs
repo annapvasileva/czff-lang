@@ -15,10 +15,11 @@ public enum TokenType
     Plus,
     Assign,
     
-    LeftRoundBracket, // (
-    RightRoundBracket, // )
-    LeftCurlyBracket, // {
-    RightCurlyBracket, // }
+    Semicolon,          // ;
+    LeftRoundBracket,   // (
+    RightRoundBracket,  // )
+    LeftCurlyBracket,   // {
+    RightCurlyBracket,  // }
     
     Eof,
 }

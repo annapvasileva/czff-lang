@@ -15,28 +15,64 @@ public class Lexer
     public Token GetNextToken()
     {
         SetCurrentChar();
-        while (CanSkip())
+        while (CanSkipWhitespaces() || CanSkipComments())
         {
-            SkipWhiteSpaces();
-            SkipComment();
+            if (CanSkipWhitespaces())
+                SkipWhiteSpaces();
+            if (CanSkipComments())
+                SkipComment();
         }
 
-        int startLine = cursor.Line;
-        int startColumn = cursor.Column;
-        if (_currentChar == '+') 
-            return CreateNewToken(TokenType.Plus, "+");
+        int startLine = cursor.Line + 1;
+        int startColumn = cursor.Column + 1;
+        if (_currentChar == '+')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.Plus, "+", startLine, startColumn);
+        }
+
         if (_currentChar == '=')
-            return CreateNewToken(TokenType.Assign, "=");
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.Assign, "=", startLine, startColumn);
+        }
+
+        if (_currentChar == ';')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.Semicolon, ";", startLine, startColumn);
+        }
+
         if (_currentChar == '(')
-            return CreateNewToken(TokenType.LeftRoundBracket, "(");
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.LeftRoundBracket, "(", startLine, startColumn);
+        }
+
         if (_currentChar == ')')
-            return CreateNewToken(TokenType.RightRoundBracket, ")");
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.RightRoundBracket, ")", startLine, startColumn);
+        }
+
         if (_currentChar == '{')
-            return CreateNewToken(TokenType.LeftCurlyBracket, "{");
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.LeftCurlyBracket, "{", startLine, startColumn);
+        }
+
         if (_currentChar == '}')
-            return CreateNewToken(TokenType.RightCurlyBracket, "}");
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.RightCurlyBracket, "}", startLine, startColumn);
+        }
+
         if (_currentChar == '\0')
+        {
+            cursor.MoveNewLine();
             return CreateNewToken(TokenType.Eof, "\0");
+        }
+
         if (char.IsLetter(_currentChar) || _currentChar == '_')
         {
             string word = ReadWord();
@@ -54,12 +90,18 @@ public class Lexer
             return CreateNewToken(TokenType.IntegerLiteral, number, startLine, startColumn);
         }
         
-        throw new Exception($"Unexpected character: {_currentChar} on position {startColumn+1}:{startColumn+1}");
+        throw new LexerException($"Unexpected character: {_currentChar}", startLine + 1, startColumn + 1);
     }
     
     public IEnumerable<Token> GetTokens()
     {
-        yield return GetNextToken();
+        Token token;
+        do
+        {
+            token = GetNextToken();
+            yield return token;
+        } 
+        while (token.Kind != TokenType.Eof);
     }
 
     private void SetCurrentChar()
@@ -86,9 +128,9 @@ public class Lexer
 
     private void SkipWhiteSpaces()
     {
-        while (_currentChar == ' ' || _currentChar == '\t' || _currentChar == '\n')
+        while (CanSkipWhitespaces())
         {
-            if (_currentChar == ' ' || _currentChar == '\t')
+            if (_currentChar == ' ' || _currentChar == '\r' || _currentChar == '\t')
             {
                 cursor.MoveNext();
             }
@@ -103,14 +145,21 @@ public class Lexer
 
     private void SkipComment()
     {
+        int startLine = cursor.Line + 1;
+        int startColumn = cursor.Column + 1;
         if (_currentChar == '/')
         {
-            while (_source[cursor.Position] != '\n')
+            while (!(_currentChar == '\n' || _currentChar == '\0'))
             {
                 cursor.MoveNext();
+                SetCurrentChar();
             }
-            cursor.MoveNewLine();
-            SetCurrentChar();
+
+            if (_currentChar == '\n')
+            {
+                cursor.MoveNewLine();
+                SetCurrentChar();
+            }
         }
         else
         {
@@ -131,19 +180,29 @@ public class Lexer
                 nextChar = Peek();
             }
 
+            if (nextChar == '\0')
+            {
+                throw new LexerException($"Unclosed comment", startLine, startColumn);
+            }
+
             cursor.MoveNext();
             cursor.MoveNext();
             SetCurrentChar();
         }
     }
 
-    private bool CanSkip()
+    private bool CanSkipWhitespaces()
     {
-        char nextChar = Peek();
         return _currentChar == '\n' ||
                _currentChar == '\t' ||
-               _currentChar == ' ' ||
-               _currentChar == '/' && nextChar == '/' ||
+               _currentChar == '\r' ||
+               _currentChar == ' ';
+    }
+    
+    private bool CanSkipComments()
+    {
+        char nextChar = Peek();
+        return _currentChar == '/' && nextChar == '/' ||
                _currentChar == '=' && nextChar == '/';
     }
 
@@ -185,7 +244,7 @@ public class Lexer
                 return TokenType.Func;
             case "print":
                 return TokenType.Print;
-            case "integer":
+            case "int":
                 return TokenType.Integer;
         }
 
