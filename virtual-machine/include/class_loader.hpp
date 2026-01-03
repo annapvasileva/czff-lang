@@ -50,17 +50,12 @@ private:
     std::vector<Constant> file_constants_;
 
     void LoadFile(const std::string& path);
-    void Verify();
-    void Link();
     void ResolveEntryPoint();
 
     void LoadHeader(ByteReader& reader);
     void LoadConstantPool(ByteReader& reader);
     void LoadClasses(ByteReader& reader);
     void LoadFunctions(ByteReader& reader);
-
-    void VerifyClasses();
-    void VerifyFunctions();
 };
 
 }  // namespace czffvm
