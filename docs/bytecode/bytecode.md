@@ -16,14 +16,28 @@
 2. **Constants pool** includes:
     1. **Length** of pool — uint_16, shorted to $n$
     2. **Array of elemnts** in view: (tag, data) — tag, 1 byte; data, $x$ bytes 
-    
+
+3. **Functions pool** includes"
+    1. **Functions length**, uint_16
+    2. **Functions**    
+
 >[!IMPORTANT]
 >All constants are stored here. In [Types](#types) section will be mentioned types for data, everything excluding *length* is stored here. 
-3. **Classes pool** includes:
+4. **Classes pool** includes:
     1. **Classes length**, uint_16
     2. **Classes**, class[x]
 
 ## Types
+
+### Function
+Function is a sequence of commands that is executed when called using parameters. The function returns a value.
+1. **Name**, string
+2. **Parameters**, string descriptor
+3. **Return type link**, string descriptor
+4. **Max stack used**, uint_16 *(Optimization, not for MVP)*
+5. **Locals length**, uint_16 *(Optimization, not for MVP)*
+6. **Code length**, uint_16
+7. **Code**, op_code[]
 
 ### Class
 1. **Name**, string
@@ -44,8 +58,8 @@ Method is a function inside a class, all methods are public
 1. **Name**, string
 2. **Parameters**, string descriptor
 3. **Return type link**, string descriptor
-4. **Max stack used**, uint_16
-5. **Locals length**, uint_16 
+4. **Max stack used**, uint_16 *(Optimization, not for MVP)*
+5. **Locals length**, uint_16 *(Optimization, not for MVP)*
 6. **Code length**, uint_16
 7. **Code**, op_code[]
 
@@ -69,4 +83,13 @@ Tags list:
 To do
 
 ## Operation Codes List
-To do
+
+- `ldc` — `0x01 + u2` constant index
+- `dup` — `0x02`
+- `swap` — `0x03`
+- `store` — `0x04 + u2` variable index
+- `ldv` — `0x05 + u2` variable index
+- `add` — `0x06`
+- `print` — `0x07`
+- `halt` — `0x08`
+- W.I.P.
