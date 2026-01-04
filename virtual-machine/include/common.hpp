@@ -6,13 +6,33 @@
 #include <unordered_map>
 
 namespace czffvm {
+enum class OperationCode : uint16_t {
+    LDC = 0x01,
+    DUP = 0x02,
+    SWAP = 0x03,
+    STORE = 0x04,
+    LDV = 0x05,
+    ADD = 0x06,
+    PRINT = 0x07,
+    HALT = 0x08,
+};
+
+struct Operation {
+    OperationCode code;
+    std::vector<uint8_t> arguments;
+};
+
 enum class ConstantTag : uint8_t {
-    U1 = 0x1,
-    U2 = 0x2,
-    U4 = 0x3,
-    I4 = 0x4,
-    STRING = 0x5,
-    BOOL = 0x6,
+    U1 = 0x01,
+    U2 = 0x02,
+    U4 = 0x03,
+    I4 = 0x04,
+    STRING = 0x05,
+    U8 = 0x06,
+    I8 = 0x07,
+    U16 = 0x08,
+    I16 = 0x09,
+    BOOL = 0x0A,
 };
 
 struct Constant {
@@ -32,7 +52,7 @@ struct RuntimeMethod {
 
     uint16_t max_stack;
     uint16_t locals_count;
-    std::vector<uint8_t> code;
+    std::vector<Operation> code;
 };
 
 struct RuntimeClass {
@@ -48,6 +68,6 @@ struct RuntimeFunction {
 
     uint16_t max_stack;
     uint16_t locals_count;
-    std::vector<uint8_t> code;
+    std::vector<Operation> code;
 };
 }

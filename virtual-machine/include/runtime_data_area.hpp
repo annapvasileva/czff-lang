@@ -26,6 +26,7 @@ public:
 
     const std::unordered_map<std::string, RuntimeClass*>& Classes() const;
     const std::unordered_map<std::string, RuntimeFunction*>& Functions() const;
+    const std::vector<Constant>& Constants() const;
 
 private:
     std::vector<std::unique_ptr<RuntimeClass>> classes_;
