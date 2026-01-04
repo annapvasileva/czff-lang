@@ -1,5 +1,4 @@
 ﻿using Compiler.Lexer;
-using CompilerLexer = Compiler.Lexer.Lexer;
 
 namespace Compiler.Tests;
 
@@ -74,7 +73,7 @@ public class LexerTests
                         =/
                         Our first simple program on CZFF 
                         /=
-                        func int Main() {
+                        func void Main() {
                             var int a = 2;
                             var int b = 3;
                             var int res = a + b;
@@ -84,11 +83,11 @@ public class LexerTests
         var expected = new List<Token>()
         {
             new (TokenType.Func, "func", 4, 1),
-            new (TokenType.Integer, "int", 4, 6),
-            new (TokenType.Identifier, "Main", 4, 10),
-            new (TokenType.LeftRoundBracket, "(", 4, 14),
-            new (TokenType.RightRoundBracket, ")", 4, 15),
-            new (TokenType.LeftCurlyBracket, "{", 4, 17),
+            new (TokenType.Void, "void", 4, 6),
+            new (TokenType.Identifier, "Main", 4, 11),
+            new (TokenType.LeftRoundBracket, "(", 4, 15),
+            new (TokenType.RightRoundBracket, ")", 4, 16),
+            new (TokenType.LeftCurlyBracket, "{", 4, 18),
             
             new (TokenType.Var, "var", 5, 5),
             new (TokenType.Integer, "int", 5, 9),
