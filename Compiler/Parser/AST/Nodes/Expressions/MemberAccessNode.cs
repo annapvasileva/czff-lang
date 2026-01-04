@@ -1,13 +1,11 @@
-using Compiler.Parser.AST.Nodes.Core;
-
 namespace Compiler.Parser.AST.Nodes.Expressions;
 
 public class MemberAccessNode : ExpressionNode
 {
     public ExpressionNode Expression { get; }
-    public IdentifierNode Member { get; }
+    public string Member { get; }
 
-    public MemberAccessNode(ExpressionNode expression, IdentifierNode member)
+    public MemberAccessNode(ExpressionNode expression, string member)
     {
         Expression = expression;
         Member = member;

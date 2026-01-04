@@ -246,6 +246,8 @@ public class Lexer
                 return TokenType.Print;
             case "int":
                 return TokenType.Integer;
+            case "void":
+                return TokenType.Void;
         }
 
         return null;

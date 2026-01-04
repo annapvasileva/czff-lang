@@ -4,17 +4,16 @@ namespace Compiler.Parser.AST.Nodes.Statements;
 
 public class FunctionDeclarationNode : DeclarationNode
 {
-    // где будет void?
     public TypeAnnotationNode ReturnType { get; }
-    public IdentifierNode Identifier { get; }
+    public string Name { get; }
     public IList<FunctionParameterNode> Parameters { get; }
     public BlockNode Body { get; }
 
-    public FunctionDeclarationNode(TypeAnnotationNode returnType, IdentifierNode identifier,
+    public FunctionDeclarationNode(TypeAnnotationNode returnType, string name,
         IList<FunctionParameterNode> parameters, BlockNode body)
     {
         ReturnType = returnType;
-        Identifier = identifier;
+        Name = name;
         Parameters = parameters;
         Body = body;
     }

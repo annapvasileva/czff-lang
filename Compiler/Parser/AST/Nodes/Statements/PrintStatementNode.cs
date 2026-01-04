@@ -4,11 +4,11 @@ namespace Compiler.Parser.AST.Nodes.Statements;
 
 public class PrintStatementNode : StatementNode
 {
-    public IList<ExpressionNode> Expressions { get; }
+    public ExpressionNode Expression { get; }
 
-    public PrintStatementNode(IList<ExpressionNode> expressions)
+    public PrintStatementNode(ExpressionNode expression)
     {
-        Expressions = expressions;
+        Expression = expression;
     }
 
     public override void Accept(INodeVisitor visitor)
