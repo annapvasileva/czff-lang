@@ -29,4 +29,12 @@ public class Serializer
         
         File.WriteAllBytes(target, _buffer.ToArray());
     }
+
+    public byte[] SerializeToArray(Ball source)
+    {
+        _buffer.Clear();
+        _handlers.Handle(source, _buffer);
+
+        return _buffer.ToArray();
+    }
 }
