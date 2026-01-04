@@ -1,4 +1,7 @@
-.idea
+virtual-machine/build*
+.vscode/
+.idea/
+*.ball
 obj/
 bin/
 *.user
