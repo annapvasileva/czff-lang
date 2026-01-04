@@ -130,7 +130,7 @@ The high-level algorithm for each cycle:
 
 3. **Execute** instruction:
 
-    See operations' descriptions in [Bytecode Generation](../../bytecode/bytecode_generator.md#bytecode-generator) section.
+    See operations' descriptions in [Bytecode](../../bytecode/bytecode.md#operation-codes-list) section.
 
 4. **Update PC**
 
