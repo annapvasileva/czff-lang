@@ -17,8 +17,8 @@ public class TestContext : IDisposable
             new ConstantItem(5,"Main"),
             new ConstantItem(5, ""),
             new ConstantItem(5, "void"),
-            new ConstantItem(4, [2]),
-            new ConstantItem(4, [3]),
+            new ConstantItem(4, [0,0,0,2]),
+            new ConstantItem(4, [0,0,0,3]),
         };
         
         Operations =
@@ -109,11 +109,11 @@ public class MVPSerializerTests: IClassFixture<TestContext>
         // new ConstantItem(5, "void"),
         // new ConstantItem(4, [2]),
         // new ConstantItem(4, [3]),
-        expected.Add(0x5); expected.Add(0x0); expected.Add(0x4); expected.AddRange(Encoding.UTF8.GetBytes("Main"));
-        expected.Add(0x5); expected.Add(0x0); expected.Add(0x0); expected.AddRange(Encoding.UTF8.GetBytes(""));
-        expected.Add(0x5); expected.Add(0x0); expected.Add(0x4); expected.AddRange(Encoding.UTF8.GetBytes("void"));
-        expected.Add(0x4); expected.Add(2);
-        expected.Add(0x4); expected.Add(3);
+        expected.AddRange([0x5, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("Main"));
+        expected.AddRange([0x5, 0x0, 0x0]); expected.AddRange(Encoding.UTF8.GetBytes(""));
+        expected.AddRange([0x5, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("void"));
+        expected.Add(0x4); expected.AddRange([0,0,0,2]);
+        expected.Add(0x4); expected.AddRange([0,0,0,3]);
 
         // Functions pool length (1)
         expected.AddRange(ByteConverter.IntToU2(1));
@@ -180,5 +180,4 @@ public class MVPSerializerTests: IClassFixture<TestContext>
             File.Delete(tempFile);
         }
     }
-
 }
