@@ -42,7 +42,7 @@ public class OneLexemeTestData : IEnumerable<object[]>
             "void", 
             new Token(TokenType.Void, "void", 1, 1) 
         };
-        
+
         yield return new object[] 
         { 
             "12389128432241", 
