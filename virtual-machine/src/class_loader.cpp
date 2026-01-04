@@ -47,6 +47,17 @@ uint32_t ByteReader::ReadU4() {
 
 std::string ByteReader::ReadString() {
     uint16_t len = ReadU2();
+
+    if (offset_ + len > data_.size()) {
+        throw ClassLoaderError(
+            "ByteReader",
+            "Unexpected end of input while reading string",
+            "offset=" + std::to_string(offset_) +
+            ", len=" + std::to_string(len) +
+            ", size=" + std::to_string(data_.size())
+        );
+    }
+
     std::string s(reinterpret_cast<const char*>(&data_[offset_]), len);
     offset_ += len;
 
