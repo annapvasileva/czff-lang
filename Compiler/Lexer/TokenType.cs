@@ -8,7 +8,7 @@ public enum TokenType
     Print,
     
     Integer,
-    // void
+    Void,
     
     IntegerLiteral,
     
