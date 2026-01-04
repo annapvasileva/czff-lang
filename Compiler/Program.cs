@@ -28,7 +28,7 @@ internal abstract class Program
         string source = "";
         string? target = null;
         
-        Parser.Default.ParseArguments<Options>(args)
+        CommandLine.Parser.Default.ParseArguments<Options>(args)
             .WithParsed(options =>
             {
                 source = options.Source;

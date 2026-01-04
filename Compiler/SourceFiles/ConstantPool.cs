@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata;
-
-namespace Compiler.SourceFiles;
+﻿namespace Compiler.SourceFiles;
 
 public class ConstantPool
 {
