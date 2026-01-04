@@ -6,14 +6,14 @@ public class BinaryExpressionNode : ExpressionNode
     
     public ExpressionNode RightExpression { get; }
     
-    public BinaryOperator BinaryOperator { get; }
+    public BinaryOperatorType BinaryOperatorType { get; }
 
     public BinaryExpressionNode(ExpressionNode leftExpression, ExpressionNode rightExpression,
-        BinaryOperator binaryOperator)
+        BinaryOperatorType binaryOperatorType)
     {
         LeftExpression = leftExpression;
         RightExpression = rightExpression;
-        BinaryOperator = binaryOperator;
+        BinaryOperatorType = binaryOperatorType;
     }
     
     public override void Accept(INodeVisitor visitor)

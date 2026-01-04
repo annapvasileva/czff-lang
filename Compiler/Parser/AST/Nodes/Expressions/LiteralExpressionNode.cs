@@ -1,12 +1,12 @@
-namespace Compiler.Parser.AST.Nodes.Core;
+namespace Compiler.Parser.AST.Nodes.Expressions;
 
-public class LiteralNode : AstNode
+public class LiteralExpressionNode : ExpressionNode
 {
     public string Value { get; }
     
     public LiteralType Type { get; }
 
-    public LiteralNode(string value, LiteralType type)
+    public LiteralExpressionNode(string value, LiteralType type)
     {
         Value = value;
         Type = type;

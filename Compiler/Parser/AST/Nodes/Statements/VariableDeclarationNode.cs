@@ -6,14 +6,20 @@ namespace Compiler.Parser.AST.Nodes.Statements;
 public class VariableDeclarationNode : DeclarationNode
 {
     public TypeAnnotationNode Type { get; }
-    public IdentifierNode Identifier { get; }
+    public string Name { get; }
     public ExpressionNode? Expression { get; }
+    
+    public VariableDeclarationNode(TypeAnnotationNode type, string name)
+    {
+        Type = type;
+        Name = name;
+    }
 
-    public VariableDeclarationNode(TypeAnnotationNode type, IdentifierNode identifier,
+    public VariableDeclarationNode(TypeAnnotationNode type, string name,
         ExpressionNode expression)
     {
         Type = type;
-        Identifier = identifier;
+        Name = name;
         Expression = expression;
     }
 

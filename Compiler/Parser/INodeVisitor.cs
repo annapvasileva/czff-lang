@@ -7,8 +7,8 @@ namespace Compiler.Parser;
 
 public interface INodeVisitor
 {
-    void Visit(LiteralNode literalNode);
-    void Visit(IdentifierNode identifierNode);
+    void Visit(LiteralExpressionNode literalExpressionNode);
+    void Visit(IdentifierExpressionNode identifierExpressionNode);
     void Visit(SimpleTypeNode simpleTypeNode);
     void Visit(ArrayTypeNode arrayTypeNode);
     void Visit(BinaryExpressionNode binaryExpressionNode);
@@ -31,4 +31,5 @@ public interface INodeVisitor
     void Visit(WhileStatementNode whileStatementNode);
     void Visit(ForStatementNode forStatementNode);
     void Visit(PrintStatementNode printStatementNode);
+    void Visit(ProgramNode programNode);
 }

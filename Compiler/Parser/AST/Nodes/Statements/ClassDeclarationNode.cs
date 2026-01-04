@@ -1,18 +1,16 @@
-using Compiler.Parser.AST.Nodes.Core;
-
 namespace Compiler.Parser.AST.Nodes.Statements;
 
 public class ClassDeclarationNode : DeclarationNode
 {
-    public IdentifierNode Identifier { get; }
+    public string Name { get; }
     // think about class, methods, fields tables
     public IList<VariableDeclarationNode> Fields { get; }
     public IList<FunctionDeclarationNode> Methods { get; }
 
-    public ClassDeclarationNode(IdentifierNode identifier, IList<VariableDeclarationNode> fields,
+    public ClassDeclarationNode(string name, IList<VariableDeclarationNode> fields,
         IList<FunctionDeclarationNode> methods)
     {
-        Identifier = identifier;
+        Name = name;
         Fields = fields;
         Methods = methods;
     }

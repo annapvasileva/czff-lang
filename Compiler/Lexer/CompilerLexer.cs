@@ -1,13 +1,13 @@
 namespace Compiler.Lexer;
 
-public class Lexer
+public class CompilerLexer
 {
     private readonly string _source;
 
     private Cursor cursor = new Cursor();
     private char _currentChar;
 
-    public Lexer(string source)
+    public CompilerLexer(string source)
     {
         _source = source;
     }
@@ -246,6 +246,8 @@ public class Lexer
                 return TokenType.Print;
             case "int":
                 return TokenType.Integer;
+            case "void":
+                return TokenType.Void;
         }
 
         return null;
