@@ -18,7 +18,7 @@
     2. **Array of elemnts** in view: (tag, data) — tag, 1 byte; data, $x$ bytes 
 
 >[!IMPORTANT]
->All constants are stored here. In [Types](#types) section will be mentioned types for data, but constants for *Name*, *descriptors*, everything stored in *uint_16* as **index of constant**. For axmaple `Name, string` means that *uint_16*, staying in this position is the index of constant for *Name* with type *string*. `Max stack used, uint_16` means, that *uint_16*
+>All constants are stored here. In [Types](#types) section will be mentioned types for data, but constants for *Name*, *descriptors*, everything stored in *uint_16* as **index of constant**. For axmaple `Name, string` means that *uint_16*, staying in this position, is the index of constant for *Name* with type *string*. `Max stack used, uint_16` *uint_16* of length of max stack, **it isn't** constant in code. 
 
 3. **Functions pool** includes"
     1. **Functions length**, uint_16
@@ -77,6 +77,7 @@ Tags list:
 - `i8` — `0x07` — 8 bytes of int
 - `u16` — `0x08` — 16 bytes of int
 - `i16` — `0x09` — 16 bytes of int
+- `b` — `0x0A` — 1 byte of bool
 - W.I.P.
 
 ### Operation Codes
