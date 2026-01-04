@@ -13,13 +13,24 @@ enable_testing()
 
 add_executable(
     tests
-    class_loader_tests.cpp
-    vm_tests.cpp
-    byte_reader_tests.cpp
+    src/class_loader_tests.cpp
+    src/vm_tests.cpp
+    src/byte_reader_tests.cpp
+)
+
+add_library(
+    test_lib
+    src/class_loader_test_util.cpp
+)
+
+target_include_directories(test_lib
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/tests/include
 )
 
 target_link_libraries(
     tests
+    test_lib
     czff_virtual_machine_lib
     czff_garbage_collector
     GTest::gtest_main

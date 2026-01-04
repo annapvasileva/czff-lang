@@ -69,4 +69,8 @@ const std::unordered_map<std::string, RuntimeFunction*>& RuntimeDataArea::Functi
     return function_table_;
 }
 
+const std::vector<Constant>& RuntimeDataArea::Constants() const {
+    return constant_pool_;
+}
+
 }  // namespace czffvm

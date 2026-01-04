@@ -139,11 +139,36 @@ void ClassLoader::LoadConstantPool(ByteReader& r) {
                     c.data.push_back(r.ReadU1());
                 }
                 break;
+            case ConstantTag::I4:
+                for (int i = 0; i < 4; i++) {
+                    c.data.push_back(r.ReadU1());
+                }
+                break;
             case ConstantTag::STRING: {
                 std::string s = r.ReadString();
                 c.data = std::vector<uint8_t>(s.begin(), s.end());
                 break;
             }
+            case ConstantTag::U8:
+                for (int i = 0; i < 8; i++) {
+                    c.data.push_back(r.ReadU1());
+                }
+                break;
+            case ConstantTag::I8:
+                for (int i = 0; i < 8; i++) {
+                    c.data.push_back(r.ReadU1());
+                }
+                break;
+            case ConstantTag::U16:
+                for (int i = 0; i < 16; i++) {
+                    c.data.push_back(r.ReadU1());
+                }
+                break;
+            case ConstantTag::I16:
+                for (int i = 0; i < 16; i++) {
+                    c.data.push_back(r.ReadU1());
+                }
+                break;
             case ConstantTag::BOOL:
                 c.data.push_back(r.ReadU1());
                 break;
@@ -182,8 +207,34 @@ void ClassLoader::LoadClasses(ByteReader& r) {
 
             uint16_t code_len = r.ReadU2();
             method.code.resize(code_len);
-            for (uint16_t b = 0; b < code_len; ++b){
-                method.code[b] = r.ReadU1();
+            for (uint16_t b = 0; b < code_len; ++b) {
+                Operation op;
+                op.code = static_cast<OperationCode>(r.ReadU2());
+                switch (op.code) {
+                    case OperationCode::DUP:
+                        break;
+                    case OperationCode::SWAP:
+                        break;
+                    case OperationCode::ADD:
+                        break;
+                    case OperationCode::PRINT:
+                        break;
+                    case OperationCode::HALT:
+                        break;
+                    case OperationCode::LDC:
+                        op.arguments.push_back(r.ReadU1());
+                        op.arguments.push_back(r.ReadU1());
+                        break;
+                    case OperationCode::STORE:
+                        op.arguments.push_back(r.ReadU1());
+                        op.arguments.push_back(r.ReadU1());
+                        break;
+                    case OperationCode::LDV:
+                        op.arguments.push_back(r.ReadU1());
+                        op.arguments.push_back(r.ReadU1());
+                        break;
+                }
+                method.code[b] = op;
             }
 
             cls->methods.push_back(method);
@@ -208,8 +259,35 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
 
         uint16_t code_len = r.ReadU2();
         fn->code.resize(code_len);
-        for (uint16_t b = 0; b < code_len; ++b)
-            fn->code[b] = r.ReadU1();
+        for (uint16_t b = 0; b < code_len; ++b) {
+            Operation op;
+            op.code = static_cast<OperationCode>(r.ReadU2());
+            switch (op.code) {
+                case OperationCode::DUP:
+                    break;
+                case OperationCode::SWAP:
+                    break;
+                case OperationCode::ADD:
+                    break;
+                case OperationCode::PRINT:
+                    break;
+                case OperationCode::HALT:
+                    break;
+                case OperationCode::LDC:
+                    op.arguments.push_back(r.ReadU1());
+                    op.arguments.push_back(r.ReadU1());
+                    break;
+                case OperationCode::STORE:
+                    op.arguments.push_back(r.ReadU1());
+                    op.arguments.push_back(r.ReadU1());
+                    break;
+                case OperationCode::LDV:
+                    op.arguments.push_back(r.ReadU1());
+                    op.arguments.push_back(r.ReadU1());
+                    break;
+            }
+            fn->code[b] = op;
+        }
 
         rda_.RegisterFunction(fn);
     }

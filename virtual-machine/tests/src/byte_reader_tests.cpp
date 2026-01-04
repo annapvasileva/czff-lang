@@ -90,7 +90,7 @@ TEST(ByteReaderTestSuite, ReadStringOutOfBoundsThrows) {
 
     czffvm::ByteReader reader(data);
 
-    EXPECT_THROW(reader.ReadString(), std::out_of_range);
+    EXPECT_THROW(reader.ReadString(), czffvm::ClassLoaderError);
 }
 
 TEST(ByteReaderTestSuite, EofInitiallyFalse) {

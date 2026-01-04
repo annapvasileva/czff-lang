@@ -1,3 +1,4 @@
 virtual-machine/build*
 .vscode/
 .idea/
+*.ball
