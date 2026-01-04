@@ -77,6 +77,59 @@ TEST(ClassLoaderTestSuite, InvalidMainSignatureThrows) {
     EXPECT_THROW(loader.LoadProgram(tmp.path), ClassLoaderError);
 }
 
+TEST(ClassLoaderIntegrationTestSuite, ConstantPoolIsCorrect) {
+    RuntimeDataArea rda;
+    ClassLoader loader(rda);
+
+    ASSERT_NO_THROW(loader.LoadProgram("FirstProgram.ball"));
+
+    const auto& constants = rda.Constants();
+    ASSERT_GE(constants.size(), 5u);
+
+    // 0: "Main"
+    {
+        const auto& c = constants[0];
+        EXPECT_EQ(c.tag, ConstantTag::STRING);
+        std::string s(c.data.begin(), c.data.end());
+        EXPECT_EQ(s, "Main");
+    }
+
+    // 1: ""
+    {
+        const auto& c = constants[1];
+        EXPECT_EQ(c.tag, ConstantTag::STRING);
+        std::string s(c.data.begin(), c.data.end());
+        EXPECT_EQ(s, "");
+    }
+
+    // 2: "void"
+    {
+        const auto& c = constants[2];
+        EXPECT_EQ(c.tag, ConstantTag::STRING);
+        std::string s(c.data.begin(), c.data.end());
+        EXPECT_EQ(s, "void");
+    }
+
+    // 3: 2
+    {
+        const auto& c = constants[3];
+        EXPECT_EQ(c.tag, ConstantTag::I4);
+        ASSERT_EQ(c.data.size(), 4u);
+        uint32_t val = (c.data[0] << 24) | (c.data[1] << 16) | (c.data[2] << 8) | c.data[3];
+        EXPECT_EQ(val, 2u);
+    }
+
+    // 4: 3
+    {
+        const auto& c = constants[4];
+        EXPECT_EQ(c.tag, ConstantTag::I4);
+        ASSERT_EQ(c.data.size(), 4u);
+        uint32_t val = (c.data[0] << 24) | (c.data[1] << 16) | (c.data[2] << 8) | c.data[3];
+        EXPECT_EQ(val, 3u);
+    }
+}
+
+
 TEST(ClassLoaderIntegrationTestSuite, LoadsFirstProgramBall) {
     RuntimeDataArea rda;
     ClassLoader loader(rda);
@@ -105,4 +158,49 @@ TEST(ClassLoaderIntegrationTestSuite, LoadsFirstProgramBall) {
 
     EXPECT_FALSE(entry->code.empty());
 }
+
+TEST(ClassLoaderIntegrationTestSuite, MainFunctionOperations) {
+    RuntimeDataArea rda;
+    ClassLoader loader(rda);
+
+    ASSERT_NO_THROW(loader.LoadProgram("FirstProgram.ball"));
+
+    RuntimeFunction* entry = loader.EntryPoint();
+    ASSERT_NE(entry, nullptr);
+
+    struct ExpectedOp {
+        OperationCode code;
+        std::vector<uint8_t> args;
+    };
+
+    std::vector<ExpectedOp> expected = {
+        {OperationCode::LDC,   {0x00, 0x03}},
+        {OperationCode::STORE, {0x00, 0x00}},
+        {OperationCode::LDC,   {0x00, 0x04}},
+        {OperationCode::STORE, {0x00, 0x01}},
+        {OperationCode::LDV,   {0x00, 0x00}},
+        {OperationCode::LDV,   {0x00, 0x01}},
+        {OperationCode::ADD,   {}},
+        {OperationCode::STORE, {0x00, 0x02}},
+        {OperationCode::LDV,   {0x00, 0x02}},
+        {OperationCode::PRINT, {}},
+        {OperationCode::HALT,  {}},
+    };
+
+    ASSERT_EQ(entry->code.size(), expected.size());
+
+    for (size_t i = 0; i < expected.size(); ++i) {
+        const auto& got = entry->code[i];
+        const auto& exp = expected[i];
+
+        EXPECT_EQ(got.code, exp.code) << "Operation #" << i << " has wrong opcode";
+
+        EXPECT_EQ(got.arguments.size(), exp.args.size()) << "Operation #" << i << " has wrong arguments size";
+
+        for (size_t j = 0; j < exp.args.size(); ++j) {
+            EXPECT_EQ(got.arguments[j], exp.args[j]) << "Operation #" << i << " argument #" << j << " mismatch";
+        }
+    }
+}
+
 
