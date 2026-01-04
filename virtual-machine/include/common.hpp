@@ -1,9 +1,11 @@
 #pragma once
 
+#include <stdexcept>
 #include <cstdint>
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <variant>
 
 namespace czffvm {
 enum class OperationCode : uint16_t {
@@ -70,4 +72,17 @@ struct RuntimeFunction {
     uint16_t locals_count;
     std::vector<Operation> code;
 };
+
+using Value = std::variant<
+    uint8_t,        // U1
+    uint16_t,       // U2
+    uint32_t,       // U4
+    int32_t,        // I4
+    std::string,    // STRING
+    uint64_t,       // U8
+    int64_t,        // I8
+    bool            // BOOL
+>;
+
+Value ConstantToValue(const Constant& c);
 }

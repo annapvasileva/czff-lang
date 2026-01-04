@@ -19,7 +19,7 @@ add_library(czff_virtual_machine_lib
     src/virtual_machine.cpp
     src/interpreter.cpp
     src/class_loader.cpp
-
+    src/common.cpp
     src/call_frame.cpp
     src/runtime_data_area.cpp
     src/heap_data_area.cpp
