@@ -13,7 +13,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ===== Options =====
 option(CZFF_ENABLE_WARNINGS "Enable compiler warnings" ON)
-option(CZFF_ENABLE_SANITIZERS "Enable sanitizers (debug only)" ON)
 
 # ===== Library =====
 add_library(czff_virtual_machine_lib
@@ -40,15 +39,6 @@ if (CZFF_ENABLE_WARNINGS)
         target_compile_options(czff_virtual_machine_lib PRIVATE -Wall -Wextra -Wpedantic)
     endif()
 endif()
-
-# ===== Sanitizers (Debug only) =====
-if (CZFF_ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if (NOT MSVC)
-        target_compile_options(czff_virtual_machine_lib PRIVATE -fsanitize=address,undefined)
-        target_link_options(czff_virtual_machine_lib PRIVATE -fsanitize=address,undefined)
-    endif()
-endif()
-
 
 # ===== JIT compiler architecture detection =====
 set(CZFF_JIT_ARCH "auto"
@@ -133,3 +123,7 @@ target_link_libraries(czffvm
         czff_virtual_machine_lib
         czff_garbage_collector
 )
+
+# ===== Tests =====
+enable_testing()
+add_subdirectory(tests)
