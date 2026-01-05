@@ -1,0 +1,47 @@
+using System.Text.Json.Serialization;
+
+namespace Compiler.SemanticAnalysis.Models;
+
+public class SymbolTable
+{
+    // private Dictionary<string, Symbol> _symbols = new();
+    // private List<SymbolTable> _children = new();
+    [JsonPropertyName("symbols")]
+    public Dictionary<string, Symbol> Symbols { get; private set; } = new();
+
+    [JsonPropertyName("children")]
+    public List<SymbolTable> Children { get; private set; } = new();
+
+    [JsonIgnore]
+    public SymbolTable? Parent { get; }
+    // public List<SymbolTable> Children => _children;
+
+    public SymbolTable(SymbolTable? parent)
+    {
+        Parent = parent;
+        if (parent != null)
+        {
+            parent.Children.Add(this);
+        }
+    }
+
+    public bool Declare(Symbol symbol)
+    {
+        if (Symbols.ContainsKey(symbol.Name))
+            return false;
+
+        Symbols[symbol.Name] = symbol;
+        return true;
+    }
+
+    public Symbol? Lookup(string name)
+    {
+        if (Symbols.TryGetValue(name, out var symbol))
+            return symbol;
+
+        if (Parent == null)
+            return null;
+        
+        return Parent.Lookup(name);
+    }
+}
