@@ -1,6 +1,6 @@
 ﻿using Compiler.Lexer;
 
-namespace Compiler.Tests;
+namespace Compiler.Tests.LexerTests;
 
 public class LexerTests
 {

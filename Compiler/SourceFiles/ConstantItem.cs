@@ -33,4 +33,32 @@ public class ConstantItem
             Data[i + 2] = (byte)line[i];
         }
     }
+    
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(this, obj))
+            return true;
+
+        if (obj is not ConstantItem other)
+            return false;
+
+        if (Tag != other.Tag)
+            return false;
+
+        if (Data.Length != other.Data.Length)
+            return false;
+
+        return Data.AsSpan().SequenceEqual(other.Data);
+    }
+
+    public override int GetHashCode()
+    {
+        HashCode hash = new();
+        hash.Add(Tag);
+
+        foreach (byte b in Data)
+            hash.Add(b);
+
+        return hash.ToHashCode();
+    }
 }

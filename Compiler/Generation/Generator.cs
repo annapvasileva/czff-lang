@@ -1,15 +1,27 @@
-﻿using Compiler.SourceFiles;
+﻿using Compiler.Parser;
+using Compiler.Parser.AST;
+using Compiler.SourceFiles;
 using Compiler.Util;
 
 namespace Compiler.Generation;
 
-public class Generator(GeneratorSettings generatorSettings, string target)
+public class Generator
 {
-    private GeneratorSettings _generatorSettings = generatorSettings;
-    public string Target { get; set; } = target;
+    private GeneratorSettings _generatorSettings;
 
-    public Ball Generate()
+    public Generator(GeneratorSettings generatorSettings)
     {
-        throw new NotImplementedException();
+        _generatorSettings = generatorSettings;
+    }
+    
+    public Ball Generate(AstTree target)
+    {
+        Header header = new Header(_generatorSettings.Version, 0);
+        Ball ball = new Ball(header);
+        
+        var visitor = new BallGeneratingVisitor(ball);
+        target.Root.Accept(visitor);
+        
+        return ball;
     }
 }

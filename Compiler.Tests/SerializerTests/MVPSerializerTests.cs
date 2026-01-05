@@ -4,6 +4,8 @@ using Compiler.Serialization;
 using Compiler.SourceFiles;
 using Compiler.Util;
 
+namespace Compiler.Tests.SerializerTests;
+
 public class TestContext : IDisposable
 {
     public Ball Ball { get; }
