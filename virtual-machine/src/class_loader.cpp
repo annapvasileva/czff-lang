@@ -101,8 +101,6 @@ void ClassLoader::LoadFile(const std::string& path) {
     LoadConstantPool(reader);
     LoadFunctions(reader);
     LoadClasses(reader);
-
-    file_constants_.clear();
 }
 
 void ClassLoader::LoadHeader(ByteReader& r) {
@@ -120,8 +118,6 @@ void ClassLoader::LoadHeader(ByteReader& r) {
 
 void ClassLoader::LoadConstantPool(ByteReader& r) {
     uint16_t count = r.ReadU2();
-    file_constants_.clear();
-    file_constants_.reserve(count);
 
     for (uint16_t i = 0; i < count; ++i) {
         Constant c;
@@ -175,8 +171,7 @@ void ClassLoader::LoadConstantPool(ByteReader& r) {
             default:
                 throw ClassLoaderError("FileLoading", "Cannot determine the type of constant in constant pool");
         }
-        file_constants_.push_back(c);
-        rda_.RegisterConstant(c);
+        rda_.GetMethodArea().RegisterConstant(c);
     }
 }
 
@@ -184,7 +179,7 @@ void ClassLoader::LoadClasses(ByteReader& r) {
     uint16_t count = r.ReadU2();
 
     for (uint16_t i = 0; i < count; ++i) {
-        auto* cls = rda_.Allocate<RuntimeClass>();
+        auto cls = std::make_unique<RuntimeClass>();
         cls->name_index = r.ReadU2();
 
         uint16_t fields_count = r.ReadU2();
@@ -234,13 +229,13 @@ void ClassLoader::LoadClasses(ByteReader& r) {
                         op.arguments.push_back(r.ReadU1());
                         break;
                 }
-                method.code[b] = op;
+                method.code[b] = std::move(op);
             }
 
-            cls->methods.push_back(method);
+            cls->methods.push_back(std::move(method));
         }
 
-        rda_.RegisterClass(cls);
+        rda_.GetMethodArea().RegisterClass(std::move(cls));
     }
 }
 
@@ -248,7 +243,7 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
     uint16_t count = r.ReadU2();
 
     for (uint16_t i = 0; i < count; ++i) {
-        auto* fn = rda_.Allocate<RuntimeFunction>();
+        auto fn = std::make_unique<RuntimeFunction>();
 
         fn->name_index = r.ReadU2();
         fn->params_descriptor_index = r.ReadU2();
@@ -286,28 +281,26 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
                     op.arguments.push_back(r.ReadU1());
                     break;
             }
-            fn->code[b] = op;
+            fn->code[b] = std::move(op);
         }
 
-        rda_.RegisterFunction(fn);
+        rda_.GetMethodArea().RegisterFunction(std::move(fn));
     }
 }
 
 void ClassLoader::ResolveEntryPoint() {
-    auto it = rda_.Functions().find("Main");
-    if (it == rda_.Functions().end()) {
+    auto* fn = rda_.GetMethodArea().GetFunction("Main");
+    if (!fn) {
         throw ClassLoaderError("EntryPoint", "Main not found");
     }
 
-    auto fn = it->second;
+    const auto& ret =
+        rda_.GetMethodArea().GetConstant(fn->return_type_index).data;
+    const auto& params =
+        rda_.GetMethodArea().GetConstant(fn->params_descriptor_index).data;
 
-    std::vector<uint8_t> return_type_raw = rda_.GetConstant(fn->return_type_index).data;
-    std::string return_type(return_type_raw.begin(), return_type_raw.end());
-
-    std::vector<uint8_t> params_raw = rda_.GetConstant(fn->params_descriptor_index).data;
-    std::string params(params_raw.begin(), params_raw.end());
-
-    if (return_type != "void" || params != "") {
+    if (std::string(ret.begin(), ret.end()) != "void" ||
+        !params.empty()) {
         throw ClassLoaderError("EntryPoint", "Invalid Main signature");
     }
 

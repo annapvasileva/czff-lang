@@ -8,7 +8,7 @@
 namespace czffvm {
 
 void Interpreter::Execute() {
-    RuntimeFunction* entry = rda_.GetFunction("Main");
+    RuntimeFunction* entry = rda_.GetMethodArea().GetFunction("Main");
     if (!entry) {
         throw std::runtime_error("Main not found");
     }
@@ -32,7 +32,7 @@ void Interpreter::Execute() {
         switch (op.code) {
             case OperationCode::LDC: {
                 uint16_t idx = (op.arguments[0] << 8) | op.arguments[1];
-                const Constant& c = rda_.GetConstant(idx);
+                const Constant& c = rda_.GetMethodArea().GetConstant(idx);
                 f.operand_stack.push_back(ConstantToValue(c));
                 break;
             }

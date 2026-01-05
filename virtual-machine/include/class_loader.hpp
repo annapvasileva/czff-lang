@@ -47,7 +47,6 @@ public:
 private:
     RuntimeDataArea& rda_;
     RuntimeFunction* entry_point_ = nullptr;
-    std::vector<Constant> file_constants_;
 
     void LoadFile(const std::string& path);
     void ResolveEntryPoint();

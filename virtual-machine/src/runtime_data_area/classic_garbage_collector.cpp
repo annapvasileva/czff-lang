@@ -1,4 +1,4 @@
-#include "garbage_collector/garbage_collector.hpp"
+#include "garbage_collector.hpp"
 
 namespace czffvm_gc {
 
