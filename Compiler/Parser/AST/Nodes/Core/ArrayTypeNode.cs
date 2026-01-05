@@ -14,4 +14,6 @@ public class ArrayTypeNode : TypeAnnotationNode
     {
         visitor.Visit(this);
     }
+    
+    public override string GetName => "array";
 }
