@@ -5,15 +5,19 @@ using Compiler.SourceFiles;
 
 using Newtonsoft.Json;
 using CommandLine;
+using Compiler.Lexer;
+using Compiler.Parser;
 using Compiler.Parser.AST;
 using Compiler.Parser.AST.Nodes;
 using Compiler.Parser.AST.Nodes.Core;
 using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
+using Compiler.SemanticAnalysis;
+using Compiler.SemanticAnalysis.Models;
 
 namespace Compiler;
 
-internal abstract class Options
+internal class Options
 {
     [Value(0, Required = true, HelpText = "Path to file with code, that will be compiled into bytecode")]
     public string Source { get; set; } = "";
@@ -76,42 +80,36 @@ internal abstract class Program
 //                                   Pipeline Part
 //                         Need to add Lexer, Parser, Analyzer
 //------------------------------------------------------------------------------------------
-        var expectedAst = new AstTree(new ProgramNode(
-            new List<FunctionDeclarationNode>()
-            {
-                new (
-                    new SimpleTypeNode("void"),
-                    "Main",
-                    new FunctionParametersNode(){ },
-                    new BlockNode(
-                        new List<StatementNode>()
-                        {
-                            new VariableDeclarationNode(
-                                new SimpleTypeNode("int"),
-                                "a",
-                                new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
-                            new VariableDeclarationNode(
-                                new SimpleTypeNode("int"),
-                                "b",
-                                new LiteralExpressionNode("3", LiteralType.IntegerLiteral)),
-                            new VariableDeclarationNode(
-                                new SimpleTypeNode("int"),
-                                "res",
-                                new BinaryExpressionNode(
-                                    new IdentifierExpressionNode("a"),
-                                    new IdentifierExpressionNode("b"),
-                                    BinaryOperatorType.Addition)),
-                            new PrintStatementNode(new IdentifierExpressionNode("res"))
-                        })
-                )
-            }));
+        var lexer = new CompilerLexer(
+            """
+            =/
+            Our first simple program on CZFF 
+            /=
+            func void Main() {
+                var int a = 2;
+                var int b = 3;
+                var int res = a + b;
+                print res;
+            }
+            """
+            );
 
+        IEnumerable<Token> tokens = lexer.GetTokens();
+        
+        var parser = new CompilerParser(tokens.ToList());
+        AstTree ast = parser.Parse();
+
+        var analyzer = new SymbolTableBuilder();
+        ast.Root.Accept(analyzer);
+
+        SymbolTable scope = analyzer.SymbolTable;
+        
         var generator = new Generator(generatorSettings); // instead of string argument there will be AST from Parser
         
-        // Ball ball = generator.Generate(expectedAst);
+        Ball ball = generator.Generate(ast, scope);
         
         var serializer = new Serializer();
-        // serializer.Serialize(ball, target);
+        serializer.Serialize(ball, target);
     }
 }
 

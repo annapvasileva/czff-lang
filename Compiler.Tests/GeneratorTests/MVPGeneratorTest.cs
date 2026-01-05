@@ -138,6 +138,14 @@ public class MVPGeneratorTest
             Assert.Equal(a.MaxStackUsed, b.MaxStackUsed);
             Assert.Equal(a.LocalsLength, b.LocalsLength);
             Assert.Equal(a.OperationsLength, b.OperationsLength);
+
+            for (int j = 0; i < a.Operations.Count; i++)
+            {
+                var operationA = a.Operations[j];
+                var operationB = b.Operations[j];
+                
+                Assert.Equal(operationA.GetString(), operationB.GetString());
+            }
         }
     }
 }

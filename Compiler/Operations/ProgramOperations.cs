@@ -6,6 +6,11 @@ public class Add : IOperation
     {
         operationVisitor.Visit(this);
     }
+
+    public string GetString()
+    {
+        return "add";
+    }
 }
 
 public class Halt : IOperation
@@ -14,6 +19,11 @@ public class Halt : IOperation
     {
         operationVisitor.Visit(this);
     }
+
+    public string GetString()
+    {
+        return "halt";
+    }
 }
 
 public class Print : IOperation
@@ -21,5 +31,10 @@ public class Print : IOperation
     public void Accept(IOperationVisitor operationVisitor)
     {
         operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "print";
     }
 }

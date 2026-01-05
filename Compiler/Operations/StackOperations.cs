@@ -8,6 +8,11 @@ public class Ldc(int constantIndex) : IOperation
     {
         operationVisitor.Visit(this);
     }
+
+    public string GetString()
+    {
+        return "ldc" + ConstantIndex;
+    }
 }
 
 public class Store(int variableIndex) : IOperation
@@ -17,6 +22,11 @@ public class Store(int variableIndex) : IOperation
     public void Accept(IOperationVisitor operationVisitor)
     {
         operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "store" + VariableIndex;
     }
 }
 
@@ -28,6 +38,11 @@ public class Ldv(int variableIndex) : IOperation
     {
         operationVisitor.Visit(this);
     }
+
+    public string GetString()
+    {
+        return "ldv" + VariableIndex;
+    }
 }
 
 public class Swap : IOperation
@@ -36,6 +51,11 @@ public class Swap : IOperation
     {
         operationVisitor.Visit(this);
     }
+
+    public string GetString()
+    {
+        return "swap";
+    }
 }
 
 public class Dup : IOperation
@@ -43,5 +63,10 @@ public class Dup : IOperation
     public void Accept(IOperationVisitor operationVisitor)
     {
         operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "dup";
     }
 }
