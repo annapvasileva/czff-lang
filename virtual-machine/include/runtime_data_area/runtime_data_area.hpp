@@ -5,6 +5,7 @@
 
 #include "common.hpp"
 #include "method_area.hpp"
+#include "stack_data_area.hpp"
 
 namespace czffvm {
 
@@ -17,9 +18,11 @@ public:
     RuntimeDataArea& operator=(const RuntimeDataArea&) = delete;
 
     MethodArea& GetMethodArea();
+    StackDataArea& GetStack();
 
 private:
     MethodArea method_area_;
+    StackDataArea stack_;
 };
 
 }  // namespace czffvm

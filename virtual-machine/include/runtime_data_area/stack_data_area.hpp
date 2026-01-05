@@ -1,9 +1,27 @@
 #pragma once
 
+#include <vector>
+#include <stdexcept>
+
+#include "call_frame.hpp"
+
 namespace czffvm {
 
+/**
+ * Stack Data Area (VM Stack)
+ *
+ * Stores call frames for bytecode execution.
+ */
 class StackDataArea {
-    // TODO
+public:
+    void PushFrame(RuntimeFunction* fn);
+    void PopFrame();
+
+    CallFrame& CurrentFrame();
+    bool Empty() const;
+
+private:
+    std::vector<CallFrame> frames_;
 };
 
-}  // namespace czffvm
+} // namespace czffvm

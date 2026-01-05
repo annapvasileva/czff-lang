@@ -7,22 +7,19 @@
 
 namespace czffvm {
 
+Interpreter::Interpreter(RuntimeDataArea& rda)
+    : rda_(rda) {}
+
 void Interpreter::Execute() {
     RuntimeFunction* entry = rda_.GetMethodArea().GetFunction("Main");
     if (!entry) {
         throw std::runtime_error("Main not found");
     }
 
-    CallFrame frame;
-    frame.function = entry;
-    frame.operand_stack.reserve(entry->max_stack);
-    frame.locals.resize(entry->locals_count);
-    frame.pc = 0;
+    rda_.GetStack().PushFrame(entry);
 
-    call_stack_.push_back(std::move(frame));
-
-    while (!call_stack_.empty()) {
-        CallFrame& f = call_stack_.back();
+    while (!rda_.GetStack().Empty()) {
+        CallFrame& f = rda_.GetStack().CurrentFrame();
 
         if (f.pc >= f.function->code.size()) {
             throw std::runtime_error("PC out of bounds");
