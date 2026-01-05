@@ -20,15 +20,16 @@ add_library(czff_virtual_machine_lib
     src/interpreter.cpp
     src/class_loader.cpp
     src/common.cpp
-    src/call_frame.cpp
-    src/runtime_data_area.cpp
-    src/heap_data_area.cpp
-    src/stack_data_area.cpp
+    src/runtime_data_area/call_frame.cpp
+    src/runtime_data_area/runtime_data_area.cpp
+    src/runtime_data_area/heap_data_area.cpp
+    src/runtime_data_area/stack_data_area.cpp
 )
 
 target_include_directories(czff_virtual_machine_lib
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/include/runtime_data_area
 )
 
 # ===== Warnings =====
@@ -102,16 +103,6 @@ target_include_directories(czff_jit_${JIT_ARCH}
         ${PROJECT_SOURCE_DIR}/include
 )
 
-
-add_library(czff_garbage_collector
-    src/garbage_collector/classic_garbage_collector.cpp
-)
-
-target_include_directories(czff_garbage_collector
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-)
-
 # ===== Executable =====
 add_executable(czffvm
     src/main.cpp
@@ -121,7 +112,6 @@ target_link_libraries(czffvm
     PRIVATE
         czff_jit_${JIT_ARCH}
         czff_virtual_machine_lib
-        czff_garbage_collector
 )
 
 # ===== Tests =====

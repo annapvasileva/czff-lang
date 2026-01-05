@@ -35,7 +35,7 @@ void RuntimeDataArea::RegisterFunction(RuntimeFunction* fn) {
     function_table_[name] = fn;
 }
 
-uint32_t RuntimeDataArea::InternConstant(const Constant& c) {
+uint32_t RuntimeDataArea::RegisterConstant(const Constant& c) {
     constant_pool_.push_back(c);
     
     return static_cast<uint32_t>(constant_pool_.size() - 1);

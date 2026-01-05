@@ -17,8 +17,7 @@ public:
 
     void RegisterClass(RuntimeClass* cls);
     void RegisterFunction(RuntimeFunction* fn);
-
-    uint32_t InternConstant(const Constant& c);
+    uint32_t RegisterConstant(const Constant& c);
 
     RuntimeClass* GetClass(const std::string& name) const;
     RuntimeFunction* GetFunction(const std::string& name) const;

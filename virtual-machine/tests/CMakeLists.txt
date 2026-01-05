@@ -32,7 +32,6 @@ target_link_libraries(
     tests
     test_lib
     czff_virtual_machine_lib
-    czff_garbage_collector
     GTest::gtest_main
 )
 

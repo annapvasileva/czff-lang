@@ -176,7 +176,7 @@ void ClassLoader::LoadConstantPool(ByteReader& r) {
                 throw ClassLoaderError("FileLoading", "Cannot determine the type of constant in constant pool");
         }
         file_constants_.push_back(c);
-        rda_.InternConstant(c);
+        rda_.RegisterConstant(c);
     }
 }
 
