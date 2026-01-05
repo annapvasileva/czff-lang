@@ -1,7 +1,7 @@
 using System.Collections;
 using Compiler.Lexer;
 
-namespace Compiler.Tests;
+namespace Compiler.Tests.LexerTests;
 
 public class WhitespacesCommentsTestsData : IEnumerable<object[]>
 {
