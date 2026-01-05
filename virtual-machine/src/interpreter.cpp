@@ -84,6 +84,9 @@ void Interpreter::Execute() {
                 break;
             }
             case OperationCode::HALT:
+                while (!rda_.GetStack().Empty()) {
+                    rda_.GetStack().PopFrame();
+                }
                 return;
             case OperationCode::DUP:
                 break;
