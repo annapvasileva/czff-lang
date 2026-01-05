@@ -31,7 +31,7 @@ public class SymbolTableBuilderTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode> { },
+                    new FunctionParametersNode { },
                     new BlockNode(
                         new List<StatementNode> { })
                 )
@@ -66,7 +66,7 @@ public class SymbolTableBuilderTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode> { },
+                    new FunctionParametersNode { },
                     new BlockNode(
                         new List<StatementNode>
                         {
@@ -123,7 +123,7 @@ public class SymbolTableBuilderTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode> { },
+                    new FunctionParametersNode { },
                     new BlockNode(
                         new List<StatementNode>
                         {
@@ -147,7 +147,7 @@ public class SymbolTableBuilderTests
                 new (
                     new SimpleTypeNode("void"),
                     "foo",
-                    new List<FunctionParameterNode> { },
+                    new FunctionParametersNode { },
                     new BlockNode(
                         new List<StatementNode>
                         {

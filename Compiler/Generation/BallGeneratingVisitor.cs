@@ -3,6 +3,7 @@ using Compiler.Parser.AST.Nodes;
 using Compiler.Parser.AST.Nodes.Core;
 using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
+using Compiler.SemanticAnalysis.Models;
 using Compiler.SourceFiles;
 
 namespace Compiler.Generation;
@@ -10,6 +11,7 @@ namespace Compiler.Generation;
 public class BallGeneratingVisitor(Ball target) : INodeVisitor
 {
     private Ball _target = target;
+    private Function? _currentFunction;
     
     public void Visit(LiteralExpressionNode literalExpressionNode)
     {
@@ -53,7 +55,7 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
 
     public void Visit(FunctionDeclarationNode functionDeclarationNode)
     {
-        var func = new Function();
+        _currentFunction = new Function();
         ConstantPool constantPool = _target.ConstantPool;
         
         int idx = constantPool.GetIndex(new ConstantItem(5, functionDeclarationNode.Name));
@@ -63,12 +65,9 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
             constantPool.AddConstant(new ConstantItem(5, functionDeclarationNode.Name));
         }
         
-        foreach (var param in functionDeclarationNode.Parameters)
-        {
-            param.Accept(this);
-        }
+        functionDeclarationNode.Parameterses.Accept(this);
         
-        functionDeclarationNode.Accept(this);
+        functionDeclarationNode.ReturnType.Accept(this);
         
         functionDeclarationNode.Body.Accept(this);
     }
@@ -78,7 +77,7 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
         throw new NotImplementedException();
     }
 
-    public void Visit(FunctionParameterNode functionParameterNode)
+    public void Visit(FunctionParametersNode functionParametersNode)
     {
         throw new NotImplementedException();
     }

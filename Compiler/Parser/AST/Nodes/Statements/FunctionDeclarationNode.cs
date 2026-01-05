@@ -6,15 +6,15 @@ public class FunctionDeclarationNode : DeclarationNode
 {
     public TypeAnnotationNode ReturnType { get; }
     public string Name { get; }
-    public IList<FunctionParameterNode> Parameters { get; }
+    public FunctionParametersNode Parameterses { get; }
     public BlockNode Body { get; }
 
     public FunctionDeclarationNode(TypeAnnotationNode returnType, string name,
-        IList<FunctionParameterNode> parameters, BlockNode body)
+        FunctionParametersNode parameterses, BlockNode body)
     {
         ReturnType = returnType;
         Name = name;
-        Parameters = parameters;
+        Parameterses = parameterses;
         Body = body;
     }
     

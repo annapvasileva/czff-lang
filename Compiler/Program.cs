@@ -82,7 +82,7 @@ internal abstract class Program
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode>(){ },
+                    new FunctionParametersNode(){ },
                     new BlockNode(
                         new List<StatementNode>()
                         {

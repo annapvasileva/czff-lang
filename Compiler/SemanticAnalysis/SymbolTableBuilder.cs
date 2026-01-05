@@ -59,7 +59,7 @@ public class SymbolTableBuilder : INodeVisitor
         throw new NotImplementedException();
     }
 
-    public void Visit(FunctionParameterNode functionParameterNode)
+    public void Visit(FunctionParametersNode functionParametersNode)
     {
         throw new NotImplementedException();
     }

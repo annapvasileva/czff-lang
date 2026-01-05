@@ -50,7 +50,7 @@ public class CompilerParser
         Expect(TokenType.RightRoundBracket);
         var body = ParseBlock();
 
-        return new FunctionDeclarationNode(returnType, funcName, new List<FunctionParameterNode>(), body);
+        return new FunctionDeclarationNode(returnType, funcName, new FunctionParametersNode(), body);
     }
 
     private TypeAnnotationNode ParseType()
