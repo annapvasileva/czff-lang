@@ -1,5 +1,6 @@
 ﻿using Compiler.Parser;
 using Compiler.Parser.AST;
+using Compiler.SemanticAnalysis.Models;
 using Compiler.SourceFiles;
 using Compiler.Util;
 
@@ -14,12 +15,12 @@ public class Generator
         _generatorSettings = generatorSettings;
     }
     
-    public Ball Generate(AstTree target)
+    public Ball Generate(AstTree target, SymbolTable symbolTable)
     {
         Header header = new Header(_generatorSettings.Version, 0);
         Ball ball = new Ball(header);
         
-        var visitor = new BallGeneratingVisitor(ball);
+        var visitor = new BallGeneratingVisitor(ball, symbolTable);
         target.Root.Accept(visitor);
         
         return ball;

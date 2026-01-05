@@ -108,10 +108,10 @@ internal abstract class Program
 
         var generator = new Generator(generatorSettings); // instead of string argument there will be AST from Parser
         
-        Ball ball = generator.Generate(expectedAst);
+        // Ball ball = generator.Generate(expectedAst);
         
         var serializer = new Serializer();
-        serializer.Serialize(ball, target);
+        // serializer.Serialize(ball, target);
     }
 }
 

@@ -10,11 +10,11 @@ using Compiler.Util;
 
 namespace Compiler.Generation;
 
-public class BallGeneratingVisitor(Ball target) : INodeVisitor
+public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisitor
 {
     private readonly Ball _target = target;
     private Function? _currentFunction;
-    private SymbolTable? _scope;
+    private SymbolTable _scope = scope;
     
     public void Visit(LiteralExpressionNode literalExpressionNode)
     {
@@ -36,7 +36,7 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
 
     public void Visit(IdentifierExpressionNode identifierExpressionNode)
     {
-        Symbol symbol = _scope!.Lookup(identifierExpressionNode.Name);
+        Symbol symbol = _scope.Lookup(identifierExpressionNode.Name);
 
         if (symbol is VariableSymbol variable)
         {
@@ -92,7 +92,7 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
         
         variableDeclarationNode.Expression.Accept(this);
 
-        Symbol symbol = _scope!.Lookup(variableDeclarationNode.Name);
+        Symbol symbol = _scope.Lookup(variableDeclarationNode.Name);
         
         if (symbol is VariableSymbol variable)
         {
@@ -107,31 +107,39 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
     public void Visit(FunctionDeclarationNode functionDeclarationNode)
     {
         _currentFunction = new Function();
-        ConstantPool constantPool = _target.ConstantPool;
+        Symbol symbol = _scope.Lookup(functionDeclarationNode.Name);
+        if (symbol is not FunctionSymbol functionSymbol)
+        {
+            throw new Exception($"Symbol {functionDeclarationNode.Name} is not a function.");
+        }
+        else
+        {
+            // Name
+            ConstantItem item =  new ConstantItem(5, functionSymbol.Name);
+            int idx = _target.ConstantPool.GetIndexOrAddConstant(item);
         
-        // Name
-        ConstantItem item =  new ConstantItem(5, functionDeclarationNode.Name);
-        int idx = constantPool.GetIndexOrAddConstant(item);
+            _currentFunction.NameIndex = idx;
         
-        _currentFunction.NameIndex = idx;
-        
-        // Parameters
-        functionDeclarationNode.Parameters.Accept(this);
+            // Parameters
+            functionDeclarationNode.Parameters.Accept(this);
 
-        // Return Type
-        string returnDescriptor = functionDeclarationNode.ReturnType.GetName;
+            // Return Type
+            string returnDescriptor = functionSymbol.ReturnType;
         
-        item =  new ConstantItem(5, returnDescriptor);
+            item =  new ConstantItem(5, returnDescriptor);
+            idx = _target.ConstantPool.GetIndexOrAddConstant(item);
+            _currentFunction.ReturnTypeIndex = idx;
         
-        _currentFunction.ReturnTypeIndex = idx;
-        
-        // Body
-        functionDeclarationNode.Body.Accept(this);
+            // Body
+            functionDeclarationNode.Body.Accept(this);
 
-        _currentFunction.MaxStackUsed = 0;
-        _currentFunction.LocalsLength = functionDeclarationNode.LocalsLength;
-        _currentFunction.MaxStackUsed = 0;
+            _currentFunction.MaxStackUsed = 0;
+            _currentFunction.LocalsLength = functionSymbol.LocalsLength;
+            _currentFunction.MaxStackUsed = 0;
+        }
         
+        _currentFunction.Operations.Add(new Halt());
+        _target.FunctionPool.AddFunction(_currentFunction);
         _currentFunction = null;
     }
 
@@ -149,8 +157,7 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
             descriptor += parameter.Type.GetName + ";";
         }
         
-        ConstantPool constantPool = _target.ConstantPool;
-        int idx = constantPool.GetIndexOrAddConstant(new ConstantItem(5, descriptor));
+        int idx = _target.ConstantPool.GetIndexOrAddConstant(new ConstantItem(5, descriptor));
         
         _currentFunction!.ParameterDescriptorIndex = idx;
     }

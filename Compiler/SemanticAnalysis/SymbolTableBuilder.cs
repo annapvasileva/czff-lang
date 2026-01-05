@@ -51,7 +51,7 @@ public class SymbolTableBuilder : INodeVisitor
         SymbolTableManager.DeclareFunction(functionDeclarationNode.Name, functionDeclarationNode.ReturnType.GetName);
         SymbolTableManager.EnterScope(true);
         functionDeclarationNode.Body.Accept(this);
-        functionDeclarationNode.LocalsLength = SymbolTableManager.MaxCounter;
+        SymbolTableManager.SetFunctionLocalsLength(functionDeclarationNode.Name);
         SymbolTableManager.ExitScope();
     }
 

@@ -5,6 +5,7 @@ using Compiler.Parser.AST.Nodes;
 using Compiler.Parser.AST.Nodes.Core;
 using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
+using Compiler.SemanticAnalysis.Models;
 using Compiler.SourceFiles;
 using Compiler.Util;
 
@@ -16,6 +17,13 @@ public class MVPGeneratorTest
     public static void Generate_MVP_Ball_Success()
     {
         // Arrange
+        var expectedTable = new SymbolTable(null);
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 3 });
+        var mainBodyTable = new SymbolTable(expectedTable);
+        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
+        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));
+        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "I", 2));
+        
         var ast = new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
             {
@@ -42,7 +50,7 @@ public class MVPGeneratorTest
                                     new IdentifierExpressionNode("b"),
                                     BinaryOperatorType.Addition)),
                             new PrintStatementNode(new IdentifierExpressionNode("res"))
-                        })
+                        }) { Scope = mainBodyTable }
                 )
             }));
         
@@ -101,7 +109,7 @@ public class MVPGeneratorTest
         
         // Act
 
-        Ball result = generator.Generate(ast);
+        Ball result = generator.Generate(ast, expectedTable);
         
         // Assert
 

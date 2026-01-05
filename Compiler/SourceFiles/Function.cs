@@ -15,6 +15,6 @@ public class Function
     public int LocalsLength { get; set; }
     
     public int OperationsLength => Operations.Count;
-    
-    public List<IOperation> Operations { get; set; }
+
+    public List<IOperation> Operations { get; set; } = new List<IOperation>();
 }

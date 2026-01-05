@@ -54,7 +54,7 @@ public class SymbolTableBuilderTests
     public void OneFunctionWithVariableDeclarationsTest()
     {
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void"));
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 3 });
         var mainBodyTable = new SymbolTable(expectedTable);
         mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
         mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));

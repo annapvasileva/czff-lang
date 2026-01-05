@@ -8,7 +8,6 @@ public class FunctionDeclarationNode : DeclarationNode
     public string Name { get; }
     public FunctionParametersNode Parameters { get; }
     public BlockNode Body { get; }
-    public int LocalsLength { get; set;  }
 
     public FunctionDeclarationNode(TypeAnnotationNode returnType, string name,
         FunctionParametersNode parameters, BlockNode body)
@@ -17,7 +16,6 @@ public class FunctionDeclarationNode : DeclarationNode
         Name = name;
         Parameters = parameters;
         Body = body;
-        LocalsLength = 0;
     }
     
     public override void Accept(INodeVisitor visitor)

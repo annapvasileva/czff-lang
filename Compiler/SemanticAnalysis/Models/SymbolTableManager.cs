@@ -59,7 +59,20 @@ public class SymbolTableManager
         }
     }
     
-    public Symbol? Lookup(string name) => _currentScope.Lookup(name);
+    public void SetFunctionLocalsLength(string name)
+    {
+        var symbol = Lookup(name);
+        if (symbol is not FunctionSymbol functionSymbol)
+        {
+            throw new SemanticException($"Function {name} hasn't been declared");
+        }
+        else
+        {
+            functionSymbol.LocalsLength = MaxCounter;
+        }
+    }
+    
+    public Symbol Lookup(string name) => _currentScope.Lookup(name);
     
     public SymbolTable CurrentScope => _currentScope;
 }
