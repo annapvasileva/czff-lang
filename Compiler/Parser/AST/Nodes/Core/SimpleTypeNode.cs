@@ -11,6 +11,9 @@ public class SimpleTypeNode : TypeAnnotationNode
             case "int":
                 Name = "I";
                 break;
+            default:
+                Name = name;
+                break;
         }
     }
     
