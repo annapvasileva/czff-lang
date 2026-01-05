@@ -29,9 +29,17 @@ public class ConstantPool
         return _pool[index];
     } 
     
-    public int GetIndex(ConstantItem constantItem)
+    public int GetIndexOrAddConstant(ConstantItem constantItem)
     {
-        return _mapping.GetValueOrDefault(constantItem, -1);
+        int idx = _mapping.GetValueOrDefault(constantItem, -1);
+
+        if (idx < 0)
+        {
+            AddConstant(constantItem);
+            idx = _pool.Count - 1;
+        }
+        
+        return idx;
     }
 
     public void AddConstant(ConstantItem constantItem)

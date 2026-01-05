@@ -4,11 +4,13 @@ public class SymbolTableManager
 {
     private SymbolTable _currentScope;
     private int _variableCounter;
+    public int MaxCounter;
     
     public SymbolTableManager()
     {
         _currentScope = new SymbolTable(null); // global scope
         _variableCounter = 0;
+        MaxCounter = 0;
     }
 
     public void EnterScope(bool resetCounter)
@@ -23,7 +25,13 @@ public class SymbolTableManager
     
     public void ExitScope()
     {
+        _variableCounter -= _currentScope.LocalCount;
         _currentScope = _currentScope.Parent;
+
+        if (_currentScope.Parent == null && _variableCounter > 0)
+        {
+            throw new Exception("Variable counter has made a mistake");
+        }
     }
     
     public void DeclareVariable(string name, string type)
@@ -36,6 +44,10 @@ public class SymbolTableManager
         }
         
         _variableCounter++;
+        if (MaxCounter < _variableCounter)
+        {
+            MaxCounter = _variableCounter;
+        }
     }
     
     public void DeclareFunction(string name, string returnType)

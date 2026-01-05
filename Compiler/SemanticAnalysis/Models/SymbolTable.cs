@@ -10,6 +10,8 @@ public class SymbolTable
     [JsonPropertyName("children")]
     public List<SymbolTable> Children { get; private set; } = new();
 
+    public int LocalCount => Symbols.Count;
+    
     [JsonIgnore]
     public SymbolTable? Parent { get; }
 
@@ -31,13 +33,13 @@ public class SymbolTable
         return true;
     }
 
-    public Symbol? Lookup(string name)
+    public Symbol Lookup(string name)
     {
         if (Symbols.TryGetValue(name, out var symbol))
             return symbol;
 
         if (Parent == null)
-            return null;
+            throw new Exception($"Symbol {name} could not be found.");
         
         return Parent.Lookup(name);
     }
