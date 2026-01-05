@@ -21,7 +21,13 @@ void Interpreter::Execute() {
     while (!rda_.GetStack().Empty()) {
         CallFrame& f = rda_.GetStack().CurrentFrame();
 
-        if (f.pc >= f.function->code.size()) {
+        if (f.pc == f.function->code.size()) {
+            rda_.GetStack().PopFrame();
+
+            continue;
+        }
+
+        if (f.pc > f.function->code.size()) {
             throw std::runtime_error("PC out of bounds");
         }
 

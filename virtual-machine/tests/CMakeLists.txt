@@ -16,6 +16,7 @@ add_executable(
     src/class_loader_tests.cpp
     src/vm_tests.cpp
     src/byte_reader_tests.cpp
+    src/interpreter_tests.cpp
 )
 
 add_library(

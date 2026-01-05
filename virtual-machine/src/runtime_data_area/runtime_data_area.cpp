@@ -9,4 +9,8 @@ MethodArea& RuntimeDataArea::GetMethodArea() {
     return method_area_;
 }
 
+StackDataArea& RuntimeDataArea::GetStack() {
+    return stack_;
+}
+
 }  // namespace czffvm
