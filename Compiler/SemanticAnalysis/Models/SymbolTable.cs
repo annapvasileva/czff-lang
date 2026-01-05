@@ -4,8 +4,6 @@ namespace Compiler.SemanticAnalysis.Models;
 
 public class SymbolTable
 {
-    // private Dictionary<string, Symbol> _symbols = new();
-    // private List<SymbolTable> _children = new();
     [JsonPropertyName("symbols")]
     public Dictionary<string, Symbol> Symbols { get; private set; } = new();
 
@@ -14,7 +12,6 @@ public class SymbolTable
 
     [JsonIgnore]
     public SymbolTable? Parent { get; }
-    // public List<SymbolTable> Children => _children;
 
     public SymbolTable(SymbolTable? parent)
     {
