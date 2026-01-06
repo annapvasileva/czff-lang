@@ -94,7 +94,7 @@ public class MVPGeneratorTest
 
         var header = new Header([0, 0, 0], 0);
         
-        var ballExpected = new Ball
+        var expectedBall = new Ball
         {
             ConstantPool = constantPool,
             FunctionPool = functionPool,
@@ -114,7 +114,7 @@ public class MVPGeneratorTest
         // Assert
 
         IList<ConstantItem> expectedConstantsPool = result.ConstantPool.GetConstants();
-        IList<ConstantItem> resultConstantsPool = result.ConstantPool.GetConstants();
+        IList<ConstantItem> resultConstantsPool = expectedBall.ConstantPool.GetConstants();
         Assert.Equal(expectedConstantsPool.Count, resultConstantsPool.Count);
         
         for (int i = 0; i < expectedConstantsPool.Count; i++)
@@ -124,7 +124,7 @@ public class MVPGeneratorTest
         }
         
         IList<Function> expectedFunctionPool = result.FunctionPool.GetFunctions();
-        IList<Function> resultFunctionPool = result.FunctionPool.GetFunctions();
+        IList<Function> resultFunctionPool = expectedBall.FunctionPool.GetFunctions();
         Assert.Equal(expectedFunctionPool.Count, resultFunctionPool.Count);
 
         for (int i = 0; i < expectedFunctionPool.Count; i++)
