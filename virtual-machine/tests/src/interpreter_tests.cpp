@@ -89,6 +89,6 @@ TEST(InterpreterIntegrationTestSuite, ExecutesFirstProgramAndPrintsResult) {
 
     std::string output = captured.str();
 
-    EXPECT_EQ(output, "5\n");
+    EXPECT_EQ(output, "5");
     EXPECT_TRUE(rda.GetStack().Empty());
 }

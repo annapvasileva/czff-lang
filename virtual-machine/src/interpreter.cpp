@@ -79,7 +79,6 @@ void Interpreter::Execute() {
                 std::visit([](auto&& x) {
                     std::cout << x;
                 }, v);
-                std::cout << '\n';
 
                 break;
             }
