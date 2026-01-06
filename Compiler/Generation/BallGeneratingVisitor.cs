@@ -44,7 +44,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         }
         else
         {
-            throw new Exception($"Symbol {identifierExpressionNode.Name} is not a variable.");
+            throw new GeneratorException($"Symbol {identifierExpressionNode.Name} is not a variable.");
         }
     }
 
@@ -100,7 +100,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         }
         else
         {
-            throw new Exception($"Symbol {variableDeclarationNode.Name} is not a variable.");
+            throw new GeneratorException($"Symbol {variableDeclarationNode.Name} is not a variable.");
         }
     }
 
@@ -110,7 +110,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         Symbol symbol = _scope.Lookup(functionDeclarationNode.Name);
         if (symbol is not FunctionSymbol functionSymbol)
         {
-            throw new Exception($"Symbol {functionDeclarationNode.Name} is not a function.");
+            throw new GeneratorException($"Symbol {functionDeclarationNode.Name} is not a function.");
         }
         else
         {

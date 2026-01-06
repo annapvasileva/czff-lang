@@ -31,7 +31,7 @@ public class SymbolTableManager
 
         if (_currentScope.Parent == null && _variableCounter > 0)
         {
-            throw new Exception("Variable counter has made a mistake");
+            throw new SemanticException("Variable counter has made a mistake");
         }
     }
     

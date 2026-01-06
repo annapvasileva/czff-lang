@@ -83,7 +83,7 @@ internal abstract class Program
 
         SymbolTable scope = analyzer.SymbolTable;
         
-        var generator = new Generator(compilerSettings); // instead of string argument there will be AST from Parser
+        var generator = new Generator(compilerSettings);
         
         Ball ball = generator.Generate(ast, scope);
         

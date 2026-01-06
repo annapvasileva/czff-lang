@@ -39,7 +39,7 @@ public class SymbolTable
             return symbol;
 
         if (Parent == null)
-            throw new Exception($"Symbol {name} could not be found.");
+            throw new SemanticException($"Symbol {name} could not be found.");
         
         return Parent.Lookup(name);
     }
