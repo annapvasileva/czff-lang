@@ -102,7 +102,7 @@ public class MVPGeneratorTest
             Header = header
         };
 
-        var generator = new Generator(new GeneratorSettings()
+        var generator = new Generator(new CompilerSettings()
         {
             Version = [0, 0, 0]
         });
