@@ -9,4 +9,10 @@ public static class ByteConverter
 
         return result;
     }
+
+    public static byte[] IntToI4(int value)
+    {
+        byte[] result = [(byte)(value >> 24 % 256),(byte)(value >> 16 % 256),(byte)(value >> 8 % 256), (byte)(value % 256)];
+        return result;
+    }
 }

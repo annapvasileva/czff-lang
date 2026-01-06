@@ -31,7 +31,7 @@ public class SymbolTableBuilderTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode> { },
+                    new FunctionParametersNode { },
                     new BlockNode(
                         new List<StatementNode> { })
                 )
@@ -54,11 +54,11 @@ public class SymbolTableBuilderTests
     public void OneFunctionWithVariableDeclarationsTest()
     {
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void"));
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 3 });
         var mainBodyTable = new SymbolTable(expectedTable);
-        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "int", 0));
-        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "int", 1));
-        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "int", 2));
+        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
+        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));
+        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "I", 2));
         
         var ast = new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
@@ -66,7 +66,7 @@ public class SymbolTableBuilderTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode> { },
+                    new FunctionParametersNode { },
                     new BlockNode(
                         new List<StatementNode>
                         {
@@ -106,16 +106,16 @@ public class SymbolTableBuilderTests
     public void SeveralFunctionsWithVariableDeclarationsTest()
     {
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void"));
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 3 });
         var mainBodyTable = new SymbolTable(expectedTable);
-        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "int", 0));
-        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "int", 1));
-        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "int", 2));
+        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
+        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));
+        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "I", 2));
 
-        expectedTable.Symbols.Add("foo", new FunctionSymbol("foo", "void"));
+        expectedTable.Symbols.Add("foo", new FunctionSymbol("foo", "void") { LocalsLength = 2 });
         var fooBodyTable = new SymbolTable(expectedTable);
-        fooBodyTable.Symbols.Add("a", new VariableSymbol("a", "int", 0));
-        fooBodyTable.Symbols.Add("b", new VariableSymbol("b", "int", 1));
+        fooBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
+        fooBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));
         
         var ast = new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
@@ -123,7 +123,7 @@ public class SymbolTableBuilderTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode> { },
+                    new FunctionParametersNode { },
                     new BlockNode(
                         new List<StatementNode>
                         {
@@ -147,7 +147,7 @@ public class SymbolTableBuilderTests
                 new (
                     new SimpleTypeNode("void"),
                     "foo",
-                    new List<FunctionParameterNode> { },
+                    new FunctionParametersNode { },
                     new BlockNode(
                         new List<StatementNode>
                         {

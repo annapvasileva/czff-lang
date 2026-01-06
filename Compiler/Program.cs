@@ -1,117 +1,96 @@
-﻿using Compiler.Util;
+﻿using System.Data;
+using Compiler.Util;
 using Compiler.Generation;
 using Compiler.Serialization;
 using Compiler.SourceFiles;
 
 using Newtonsoft.Json;
 using CommandLine;
+using Compiler.Lexer;
+using Compiler.Parser;
 using Compiler.Parser.AST;
-using Compiler.Parser.AST.Nodes;
-using Compiler.Parser.AST.Nodes.Core;
-using Compiler.Parser.AST.Nodes.Expressions;
-using Compiler.Parser.AST.Nodes.Statements;
+using Compiler.SemanticAnalysis;
+using Compiler.SemanticAnalysis.Models;
 
 namespace Compiler;
 
-internal abstract class Options
+internal class Options
 {
-    [Value(0, Required = true, HelpText = "Path to file with code, that will be compiled into bytecode")]
-    public string Source { get; set; } = "";
+    [Option('s', "source", Required = true, HelpText = "Path to file with code," +
+                                                       " that will be compiled into bytecode")]
+    public string Source { get; set; } = null!;
 
-    [Option('t', "target", Required = false, HelpText = "Path to the source file", Default = null)]
-    public string? Target { get; set; }
+    [Option('c', "config", Required = true, HelpText = "Path to config file")]
+    public string PathToConfig { get; set; } = null!;
+
+    [Option('t', "target", Required = true, HelpText = "Path to the source file")]
+    public string Target { get; set; } = null!;
+
+    [Option('m', "multiple-files", Required = false, Default = false, HelpText = "Search all" +
+        " .szff files in the directory of the target. Option for code with dependencies from external source.")] 
+    public bool MultipleFiles { get; set; }
 }
 
 internal abstract class Program
 {
     public static void Main(string[] args)
     {
-//------------------------------------------------------------------------------------------
-//                                   Controller Part
-//------------------------------------------------------------------------------------------
-
-        string source = "";
-        string? target = null;
-        
+        //------------------------------------------------------------------------------------------
+        //                                   Controller Part
+        //------------------------------------------------------------------------------------------
         CommandLine.Parser.Default.ParseArguments<Options>(args)
-            .WithParsed(options =>
-            {
-                source = options.Source;
-                target = options.Target;
-            })
-            .WithNotParsed(errors =>
-            {
-                foreach (var error in errors)
-                {
-                    Console.WriteLine(error);
-                }
-            });
+            .MapResult(
+                Run,
+                _ => 1
+            );
+    }
 
-        target ??= AppContext.BaseDirectory;
+    public static int Run(Options options)
+    { 
+        //------------------------------------------------------------------------------------------
+        //                                   Configuration Part
+        //------------------------------------------------------------------------------------------
         
-//------------------------------------------------------------------------------------------
-//                                   Configuration Part
-//------------------------------------------------------------------------------------------
-
-        string projectRoot = Directory.GetParent( // project/bin/debug/net10/ <- is being started here. Need to do normal path later
-            Directory.GetParent(Directory.GetParent(
-                    Directory.GetParent(
-                        AppDomain.CurrentDomain.BaseDirectory
-                    )!.FullName
-                )!.FullName
-            )!.FullName
-        )!.FullName;
-
-        string configPath = Path.Combine(projectRoot, "GeneratorConfig.json");
-
-        string json = File.ReadAllText(configPath);
-
-        GeneratorSettings? generatorSettings = JsonConvert.DeserializeObject<GeneratorSettings>(json);
-        if (generatorSettings == null) {
-            Console.WriteLine("No generator settings found");
-            return;
+        if (!File.Exists(options.PathToConfig) || !File.Exists(options.Source) || !Directory.Exists(Path.GetDirectoryName(options.Target)))
+        {
+            throw new Exception("The specified file or directory doesn't exist");
         }
         
-//------------------------------------------------------------------------------------------
-//                                   Pipeline Part
-//                         Need to add Lexer, Parser, Analyzer
-//------------------------------------------------------------------------------------------
-        var expectedAst = new AstTree(new ProgramNode(
-            new List<FunctionDeclarationNode>()
-            {
-                new (
-                    new SimpleTypeNode("void"),
-                    "Main",
-                    new List<FunctionParameterNode>(){ },
-                    new BlockNode(
-                        new List<StatementNode>()
-                        {
-                            new VariableDeclarationNode(
-                                new SimpleTypeNode("int"),
-                                "a",
-                                new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
-                            new VariableDeclarationNode(
-                                new SimpleTypeNode("int"),
-                                "b",
-                                new LiteralExpressionNode("3", LiteralType.IntegerLiteral)),
-                            new VariableDeclarationNode(
-                                new SimpleTypeNode("int"),
-                                "res",
-                                new BinaryExpressionNode(
-                                    new IdentifierExpressionNode("a"),
-                                    new IdentifierExpressionNode("b"),
-                                    BinaryOperatorType.Addition)),
-                            new PrintStatementNode(new IdentifierExpressionNode("res"))
-                        })
-                )
-            }));
+        string json = File.ReadAllText(options.PathToConfig);
 
-        var generator = new Generator(generatorSettings); // instead of string argument there will be AST from Parser
+        CompilerSettings? compilerSettings = JsonConvert.DeserializeObject<CompilerSettings>(json);
+        if (compilerSettings == null) {
+            Console.WriteLine("No generator settings found");
+            return 1;
+        }
         
-        Ball ball = generator.Generate(expectedAst);
+        string sourceText = File.ReadAllText(options.Source);
+        
+        //------------------------------------------------------------------------------------------
+        //                                   Pipeline Part
+        //                         Need to add Lexer, Parser, Analyzer
+        //------------------------------------------------------------------------------------------
+        
+        var lexer = new CompilerLexer(sourceText);
+
+        IEnumerable<Token> tokens = lexer.GetTokens();
+        
+        var parser = new CompilerParser(tokens.ToList());
+        AstTree ast = parser.Parse();
+
+        var analyzer = new SymbolTableBuilder();
+        ast.Root.Accept(analyzer);
+
+        SymbolTable scope = analyzer.SymbolTable;
+        
+        var generator = new Generator(compilerSettings);
+        
+        Ball ball = generator.Generate(ast, scope);
         
         var serializer = new Serializer();
-        serializer.Serialize(ball, target);
+        serializer.Serialize(ball, options.Target);
+
+        return 0;
     }
 }
 

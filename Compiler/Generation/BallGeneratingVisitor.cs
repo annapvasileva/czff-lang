@@ -1,24 +1,51 @@
-﻿using Compiler.Parser;
+﻿using Compiler.Operations;
+using Compiler.Parser;
 using Compiler.Parser.AST.Nodes;
 using Compiler.Parser.AST.Nodes.Core;
 using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
+using Compiler.SemanticAnalysis.Models;
 using Compiler.SourceFiles;
+using Compiler.Util;
 
 namespace Compiler.Generation;
 
-public class BallGeneratingVisitor(Ball target) : INodeVisitor
+public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisitor
 {
-    private Ball _target = target;
+    private readonly Ball _target = target;
+    private Function? _currentFunction;
+    private SymbolTable _scope = scope;
     
     public void Visit(LiteralExpressionNode literalExpressionNode)
     {
-        throw new NotImplementedException();
+        ConstantItem constant;
+        switch (literalExpressionNode.Type)
+        {
+            case LiteralType.IntegerLiteral:
+                var number = ByteConverter.IntToI4(Convert.ToInt32(literalExpressionNode.Value));
+                constant = new ConstantItem(4, number);
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+        
+        int idx = _target.ConstantPool.GetIndexOrAddConstant(constant);
+        
+        _currentFunction!.Operations.Add(new Ldc(idx));
     }
 
     public void Visit(IdentifierExpressionNode identifierExpressionNode)
     {
-        throw new NotImplementedException();
+        Symbol symbol = _scope.Lookup(identifierExpressionNode.Name);
+
+        if (symbol is VariableSymbol variable)
+        {
+            _currentFunction!.Operations.Add(new Ldv(variable.Index));
+        }
+        else
+        {
+            throw new GeneratorException($"Symbol {identifierExpressionNode.Name} is not a variable.");
+        }
     }
 
     public void Visit(SimpleTypeNode simpleTypeNode)
@@ -33,7 +60,17 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
 
     public void Visit(BinaryExpressionNode binaryExpressionNode)
     {
-        throw new NotImplementedException();
+        binaryExpressionNode.LeftExpression.Accept(this);
+        binaryExpressionNode.RightExpression.Accept(this);
+
+        switch (binaryExpressionNode.BinaryOperatorType)
+        {
+            case BinaryOperatorType.Addition:
+                _currentFunction!.Operations.Add(new Add());
+                break;
+            default:
+                throw new NotImplementedException();
+        }
     }
 
     public void Visit(UnaryExpressionNode unaryExpressionNode)
@@ -48,29 +85,62 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
 
     public void Visit(VariableDeclarationNode variableDeclarationNode)
     {
-        throw new NotImplementedException();
+        if (variableDeclarationNode.Expression == null)
+        {
+            return;
+        } 
+        
+        variableDeclarationNode.Expression.Accept(this);
+
+        Symbol symbol = _scope.Lookup(variableDeclarationNode.Name);
+        
+        if (symbol is VariableSymbol variable)
+        {
+            _currentFunction!.Operations.Add(new Store(variable.Index));
+        }
+        else
+        {
+            throw new GeneratorException($"Symbol {variableDeclarationNode.Name} is not a variable.");
+        }
     }
 
     public void Visit(FunctionDeclarationNode functionDeclarationNode)
     {
-        var func = new Function();
-        ConstantPool constantPool = _target.ConstantPool;
+        _currentFunction = new Function();
+        Symbol symbol = _scope.Lookup(functionDeclarationNode.Name);
+        if (symbol is not FunctionSymbol functionSymbol)
+        {
+            throw new GeneratorException($"Symbol {functionDeclarationNode.Name} is not a function.");
+        }
+        else
+        {
+            // Name
+            ConstantItem item =  new ConstantItem(5, functionSymbol.Name);
+            int idx = _target.ConstantPool.GetIndexOrAddConstant(item);
         
-        int idx = constantPool.GetIndex(new ConstantItem(5, functionDeclarationNode.Name));
+            _currentFunction.NameIndex = idx;
+        
+            // Parameters
+            functionDeclarationNode.Parameters.Accept(this);
 
-        if (idx < 0)
-        {
-            constantPool.AddConstant(new ConstantItem(5, functionDeclarationNode.Name));
+            // Return Type
+            string returnDescriptor = functionSymbol.ReturnType;
+        
+            item =  new ConstantItem(5, returnDescriptor);
+            idx = _target.ConstantPool.GetIndexOrAddConstant(item);
+            _currentFunction.ReturnTypeIndex = idx;
+        
+            // Body
+            functionDeclarationNode.Body.Accept(this);
+
+            _currentFunction.MaxStackUsed = 0;
+            _currentFunction.LocalsLength = functionSymbol.LocalsLength;
+            _currentFunction.MaxStackUsed = 0;
         }
         
-        foreach (var param in functionDeclarationNode.Parameters)
-        {
-            param.Accept(this);
-        }
-        
-        functionDeclarationNode.Accept(this);
-        
-        functionDeclarationNode.Body.Accept(this);
+        _currentFunction.Operations.Add(new Halt());
+        _target.FunctionPool.AddFunction(_currentFunction);
+        _currentFunction = null;
     }
 
     public void Visit(ClassDeclarationNode classDeclarationNode)
@@ -78,9 +148,18 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
         throw new NotImplementedException();
     }
 
-    public void Visit(FunctionParameterNode functionParameterNode)
+    public void Visit(FunctionParametersNode functionParametersNode)
     {
-        throw new NotImplementedException();
+        string descriptor = "";
+        
+        foreach (var parameter in functionParametersNode.Parameters)
+        {
+            descriptor += parameter.Type.GetName + ";";
+        }
+        
+        int idx = _target.ConstantPool.GetIndexOrAddConstant(new ConstantItem(5, descriptor));
+        
+        _currentFunction!.ParameterDescriptorIndex = idx;
     }
 
     public void Visit(ExpressionStatementNode expressionStatementNode)
@@ -95,7 +174,15 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
 
     public void Visit(BlockNode blockNode)
     {
-        throw new NotImplementedException();
+        IList<StatementNode> statements = blockNode.Statements;
+        _scope = blockNode.Scope;
+        
+        foreach (var statement in statements)
+        {
+            statement.Accept(this);
+        }
+
+        _scope = _scope.Parent;
     }
 
     public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
@@ -120,7 +207,7 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
 
     public void Visit(ReturnStatementNode returnStatementNode)
     {
-        throw new NotImplementedException();
+        _currentFunction!.Operations.Add(new Halt());
     }
 
     public void Visit(IfStatementNode ifStatementNode)
@@ -145,7 +232,9 @@ public class BallGeneratingVisitor(Ball target) : INodeVisitor
 
     public void Visit(PrintStatementNode printStatementNode)
     {
-        throw new NotImplementedException();
+        printStatementNode.Expression.Accept(this);
+        
+        _currentFunction!.Operations.Add(new Print());
     }
 
     public void Visit(ProgramNode programNode)

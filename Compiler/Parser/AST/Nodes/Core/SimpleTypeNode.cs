@@ -6,7 +6,15 @@ public class SimpleTypeNode : TypeAnnotationNode
     // ссылка на class symbol?
     public SimpleTypeNode(string name)
     {
-        Name = name;
+        switch (name)
+        {
+            case "int":
+                Name = "I";
+                break;
+            default:
+                Name = name;
+                break;
+        }
     }
     
     public override void Accept(INodeVisitor visitor)

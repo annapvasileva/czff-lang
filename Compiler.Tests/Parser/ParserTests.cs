@@ -35,7 +35,7 @@ public class ParserTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode>(){ },
+                    new FunctionParametersNode(){ },
                     new BlockNode(new List<StatementNode>(){ })
                 )
             }));
@@ -75,7 +75,7 @@ public class ParserTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode>(){ },
+                    new FunctionParametersNode(){ },
                     new BlockNode(
                         new List<StatementNode>()
                         {
@@ -128,7 +128,7 @@ public class ParserTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode>(){ },
+                    new FunctionParametersNode(){ },
                     new BlockNode(
                         new List<StatementNode>()
                         {
@@ -172,7 +172,7 @@ public class ParserTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new List<FunctionParameterNode>(){ },
+                    new FunctionParametersNode(){ },
                     new BlockNode(
                         new List<StatementNode>()
                         {
@@ -236,7 +236,7 @@ public class ParserTests
                 new (
                     new SimpleTypeNode("void"),
                    "Main",
-                    new List<FunctionParameterNode>(){ },
+                    new FunctionParametersNode(){ },
                     new BlockNode(
                         new List<StatementNode>()
                         {
@@ -297,7 +297,7 @@ public class ParserTests
                 new (
                     new SimpleTypeNode("void"),
                    "Foo",
-                    new List<FunctionParameterNode>(){ },
+                    new FunctionParametersNode(){ },
                     new BlockNode(
                         new List<StatementNode>()
                         {
@@ -307,7 +307,7 @@ public class ParserTests
                 new (
                     new SimpleTypeNode("void"),
                     "boo",
-                    new List<FunctionParameterNode>(){ },
+                    new FunctionParametersNode(){ },
                     new BlockNode(
                         new List<StatementNode>()
                         {

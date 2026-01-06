@@ -4,11 +4,13 @@ public class SymbolTableManager
 {
     private SymbolTable _currentScope;
     private int _variableCounter;
+    public int MaxCounter;
     
     public SymbolTableManager()
     {
         _currentScope = new SymbolTable(null); // global scope
         _variableCounter = 0;
+        MaxCounter = 0;
     }
 
     public void EnterScope(bool resetCounter)
@@ -16,6 +18,7 @@ public class SymbolTableManager
         if (resetCounter)
         {
             _variableCounter = 0;
+            MaxCounter = 0;
         }
 
         _currentScope = new SymbolTable(_currentScope);
@@ -23,7 +26,13 @@ public class SymbolTableManager
     
     public void ExitScope()
     {
+        _variableCounter -= _currentScope.LocalCount;
         _currentScope = _currentScope.Parent;
+
+        if (_currentScope.Parent == null && _variableCounter > 0)
+        {
+            throw new SemanticException("Variable counter has made a mistake");
+        }
     }
     
     public void DeclareVariable(string name, string type)
@@ -36,6 +45,10 @@ public class SymbolTableManager
         }
         
         _variableCounter++;
+        if (MaxCounter < _variableCounter)
+        {
+            MaxCounter = _variableCounter;
+        }
     }
     
     public void DeclareFunction(string name, string returnType)
@@ -47,7 +60,20 @@ public class SymbolTableManager
         }
     }
     
-    public Symbol? Lookup(string name) => _currentScope.Lookup(name);
+    public void SetFunctionLocalsLength(string name)
+    {
+        var symbol = Lookup(name);
+        if (symbol is not FunctionSymbol functionSymbol)
+        {
+            throw new SemanticException($"Function {name} hasn't been declared");
+        }
+        else
+        {
+            functionSymbol.LocalsLength = MaxCounter;
+        }
+    }
+    
+    public Symbol Lookup(string name) => _currentScope.Lookup(name);
     
     public SymbolTable CurrentScope => _currentScope;
 }
