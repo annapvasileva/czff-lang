@@ -54,42 +54,36 @@ public class MVPGeneratorTest
                 )
             }));
         
-        var constants = new List<ConstantItem>
-        {
-            new ConstantItem(5,"Main"),
-            new ConstantItem(5, ""),
-            new ConstantItem(5, "void"),
-            new ConstantItem(4, [0,0,0,2]),
-            new ConstantItem(4, [0,0,0,3]),
-        };
+        var constantPool = new ConstantPool();
+        constantPool.AddConstant(new ConstantItem(5,"Main"));
+        constantPool.AddConstant(new ConstantItem(5, ""));
+        constantPool.AddConstant(new ConstantItem(5, "void"));
+        constantPool.AddConstant(new ConstantItem(4, [0,0,0,2]));
+        constantPool.AddConstant(new ConstantItem(4, [0,0,0,3]));
         
-        List<IOperation> operations =
-        [
-            new Ldc(3), // ldc const[0]
-            new Store(0), // store var a
-            new Ldc(4), // ldc const[1]
-            new Store(1), // store var b
-            new Ldv(0), // load a
-            new Ldv(1), // load b
-            new Add(),
-            new Store(2), // store res
-            new Ldv(2), // load res
-            new Print(),
-            new Halt()
-        ];
-
-        var mainFunc = new Function
+        var functionPool = new FunctionPool();
+        functionPool.AddFunction(new Function()
         {
             NameIndex = 0,
             LocalsLength = 3,
             MaxStackUsed = 0,
-            Operations = operations,
+            Operations = [
+                new Ldc(3), // ldc const[0]
+                new Store(0), // store var a
+                new Ldc(4), // ldc const[1]
+                new Store(1), // store var b
+                new Ldv(0), // load a
+                new Ldv(1), // load b
+                new Add(),
+                new Store(2), // store res
+                new Ldv(2), // load res
+                new Print(),
+                new Halt()],
             ParameterDescriptorIndex = 1,
             ReturnTypeIndex = 2
-        };
 
-        var constantPool = new ConstantPool(constants);
-        var functionPool = new FunctionPool([mainFunc]);
+        });
+        
         var classPool = new ClassPool();
 
         var header = new Header([0, 0, 0], 0);
