@@ -2,12 +2,10 @@
 
 ## Purpose
 
-The purpose of the CZFF Virtual Machine Interpreter (CVM Interpreter) is to execute compiled ".ball" bytecode files by decoding their structure, loading constants, classes and methods into the runtime environment, and performing operations defined by the bytecode instruction set.
-The interpreter provides deterministic execution of CZFF programs, including stack-based evaluation, method invocation, field access, and control-flow operations.
+The purpose of the CZff Virtual Machine Interpreter (CVM Interpreter) is to execute loaded and decoded by [Class Loader](../class-loader.md#class-loader) ".ball" files by performing operations defined by the bytecode instruction set.
+The interpreter provides deterministic execution of CZff programs, including stack-based evaluation, method invocation, field access, and control-flow operations.
 
 Its responsibilities include:
-
-* Parsing and validating bytecode structure.
 
 * Managing program state: call stack, operand stacks, local variables.
 
@@ -29,11 +27,15 @@ All arithmetic, logical operations and parameter passing are performed through t
 
 Contains all loaded entities extracted from the bytecode file:
 
-**Constants Pool** — raw constants parsed from the bytecode (u1, u2, u4, i4, strings, class references, etc.)
+**Constants Pool** — raw constants parsed from the bytecode (u1, u2, u4, i4, strings, etc.)
 
 **Classes Pool** — classes, their fields, and method structures
 
+**Funtctions Pool** – global functions with their parameters, return types and operation sequencies
+
 **Method Area** — a mapping of method descriptors to executable units
+
+**Functions Pool** – a mapping of function descriptors to executable units
 
 #### Bytecode Executor
 
@@ -78,7 +80,7 @@ A stack of frames, where each frame contains:
 
 * Program counter (PC)
 
-* Method metadata (parameters count, return type, code length, etc.)
+* Method metadata (parameters, return type, code length, etc.)
 
 * Only the top frame is active during execution.
 
@@ -86,31 +88,7 @@ A stack of frames, where each frame contains:
 
 The interpreter processes bytecode using the following steps:
 
-### 1. Initialization Phase
-
-1. Read and validate the bytecode header:
-
-    * magic number `0x62616c6c` (meaning that this is a ".ball" file)
-
-    * version
-
-    * flags
-
-2. Load the constants pool:
-
-    * allocate internal structures for each entry
-
-    * decode data by tag types
-
-3. Load classes into the runtime environment:
-
-    * parse fields and methods
-
-    * store method metadata, including parameters, max stack, locals count, and code
-
-4. Locate the entry point (e.g., class Main, method main or other predefined entry).
-
-### 2. Frame Creation
+### 1. Frame Creation
 
 To begin execution:
 
@@ -126,7 +104,7 @@ To begin execution:
 
 3. Push this frame onto the call stack.
 
-### 3. Execution Loop
+### 2. Execution Loop
 
 The VM enters the main loop:
 
@@ -152,35 +130,17 @@ The high-level algorithm for each cycle:
 
 3. **Execute** instruction:
 
-    Operations include:
-
-    * **Stack Manipulation**: push, pop, dup, swap
-
-    * **Arithmetic**: iadd, isub, imul, idiv, irem
-
-    * **Logical**: and, or, not, comparisons
-
-    * **Constant Loading**: load constant from pool and push to stack
-
-    * **Local Variable Ops**: load/store local index
-
-    * **Object Ops**: get_field, put_field, new_object
-
-    * **Control Flow**: if_xxx, goto, return
-
-    * **Method Invocation**: invoke_virtual, invoke_static
-
-    * **Termination**: halt, return from last frame
+    See operations' descriptions in [Bytecode](../../bytecode/bytecode.md#operation-codes-list) section.
 
 4. **Update PC**
 
     Jump instructions adjust PC relative or absolute based on operand values.
 
-5. Error Handling
+5. **Error Handling**
 
     If an invalid opcode, index out of bounds, or other violation occurs, the VM throws an unhandled exception and terminates execution.
 
-### 4. Method Invocation
+### 3. Method Invocation
 
 When calling a method:
 
@@ -198,7 +158,7 @@ When calling a method:
 
 4. Continue execution from the new frame’s PC.
 
-### 5. Method Return
+### 4. Method Return
 
 When a return instruction is executed:
 
@@ -216,7 +176,7 @@ When a return instruction is executed:
 
     * halt execution returning corresponding exit code
 
-### 6. Program Termination
+### 5. Program Termination
 
 Execution stops when:
 

@@ -18,12 +18,13 @@
     1. **Length** of pool — uint_16, shorted to $n$
     2. **Array of elemnts** in view: (tag, data) — tag, 1 byte; data, $x$ bytes 
 
+>[!IMPORTANT]
+>All constants are stored here. In [Types](#types) section will be mentioned types for data, but constants for *Name*, *descriptors*, everything stored in *uint_16* as **index of constant**. For axmaple `Name, string` means that *uint_16*, staying in this position, is the index of constant for *Name* with type *string*. `Max stack used, uint_16` *uint_16* of length of max stack, **it isn't** constant in code. 
+
 3. **Functions pool** includes"
     1. **Functions length**, uint_16
     2. **Functions**    
 
->[!IMPORTANT]
->All constants are stored here. In [Types](#types) section will be mentioned types for data, everything excluding *length* is stored here. 
 4. **Classes pool** includes:
     1. **Classes length**, uint_16
     2. **Classes**, class[x]
@@ -68,29 +69,33 @@ Method is a function inside a class, all methods are public
 Tag is byte primitive type signature
 
 Tags list: 
-- `u1` — `0x1`
-- `u2` — `0x2` 
-- `u4` — `0x3` 
-- `i4` — `0x4`
-- `string` — `0x5`
-- W.I.P
-- `class` — `0xF`
+- `u1` — `0x01` — 1 byte of uint
+- `u2` — `0x02` — 2 bytes of uint 
+- `u4` — `0x03` — 4 bytes of uint
+- `i4` — `0x04` — 4 bytes of int
+- `string` — `0x05` — *n = 2* bytes of length + *n* bytes of chars 
+- `u8` — `0x06` — 8 bytes of int
+- `i8` — `0x07` — 8 bytes of int
+- `u16` — `0x08` — 16 bytes of int
+- `i16` — `0x09` — 16 bytes of int
+- `b` — `0x0A` — 1 byte of bool
+- W.I.P.
 
 ### Operation Codes
-- **Operation code**, byte
-- **Arguments**, string descriptor
+- **Operation code**, 2 bytes
+- **Arguments**, if mentioned
 
 ## String Descriptor
 To do
 
 ## Operation Codes List
 
-- `ldc` — `0x01 + u2` constant index
-- `dup` — `0x02`
-- `swap` — `0x03`
-- `store` — `0x04 + u2` variable index
-- `ldv` — `0x05 + u2` variable index
-- `add` — `0x06`
-- `print` — `0x07`
-- `halt` — `0x08`
+- `ldc` — `0x0001 + u2` constant index
+- `dup` — `0x0002`
+- `swap` — `0x0003`
+- `store` — `0x0004 + u2` variable index
+- `ldv` — `0x0005 + u2` variable index
+- `add` — `0x0006`
+- `print` — `0x0007`
+- `halt` — `0x0008`
 - W.I.P.

@@ -15,12 +15,10 @@ The standard library is loaded before the user program and its classes are avail
 
 ## Loading Stages
 
-Class loading is performed in the following stages:
+Loading is performed in the following stages:
 
 1. **File Loading**
-2. **Verification**
-3. **Linking**
-4. **Entry Point Resolution**
+2. **Entry Point Resolution**
 
 Each stage must complete successfully before the next one begins.
 
@@ -51,70 +49,7 @@ No semantic checks are performed at this stage.
 
 ---
 
-### 2. Verification
-
-Verification ensures that bytecode is structurally and semantically valid before execution.
-
-The loader verifies:
-
-#### Class-Level Checks
-
-- Class names are unique within the two files
-- Referenced classes exist (either in `stdlib` or user file)
-
-#### Field Checks
-
-- Field names are unique within a class
-- Field type descriptors are valid
-
-#### Method Checks
-
-- Method names are unique within a class (parameter-based overloading is not supported _for now_)
-- Parameter and return type descriptors are valid
-- `max_stack` and `locals_length` are non-zero where required
-- `code_length` matches actual bytecode size
-
-#### Function Checks
-
-- Function names are unique within the two files (parameter-based overloading is not supported _for now_)
-- Referenced functions exist (either in `stdlib` or user file)
-- Parameter and return type descriptors are valid
-- `max_stack` and `locals_length` are non-zero where required
-- `code_length` matches actual bytecode size
-
-#### Bytecode Checks
-
-- All opcodes are known
-- Instruction arguments match opcode descriptor
-- Constant pool references are in bounds
-- Stack usage does not exceed `max_stack`
-- Local variable access is within `locals_length`
-
-If any verification step fails, the Class Loader aborts execution with a descriptive error.
-
----
-
-### 3. Linking
-
-Linking resolves symbolic references and prepares classes for execution.
-
-This stage includes:
-
-#### Constant Pool Resolution
-
-- Resolving class, field, method, and function references
-- Converting symbolic references into direct pointers or indices
-
-#### Layout Preparation
-
-- Calculating field offsets for each class
-- Preparing method metadata
-
-No code is executed during this stage.
-
----
-
-### 4. Entry Point Resolution
+### 2. Entry Point Resolution
 
 After all classes are loaded, the Class Loader searches for the program entry point.
 
