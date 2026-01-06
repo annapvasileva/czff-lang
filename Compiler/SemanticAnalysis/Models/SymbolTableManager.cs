@@ -18,6 +18,7 @@ public class SymbolTableManager
         if (resetCounter)
         {
             _variableCounter = 0;
+            MaxCounter = 0;
         }
 
         _currentScope = new SymbolTable(_currentScope);
