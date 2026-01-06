@@ -35,5 +35,4 @@ private:
 
     std::string ResolveName(uint16_t constant_index) const;
 };
-
 }

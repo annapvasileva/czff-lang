@@ -202,5 +202,3 @@ TEST(ClassLoaderIntegrationTestSuite, MainFunctionOperations) {
         }
     }
 }
-
-
