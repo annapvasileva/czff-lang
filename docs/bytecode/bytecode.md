@@ -1,7 +1,8 @@
 # Bytecode
 
 - [Structure](#structure)
-- [Operation Codes List](#operation-codes-list)
+- [Tags](#tag)
+- [OpCodes List](#operation-codes-list)
 
 ## Structure
 
