@@ -217,6 +217,8 @@ void ClassLoader::LoadClasses(ByteReader& r) {
                     case OperationCode::RET:
                         break;
                     case OperationCode::HALT:
+                        op.arguments.push_back(r.ReadU1());
+                        op.arguments.push_back(r.ReadU1());
                         break;
                     case OperationCode::LDC:
                         op.arguments.push_back(r.ReadU1());
@@ -271,6 +273,8 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
                 case OperationCode::RET:
                     break;    
                 case OperationCode::HALT:
+                    op.arguments.push_back(r.ReadU1());
+                    op.arguments.push_back(r.ReadU1());
                     break;
                 case OperationCode::LDC:
                     op.arguments.push_back(r.ReadU1());

@@ -129,11 +129,27 @@ void Interpreter::Execute() {
 
                 break;
             }
-            case OperationCode::HALT:
-                while (!rda_.GetStack().Empty()) {
-                    rda_.GetStack().PopFrame();
+            case OperationCode::HALT: {
+                uint16_t idx = (op.arguments[0] << 8) | op.arguments[1];
+                const Constant& c = rda_.GetMethodArea().GetConstant(idx);
+                Value return_value = ConstantToValue(c);
+                
+                int exit_code = 0;
+                switch (c.tag) {
+                    case ConstantTag::U1: exit_code = c.data[0]; break;
+                    case ConstantTag::U2: exit_code = (c.data[0] << 8) | c.data[1]; break;
+                    case ConstantTag::U4: 
+                        exit_code = (c.data[0] << 24) | (c.data[1] << 16) | (c.data[2] << 8) | c.data[3];
+                        break;
+                    case ConstantTag::I4: 
+                        exit_code = int32_t((c.data[0] << 24) | (c.data[1] << 16) | (c.data[2] << 8) | c.data[3]);
+                        break;
+                    default:
+                        throw std::runtime_error("HALT: unsupported constant type for exit code");
                 }
-                return;
+
+                std::exit(exit_code);
+            }
             case OperationCode::DUP:
                 break;
             case OperationCode::SWAP:
