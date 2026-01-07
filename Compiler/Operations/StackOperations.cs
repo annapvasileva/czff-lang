@@ -70,3 +70,96 @@ public class Dup : IOperation
         return "dup";
     }
 }
+
+public class Stelem : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "stelem";
+    }
+}
+
+public class Ldelem : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "ldelem";
+    }
+}
+
+public class Newarr(int descriptorIndex) : IOperation
+{
+    public int DescriptorIndex { get; } = descriptorIndex;
+    
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "newarr";
+    }
+}
+
+public class Mul : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "mul";
+    }
+}
+
+public class Min : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "min";
+    }
+}
+
+public class Sub : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "sub";
+    }
+}
+
+public class Div : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "dev";
+    }
+}

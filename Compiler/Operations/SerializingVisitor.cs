@@ -60,9 +60,65 @@ public class SerializingVisitor(IList<byte> buffer) : IOperationVisitor
         Buffer.Add(7);
     }
 
-    public void Visit(Halt operation)
+    public void Visit(Ret operation)
     {
         Buffer.Add(0);
         Buffer.Add(8);
+    }
+
+    public void Visit(Halt operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(9);
+        
+        byte[] code = ByteConverter.IntToU2(operation.ExitValue);
+        Buffer.Add(code[0]);
+        Buffer.Add(code[1]);
+    }
+
+    public void Visit(Newarr operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(10);
+        
+        byte[] idx = ByteConverter.IntToU2(operation.DescriptorIndex);
+        Buffer.Add(idx[0]);
+        Buffer.Add(idx[1]);
+    }
+
+    public void Visit(Stelem operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(11);
+    }
+
+    public void Visit(Ldelem operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(12);
+    }
+
+    public void Visit(Mul operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(13);
+    }
+
+    public void Visit(Min operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(14);
+    }
+
+    public void Visit(Sub operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(15);
+    }
+
+    public void Visit(Div operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(16);
     }
 }

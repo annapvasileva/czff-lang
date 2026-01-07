@@ -13,8 +13,23 @@ public class Add : IOperation
     }
 }
 
-public class Halt : IOperation
+public class Ret : IOperation
 {
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "ret";
+    }
+}
+
+public class Halt(int exitValue) : IOperation
+{
+    public int ExitValue { get; set; } = exitValue;
+
     public void Accept(IOperationVisitor operationVisitor)
     {
         operationVisitor.Visit(this);

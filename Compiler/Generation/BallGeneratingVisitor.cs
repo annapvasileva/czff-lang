@@ -6,6 +6,7 @@ using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
 using Compiler.SemanticAnalysis.Models;
 using Compiler.SourceFiles;
+using Compiler.SourceFiles.Constants;
 using Compiler.Util;
 
 namespace Compiler.Generation;
@@ -22,8 +23,12 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         switch (literalExpressionNode.Type)
         {
             case LiteralType.IntegerLiteral:
-                var number = ByteConverter.IntToI4(Convert.ToInt32(literalExpressionNode.Value));
-                constant = new ConstantItem(4, number);
+                int number = Convert.ToInt32(literalExpressionNode.Value);
+                constant = new IntConstant(number);
+                break;
+            case LiteralType.StringLiteral:
+                string line = literalExpressionNode.Value;
+                constant = new StringConstant(line);
                 break;
             default:
                 throw new NotImplementedException();
@@ -68,6 +73,15 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             case BinaryOperatorType.Addition:
                 _currentFunction!.Operations.Add(new Add());
                 break;
+            case BinaryOperatorType.Subtraction:
+                _currentFunction!.Operations.Add(new Sub());
+                break;
+            case BinaryOperatorType.Multiplication:
+                _currentFunction!.Operations.Add(new Mul());
+                break;
+            case BinaryOperatorType.Division:
+                _currentFunction!.Operations.Add(new Div());
+                break;
             default:
                 throw new NotImplementedException();
         }
@@ -75,7 +89,16 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(UnaryExpressionNode unaryExpressionNode)
     {
-        throw new NotImplementedException();
+        unaryExpressionNode.Accept(this);
+
+        switch (unaryExpressionNode.UnaryOperator.Type)
+        {
+            case UnaryOperatorType.Minus:
+                _currentFunction!.Operations.Add(new Min());
+                break;
+            default:
+                throw new NotImplementedException();
+        }
     }
 
     public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
@@ -115,7 +138,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         else
         {
             // Name
-            ConstantItem item =  new ConstantItem(5, functionSymbol.Name);
+            ConstantItem item =  new StringConstant(functionSymbol.Name);
             int idx = _target.ConstantPool.GetIndexOrAddConstant(item);
         
             _currentFunction.NameIndex = idx;
@@ -126,7 +149,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             // Return Type
             string returnDescriptor = functionSymbol.ReturnType;
         
-            item =  new ConstantItem(5, returnDescriptor);
+            item =  new StringConstant(returnDescriptor);
             idx = _target.ConstantPool.GetIndexOrAddConstant(item);
             _currentFunction.ReturnTypeIndex = idx;
         
@@ -138,7 +161,6 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             _currentFunction.MaxStackUsed = 0;
         }
         
-        _currentFunction.Operations.Add(new Halt());
         _target.FunctionPool.AddFunction(_currentFunction);
         _currentFunction = null;
     }
@@ -157,7 +179,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             descriptor += parameter.Type.GetName + ";";
         }
         
-        int idx = _target.ConstantPool.GetIndexOrAddConstant(new ConstantItem(5, descriptor));
+        int idx = _target.ConstantPool.GetIndexOrAddConstant(new StringConstant(descriptor));
         
         _currentFunction!.ParameterDescriptorIndex = idx;
     }
@@ -212,7 +234,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(ReturnStatementNode returnStatementNode)
     {
-        _currentFunction!.Operations.Add(new Halt());
+        _currentFunction!.Operations.Add(new Ret());
     }
 
     public void Visit(IfStatementNode ifStatementNode)
