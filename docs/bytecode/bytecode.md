@@ -97,5 +97,15 @@ To do
 - `ldv` — `0x0005 + u2` variable index
 - `add` — `0x0006`
 - `print` — `0x0007`
-- `halt` — `0x0008`
+- `ret` — `0x0008`
+- `halt` — `0x0009`
+- `newarr` — `0x000A + u2` constant index, array type descriptor
+- `stelem` — `0x000B`
+- `ldelem` — `0x000C`
+- `mul` — `0x000D`
+- `neg` — `0x000E`
+- `sub` — `0x000F`
+- `div` — `0x0010`
+- `neg` — `0x0011`
+- `call` — `0x0012`
 - W.I.P.
