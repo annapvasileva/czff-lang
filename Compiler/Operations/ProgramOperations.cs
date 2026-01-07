@@ -13,6 +13,19 @@ public class Add : IOperation
     }
 }
 
+public class Ret : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "ret";
+    }
+}
+
 public class Halt : IOperation
 {
     public void Accept(IOperationVisitor operationVisitor)

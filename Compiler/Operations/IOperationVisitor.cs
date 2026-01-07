@@ -9,5 +9,13 @@ public interface IOperationVisitor
     public void Visit(Ldv operation);
     public void Visit(Add operation);
     public void Visit(Print operation);
+    public void Visit(Ret operation);
     public void Visit(Halt operation);
+    public void Visit(Newarr operation);
+    public void Visit(Stelem operation);
+    public void Visit(Ldelem operation);
+    public void Visit(Mul operation);
+    public void Visit(Neg operation);
+    public void Visit(Sub operation);
+    public void Visit(Div operation);
 }
