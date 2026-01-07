@@ -91,7 +91,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
     {
         unaryExpressionNode.Accept(this);
 
-        switch (unaryExpressionNode.UnaryOperator.Type)
+        switch (unaryExpressionNode.UnaryOperatorType)
         {
             case UnaryOperatorType.Minus:
                 _currentFunction!.Operations.Add(new Min());

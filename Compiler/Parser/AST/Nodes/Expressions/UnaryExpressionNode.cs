@@ -2,12 +2,12 @@ namespace Compiler.Parser.AST.Nodes.Expressions;
 
 public class UnaryExpressionNode : ExpressionNode
 {
-    public UnaryOperator UnaryOperator { get; }
+    public UnaryOperatorType UnaryOperatorType { get; }
     public ExpressionNode Expression { get; }
 
-    public UnaryExpressionNode(UnaryOperator unaryOperator, ExpressionNode expression)
+    public UnaryExpressionNode(UnaryOperatorType unaryOperatorType, ExpressionNode expression)
     {
-        UnaryOperator = unaryOperator;
+        UnaryOperatorType = unaryOperatorType;
         Expression = expression;
     }
 
