@@ -143,7 +143,7 @@
 ### Characters
 
     new_line = "\n" ;
-    whitespace = " " ;
+    whitespace = " " | "\t" | "\r" ;
     decimal_digit = "0" ... "9" ;
     letter = "A" ... "Z" | "a" ... "z" ;
 
@@ -157,7 +157,8 @@ General comments start with the character sequence =/ and stop with the first su
 
 * Identifiers
 
-        identifier = letter , { letter | decimal_digit | "_" } ;
+        identifier_first_letter = "_" | letter ;
+        identifier = identifier_first_letter , { letter | decimal_digit | "_" } ;
 
 * Keywords
 
@@ -170,7 +171,6 @@ General comments start with the character sequence =/ and stop with the first su
         +   -   *   /   %
         &&  ||  !   ==  =
         <   >   <=  =>  !=
-        ++ --
 
 * Puncuation
 
@@ -204,7 +204,7 @@ character - arbitrary Unicode symbol
 
 #### User-Defined Data Types
 
-* class - a set of of named elements, called fields, and functions, called methods.
+* class - a set of named elements, called fields, and functions, called methods.
 
 ### Blocks, Scopes and Declarations
 
@@ -260,23 +260,22 @@ Scope is the context in which a name is visible. Scope types:
 
 Expression is a piece of code that can be evaluated to a value
 
-    expression = unary_expression | expression , binary_operation expression ;
-    unary_expression  = primary_expression | unary_operator , unary_expression ;
-    unary_operator = "-" | "!"  ;
-    binary_operation = arithmetic_operator | logical_operator | comparison_operator ;
-    primary_expression = literal 
-                         | identifier 
-                         | function_call 
-                         | array_access 
-                         | member_access ;
+    expression = logical_or ;
+    logical_or = logical_and , { "||" , logical_and } ;
+    logical_and = equality , { "&&" , equality } ;
+    equality = comparison , { "==" | "!=" , comparison } ;
+    comparison = additive , { ">" | ">=" | "<" | "<=" , additive } ;
+    additive = multiplicative , { "+" | "-" , multiplicative } ;
+    multiplicative = unary , { "*" | "/" , "%" , unary } ;
+    unary = "-" | "!" , unary
+                 | postfix ;
+    postfix = primary , { postfix_operation } ;
+    postfix_operation = function_call | index_access ;
+    primary = literal | identifier | "(" , expression , ")" ;
 
 #### Arithmetic Operators
 
     arithmetic_operator = "+" | "-" | "*" | "/" | "%" ;
-
-### Increment and Decrement
-
-    increment_decrement = "++" | "--" ;
 
 #### Comparison Operators
 
@@ -425,19 +424,17 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
         =/
         Factorial calculation
         /=
-        class FactorialCalculator {
-            func int Calculate(int n) {
-                if (n <= 1) {
-                    retrun 1;
-                }
-
-                return n * Calculate(n - 1);
+        func int Calculate(int n) {
+            if (n <= 1) {
+                retrun 1;
             }
 
-            func void Main(array<string> args) {
-                var int n = 10;
-                print(Factorial(n));
-            }
+            return n * Calculate(n - 1);
+        }
+
+        func void Main(array<string> args) {
+            var int n = 10;
+            print(Calculate(n));
         }
 
 * Array Sorting
@@ -445,84 +442,80 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
         =/
         Merge Sort Implementation
         /=
-        class ArrayMergeSorter {
-            func void Merge(array<int> arr, int left, int mid, int right) {
-                var int it1 = 0;
-                var int it2 = 0;
-                var array<int> result = new (right - left)[]; // create array with size right - left
+        func void Merge(array<int> arr, int left, int mid, int right) {
+            var int it1 = 0;
+            var int it2 = 0;
+            var array<int> result = new(right - left)[]; // create array with size right - left
 
-                while (left + it1 < mid && mid + it2 < right) {
-                    if (arr[left + it1] <= arr[mid + it2]) {
-                        result[it1 + it2] = arr[left + it1];
-                        it1++;
-                    } else {
-                        result[it1 + it2] = arr[mid + it2];
-                        it2++;
-                    }
-                }
-
-                while (left + it1 < mid) {
+            while (left + it1 < mid && mid + it2 < right) {
+                if (arr[left + it1] <= arr[mid + it2]) {
                     result[it1 + it2] = arr[left + it1];
-                    it1++;
-                }
-                                
-                while (mid + it2 < right) {
+                    it1 = it1 + 1;
+                } else {
                     result[it1 + it2] = arr[mid + it2];
-                    it2++;
-                }
-
-                for (var int i = 0; i < it1 + it2; i++) {
-                    arr[left + i] = resilt[i];
+                    it2 = it2 + 1;
                 }
             }
 
-            func void MergeSort(array<int> arr, int left, int right) {
-                if (left + 1 >= right) {
-                    return;
-                }
-
-                var int mid = (left + right) / 2;
-                MergeSort(arr, left, mid);
-                MergeSort(arr, mid, right);
-                Merge(arr, left, mid, right);
+            while (left + it1 < mid) {
+                result[it1 + it2] = arr[left + it1];
+                it1 = it1 + 1;
+            }
+                            
+            while (mid + it2 < right) {
+                result[it1 + it2] = arr[mid + it2];
+                it2 = it2 + 1;
             }
 
-            func void Main(array<string> args) {
-                var int n;
-                read(n);
-                var array<int> arr = new (n)[]; // create array with size n
-                for (var int i = 0; i < n; i++) {
-                    read(arr[i]);
-                }
-                MergeSort(arr, 0, n);
-                for (var int i = 0; i < n; i++) {
-                    print(arr[i], " ");
-                }
+            for (var int i = 0; i < it1 + it2; i = i + 1) {
+                arr[left + i] = resilt[i];
+            }
+        }
+
+        func void MergeSort(array<int> arr, int left, int right) {
+            if (left + 1 >= right) {
+                return;
+            }
+
+            var int mid = (left + right) / 2;
+            MergeSort(arr, left, mid);
+            MergeSort(arr, mid, right);
+            Merge(arr, left, mid, right);
+        }
+
+        func void Main(array<string> args) {
+            var int n;
+            read(n);
+            var array<int> arr = new(n)[]; // create array with size n
+            for (var int i = 0; i < n; i = i + 1) {
+                read arr[i];
+            }
+            MergeSort(arr, 0, n);
+            for (var int i = 0; i < n; i = i + 1) {
+                print arr[i];
             }
         }
 
 * Prime Number Generation
 
-        class EratosthenesSieve {
-            func void Main(array<string> args) {
-                var int n;
-                read(n);
-                var array<bool> prime = new (n + 1)[];
-                for (var int i = 2; i < n + 1; i++) {
-                    prime[i] = true;
-                }
-                for (var int p = 2; p * p <= n; p++) {
-                    if (prime[p] == true) {
-                        for (var int i = p * p; i <= n; i = i + p) {
-                            prime[i] = false;
-                        }
+        func void Main(array<string> args) {
+            var int n;
+            read(n);
+            var array<bool> prime = new(n + 1)[];
+            for (var int i = 2; i < n + 1; i = i + 1) {
+                prime[i] = true;
+            }
+            for (var int p = 2; p * p <= n; p = p + 1) {
+                if (prime[p] == true) {
+                    for (var int i = p * p; i <= n; i = i + p) {
+                        prime[i] = false;
                     }
                 }
-                println("Prime numbers up to ", n);
-                for (var int i = 2; i <= n; i++) {
-                    if (prime[i] == true) {
-                        print(i, " ")
-                    }
+            }
+
+            for (var int i = 2; i <= n; i = i + 1) {
+                if (prime[i] == true) {
+                    print i
                 }
             }
         }
