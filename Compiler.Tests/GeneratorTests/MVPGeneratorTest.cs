@@ -51,7 +51,7 @@ public class MVPGeneratorTest
                                     new IdentifierExpressionNode("b"),
                                     BinaryOperatorType.Addition)),
                             new PrintStatementNode(new IdentifierExpressionNode("res")),
-                            new ReturnStatementNode(),
+                            new ReturnStatementNode(null),
                         }) { Scope = mainBodyTable }
                 )
             }));

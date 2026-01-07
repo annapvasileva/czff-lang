@@ -4,9 +4,9 @@ namespace Compiler.Parser.AST.Nodes.Statements;
 
 public class ReturnStatementNode : StatementNode
 {
-    public ExpressionNode Expression { get; set; }
+    public ExpressionNode? Expression { get; set; } = null;
 
-    public ReturnStatementNode(ExpressionNode expression)
+    public ReturnStatementNode(ExpressionNode? expression)
     {
         Expression = expression;
     }

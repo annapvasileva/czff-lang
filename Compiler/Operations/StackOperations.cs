@@ -125,7 +125,7 @@ public class Mul : IOperation
     }
 }
 
-public class Neg : IOperation
+public class Min : IOperation
 {
     public void Accept(IOperationVisitor operationVisitor)
     {
@@ -134,7 +134,7 @@ public class Neg : IOperation
 
     public string GetString()
     {
-        return "neg";
+        return "min";
     }
 }
 

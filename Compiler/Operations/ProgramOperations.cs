@@ -26,8 +26,10 @@ public class Ret : IOperation
     }
 }
 
-public class Halt : IOperation
+public class Halt(int exitValue) : IOperation
 {
+    public int ExitValue { get; set; } = exitValue;
+
     public void Accept(IOperationVisitor operationVisitor)
     {
         operationVisitor.Visit(this);

@@ -15,7 +15,7 @@ public interface IOperationVisitor
     public void Visit(Stelem operation);
     public void Visit(Ldelem operation);
     public void Visit(Mul operation);
-    public void Visit(Neg operation);
+    public void Visit(Min operation);
     public void Visit(Sub operation);
     public void Visit(Div operation);
 }

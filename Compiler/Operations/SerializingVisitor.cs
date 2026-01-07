@@ -70,6 +70,10 @@ public class SerializingVisitor(IList<byte> buffer) : IOperationVisitor
     {
         Buffer.Add(0);
         Buffer.Add(9);
+        
+        byte[] code = ByteConverter.IntToU2(operation.ExitValue);
+        Buffer.Add(code[0]);
+        Buffer.Add(code[1]);
     }
 
     public void Visit(Newarr operation)
@@ -100,7 +104,7 @@ public class SerializingVisitor(IList<byte> buffer) : IOperationVisitor
         Buffer.Add(13);
     }
 
-    public void Visit(Neg operation)
+    public void Visit(Min operation)
     {
         Buffer.Add(0);
         Buffer.Add(14);

@@ -26,6 +26,10 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
                 int number = Convert.ToInt32(literalExpressionNode.Value);
                 constant = new IntConstant(number);
                 break;
+            case LiteralType.StringLiteral:
+                string line = literalExpressionNode.Value;
+                constant = new StringConstant(line);
+                break;
             default:
                 throw new NotImplementedException();
         }
@@ -69,6 +73,15 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             case BinaryOperatorType.Addition:
                 _currentFunction!.Operations.Add(new Add());
                 break;
+            case BinaryOperatorType.Subtraction:
+                _currentFunction!.Operations.Add(new Sub());
+                break;
+            case BinaryOperatorType.Multiplication:
+                _currentFunction!.Operations.Add(new Mul());
+                break;
+            case BinaryOperatorType.Division:
+                _currentFunction!.Operations.Add(new Div());
+                break;
             default:
                 throw new NotImplementedException();
         }
@@ -76,7 +89,16 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(UnaryExpressionNode unaryExpressionNode)
     {
-        throw new NotImplementedException();
+        unaryExpressionNode.Accept(this);
+
+        switch (unaryExpressionNode.UnaryOperator.Type)
+        {
+            case UnaryOperatorType.Minus:
+                _currentFunction!.Operations.Add(new Min());
+                break;
+            default:
+                throw new NotImplementedException();
+        }
     }
 
     public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
@@ -207,7 +229,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(ReturnStatementNode returnStatementNode)
     {
-        _currentFunction!.Operations.Add(new Halt());
+        _currentFunction!.Operations.Add(new Ret());
     }
 
     public void Visit(IfStatementNode ifStatementNode)

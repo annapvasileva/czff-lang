@@ -24,7 +24,7 @@ public class GenerateRealFile
             new Store(2), // store res
             new Ldv(2), // load res
             new Print(),
-            new Halt()
+            new Ret()
         ];
 
         var mainFunc = new Function
