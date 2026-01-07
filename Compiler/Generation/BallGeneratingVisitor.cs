@@ -185,6 +185,11 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         _scope = _scope.Parent;
     }
 
+    public void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode)
+    {
+        throw new NotImplementedException();
+    }
+
     public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
     {
         throw new NotImplementedException();
