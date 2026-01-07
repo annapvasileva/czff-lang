@@ -90,6 +90,66 @@ public class OneLexemeTestData : IEnumerable<object[]>
             "}", 
             new Token(TokenType.RightCurlyBracket, "}", 1, 1) 
         };
+
+        yield return new object[] 
+        { 
+            "return", 
+            new Token(TokenType.Return, "return", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "-123", 
+            new Token(TokenType.IntegerLiteral, "-123", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "new", 
+            new Token(TokenType.New, "new", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "array", 
+            new Token(TokenType.Array, "array", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "*", 
+            new Token(TokenType.Multiply, "*", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "<", 
+            new Token(TokenType.Less, "<", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            ">", 
+            new Token(TokenType.Greater, ">", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "[", 
+            new Token(TokenType.LeftSquareBracket, "[", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "]", 
+            new Token(TokenType.RightSquareBracket, "]", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "-", 
+            new Token(TokenType.Minus, "-", 1, 1) 
+        };
     }
     
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

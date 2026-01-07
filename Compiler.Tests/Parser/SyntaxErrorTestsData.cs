@@ -9,7 +9,7 @@ public class SyntaxErrorTestsData : IEnumerable<object[]>
         yield return new object[]
         {
             """
-            func void Main() {}
+            func void Main() { return; }
             
             var int a = 1;
             """,

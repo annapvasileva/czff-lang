@@ -49,6 +49,10 @@ public class CompilerParser
         Expect(TokenType.LeftRoundBracket);
         Expect(TokenType.RightRoundBracket);
         var body = ParseBlock();
+        if (body.Statements.Count == 0 || !(body.Statements.Last() is ReturnStatementNode))
+        {
+            throw new ParserException("Ожидался return в конце функции", CurrentToken.Line, CurrentToken.Start);
+        }
 
         return new FunctionDeclarationNode(returnType, funcName, new FunctionParametersNode(), body);
     }
@@ -60,16 +64,23 @@ public class CompilerParser
             var token = MoveNext();
             return new SimpleTypeNode(token.Lexeme);
         }
-        
-        throw new ParserException("Type expected",
-            CurrentToken.Line, CurrentToken.Start);
-    }
 
-    // private IdentifierExpressionNode ParseIdentifier()
-    // {
-    //     var token = Expect(TokenType.Identifier);
-    //     return new IdentifierExpressionNode(token.Lexeme);
-    // }
+        if (CurrentToken.Kind == TokenType.Array)
+        { 
+            MoveNext();
+            Expect(TokenType.Less);
+            var elementType = MoveNext();
+            if (!IsBuiltInType(elementType.Kind))
+            {
+                throw new ParserException("BuiltIn type was expected", CurrentToken.Line, CurrentToken.Start);
+            }
+            Expect(TokenType.Greater);
+
+            return new ArrayTypeNode(new SimpleTypeNode(elementType.Lexeme));
+        }
+        
+        throw new ParserException("Type expected", CurrentToken.Line, CurrentToken.Start);
+    }
 
     private BlockNode ParseBlock()
     {
@@ -92,6 +103,7 @@ public class CompilerParser
             TokenType.Func => ParseFunctionDeclaration(),
             TokenType.Var => ParseVariableDeclaration(),
             TokenType.Print => ParsePrint(),
+            TokenType.Return => ParseReturn(),
             _ => ParseExpressionStatement()
         };
     }
@@ -120,6 +132,18 @@ public class CompilerParser
         return new PrintStatementNode(ParseExpression());
     }
 
+    private ReturnStatementNode ParseReturn()
+    {
+        Expect(TokenType.Return);
+        ExpressionNode? expression = null;
+        if (CurrentToken.Kind != TokenType.Semicolon)
+        {
+            expression = ParseExpression();
+        }
+
+        return new ReturnStatementNode(expression);
+    }
+
     private ExpressionStatementNode ParseExpressionStatement()
     {
         return new ExpressionStatementNode(ParseExpression());
@@ -132,12 +156,57 @@ public class CompilerParser
 
     private ExpressionNode ParseAdditive()
     {
-        ExpressionNode expr = ParsePrimary();
+        ExpressionNode expr = ParseMultiplicative();
         while (CurrentToken.Kind == TokenType.Plus)
         {
             Expect(TokenType.Plus);
-            ExpressionNode right = ParsePrimary();
+            ExpressionNode right = ParseMultiplicative();
             expr = new BinaryExpressionNode(expr, right, BinaryOperatorType.Addition);
+        }
+
+        return expr;
+    }
+
+    private ExpressionNode ParseMultiplicative()
+    {
+        ExpressionNode expr = ParseUnary();
+        while (CurrentToken.Kind == TokenType.Multiply)
+        {
+            Expect(TokenType.Multiply);
+            ExpressionNode right = ParseUnary();
+            expr = new BinaryExpressionNode(expr, right, BinaryOperatorType.Multiplication);
+        }
+
+        return expr;
+    }
+
+    private ExpressionNode ParseUnary()
+    {
+        if (CurrentToken.Kind == TokenType.Minus)
+        {
+            ExpressionNode expr = ParseUnary();
+            return new UnaryExpressionNode(UnaryOperatorType.Minus, expr);
+        }
+
+        return ParsePostfix();
+    }
+
+    private ExpressionNode ParsePostfix()
+    {
+        ExpressionNode expr = ParsePrimary();
+        while(true)
+        {
+            if (CurrentToken.Kind == TokenType.LeftSquareBracket)
+            {
+                MoveNext();
+                ExpressionNode index = ParseExpression();
+                Expect(TokenType.RightSquareBracket);
+                expr = new ArrayIndexExpressionNode(expr, index);
+            }
+            else
+            {
+                break;
+            }
         }
 
         return expr;
@@ -166,7 +235,24 @@ public class CompilerParser
             return expr;
         }
 
+        if (CurrentToken.Kind == TokenType.New)
+        {
+            return ParseNewExpression();
+        }
+
         throw new ParserException("Ожидался expression", CurrentToken.Line, CurrentToken.Start);
+    }
+
+    private ExpressionNode ParseNewExpression()
+    {
+        Expect(TokenType.New);
+        Expect(TokenType.LeftRoundBracket);
+        ExpressionNode arraySize = ParseExpression();
+        Expect(TokenType.RightRoundBracket);
+        Expect(TokenType.LeftSquareBracket);
+        Expect(TokenType.RightSquareBracket);
+
+        return new ArrayCreationExpressionNode(arraySize);
     }
     
     private bool IsBuiltInType(TokenType tokenType)

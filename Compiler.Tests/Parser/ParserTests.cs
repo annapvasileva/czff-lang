@@ -13,7 +13,7 @@ namespace Compiler.Tests.Parser;
 public class ParserTests
 {
     private ITestOutputHelper _output;
-    
+
     public ParserTests(ITestOutputHelper output)
     {
         _output = output;
@@ -27,6 +27,7 @@ public class ParserTests
                         Our first simple program on CZFF 
                         /=
                         func void Main() {
+                            return;
                         }
                         """;
         var expectedAst = new AstTree(new ProgramNode(
@@ -35,21 +36,24 @@ public class ParserTests
                 new (
                     new SimpleTypeNode("void"),
                     "Main",
-                    new FunctionParametersNode(){ },
-                    new BlockNode(new List<StatementNode>(){ })
+                    new FunctionParametersNode() { },
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new ReturnStatementNode(null)
+                    })
                 )
             }));
-        
+
         var lexer = new CompilerLexer(source);
         var tokens = lexer.GetTokens().ToList();
         var parser = new CompilerParser(tokens);
-        
+
         var ast = parser.Parse();
-        
-        var json1 = JsonSerializer.Serialize(expectedAst, 
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
             new JsonSerializerOptions { WriteIndented = true });
         _output.WriteLine(json1);
-    
+
         var json2 = JsonSerializer.Serialize(ast,
             new JsonSerializerOptions { WriteIndented = true });
 
@@ -67,15 +71,17 @@ public class ParserTests
                             var int a = 2;
                             var int b = a;
                             var int c;
+                            
+                            return;
                         }
                         """;
         var expectedAst = new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
             {
-                new (
+                new(
                     new SimpleTypeNode("void"),
                     "Main",
-                    new FunctionParametersNode(){ },
+                    new FunctionParametersNode() { },
                     new BlockNode(
                         new List<StatementNode>()
                         {
@@ -89,27 +95,85 @@ public class ParserTests
                                 new IdentifierExpressionNode("a")),
                             new VariableDeclarationNode(
                                 new SimpleTypeNode("int"),
-                                "c")
+                                "c"),
+                            new ReturnStatementNode(null)
                         })
                 )
             }));
-        
+
         var lexer = new CompilerLexer(source);
         var tokens = lexer.GetTokens().ToList();
         var parser = new CompilerParser(tokens);
-        
+
         var ast = parser.Parse();
-        
-        var json1 = JsonSerializer.Serialize(expectedAst, 
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
             new JsonSerializerOptions { WriteIndented = true });
         _output.WriteLine(json1);
-    
+
         var json2 = JsonSerializer.Serialize(ast,
             new JsonSerializerOptions { WriteIndented = true });
 
         Assert.Equal(json1, json2);
     }
     
+    [Fact]
+    public void IdentifiersNamingTest()
+    {
+        string source = """
+                        =/
+                        Our first simple program on CZFF 
+                        /=
+                        func void Main() {
+                            var int a1 = 2;
+                            var int b_two2 = a;
+                            var int _c;
+                            
+                            return;
+                        }
+                        """;
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(
+                        new List<StatementNode>()
+                        {
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("int"),
+                                "a1",
+                                new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("int"),
+                                "b_two2",
+                                new IdentifierExpressionNode("a")),
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("int"),
+                                "_c"),
+                            new ReturnStatementNode(null)
+                        })
+                )
+            }));
+
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
+
     [Fact]
     public void PrintStatementTest()
     {
@@ -120,34 +184,36 @@ public class ParserTests
                         func void Main() {
                             print 123;
                             print res;
+                            return;
                         }
                         """;
         var expectedAst = new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
             {
-                new (
+                new(
                     new SimpleTypeNode("void"),
                     "Main",
-                    new FunctionParametersNode(){ },
+                    new FunctionParametersNode() { },
                     new BlockNode(
                         new List<StatementNode>()
                         {
                             new PrintStatementNode(new LiteralExpressionNode("123", LiteralType.IntegerLiteral)),
-                            new PrintStatementNode(new IdentifierExpressionNode("res"))
+                            new PrintStatementNode(new IdentifierExpressionNode("res")),
+                            new ReturnStatementNode(null)
                         })
                 )
             }));
-        
+
         var lexer = new CompilerLexer(source);
         var tokens = lexer.GetTokens().ToList();
         var parser = new CompilerParser(tokens);
-        
+
         var ast = parser.Parse();
-        
-        var json1 = JsonSerializer.Serialize(expectedAst, 
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
             new JsonSerializerOptions { WriteIndented = true });
         _output.WriteLine(json1);
-    
+
         var json2 = JsonSerializer.Serialize(ast,
             new JsonSerializerOptions { WriteIndented = true });
 
@@ -164,15 +230,17 @@ public class ParserTests
                         func void Main() {
                             var int a = 1 + (2 + 3);
                             var int b = (1 + 2) + 3;
+                            
+                            return;
                         }
                         """;
         var expectedAst = new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
             {
-                new (
+                new(
                     new SimpleTypeNode("void"),
                     "Main",
-                    new FunctionParametersNode(){ },
+                    new FunctionParametersNode() { },
                     new BlockNode(
                         new List<StatementNode>()
                         {
@@ -195,27 +263,28 @@ public class ParserTests
                                         new LiteralExpressionNode("2", LiteralType.IntegerLiteral),
                                         BinaryOperatorType.Addition),
                                     new LiteralExpressionNode("3", LiteralType.IntegerLiteral),
-                                    BinaryOperatorType.Addition))
+                                    BinaryOperatorType.Addition)),
+                            new ReturnStatementNode(null)
                         })
                 )
             }));
-        
+
         var lexer = new CompilerLexer(source);
         var tokens = lexer.GetTokens().ToList();
         var parser = new CompilerParser(tokens);
-        
+
         var ast = parser.Parse();
-        
-        var json1 = JsonSerializer.Serialize(expectedAst, 
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
             new JsonSerializerOptions { WriteIndented = true });
         _output.WriteLine(json1);
-    
+
         var json2 = JsonSerializer.Serialize(ast,
             new JsonSerializerOptions { WriteIndented = true });
 
         Assert.Equal(json1, json2);
     }
-    
+
     [Fact]
     public void BaseExampleTest()
     {
@@ -228,15 +297,17 @@ public class ParserTests
                             var int b = 3;
                             var int res = a + b;
                             print res;
+                            
+                            return;
                         }
                         """;
         var expectedAst = new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
             {
-                new (
+                new(
                     new SimpleTypeNode("void"),
-                   "Main",
-                    new FunctionParametersNode(){ },
+                    "Main",
+                    new FunctionParametersNode() { },
                     new BlockNode(
                         new List<StatementNode>()
                         {
@@ -255,21 +326,22 @@ public class ParserTests
                                     new IdentifierExpressionNode("a"),
                                     new IdentifierExpressionNode("b"),
                                     BinaryOperatorType.Addition)),
-                            new PrintStatementNode(new IdentifierExpressionNode("res"))
+                            new PrintStatementNode(new IdentifierExpressionNode("res")),
+                            new ReturnStatementNode(null)
                         })
                 )
             }));
-        
+
         var lexer = new CompilerLexer(source);
         var tokens = lexer.GetTokens().ToList();
         var parser = new CompilerParser(tokens);
-        
+
         var ast = parser.Parse();
-        
-        var json1 = JsonSerializer.Serialize(expectedAst, 
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
             new JsonSerializerOptions { WriteIndented = true });
         _output.WriteLine(json1);
-    
+
         var json2 = JsonSerializer.Serialize(ast,
             new JsonSerializerOptions { WriteIndented = true });
 
@@ -285,50 +357,151 @@ public class ParserTests
                         /=
                         func void Foo() {
                             print 123;
+                            return;
                         }
-                        
+
                         func void boo() {
                             print 1234567;
+                            return;
                         }
                         """;
         var expectedAst = new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
             {
-                new (
+                new(
                     new SimpleTypeNode("void"),
-                   "Foo",
-                    new FunctionParametersNode(){ },
+                    "Foo",
+                    new FunctionParametersNode() { },
                     new BlockNode(
                         new List<StatementNode>()
                         {
                             new PrintStatementNode(new LiteralExpressionNode("123", LiteralType.IntegerLiteral)),
+                            new ReturnStatementNode(null)
                         })
                 ),
-                new (
+                new(
                     new SimpleTypeNode("void"),
                     "boo",
-                    new FunctionParametersNode(){ },
+                    new FunctionParametersNode() { },
                     new BlockNode(
                         new List<StatementNode>()
                         {
                             new PrintStatementNode(new LiteralExpressionNode("1234567", LiteralType.IntegerLiteral)),
+                            new ReturnStatementNode(null)
                         })
                 )
             }));
-        
+
         var lexer = new CompilerLexer(source);
         var tokens = lexer.GetTokens().ToList();
         var parser = new CompilerParser(tokens);
-        
+
         var ast = parser.Parse();
-        
-        var json1 = JsonSerializer.Serialize(expectedAst, 
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
             new JsonSerializerOptions { WriteIndented = true });
         _output.WriteLine(json1);
-    
+
         var json2 = JsonSerializer.Serialize(ast,
             new JsonSerializerOptions { WriteIndented = true });
 
         Assert.Equal(json1, json2);
     }
+
+    [Fact]
+    public void ArrayDeclarationTest()
+    {
+        string source = """
+                        =/
+                        Our first simple program on CZFF 
+                        /=
+                        func void Main() {
+                            var array<int> arr = new(5)[];
+                            
+                            return;
+                        }
+                        """;
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new ArrayTypeNode(new SimpleTypeNode("int")), 
+                            "arr",
+                            new ArrayCreationExpressionNode(new LiteralExpressionNode("5", LiteralType.IntegerLiteral))),
+                        new ReturnStatementNode(null)
+                    })
+                )
+            }));
+
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
+
+// public void ArrayDeclarationTest()
+    // {
+    //     var expectedAst = new AstTree(new ProgramNode(
+    //         new List<FunctionDeclarationNode>()
+    //         {
+    //             new (
+    //                 new SimpleTypeNode("void"),
+    //                 "Foo",
+    //                 new FunctionParametersNode(){ },
+    //                 new BlockNode(
+    //                     new List<StatementNode>()
+    //                     {
+    //                         new VariableDeclarationNode(
+    //                             new SimpleTypeNode("int"),
+    //                             "n",
+    //                             new LiteralExpressionNode("5", LiteralType.IntegerLiteral)),
+    //                         new VariableDeclarationNode(
+    //                             new ArrayTypeNode(
+    //                                 new SimpleTypeNode("int")),
+    //                                 "arr",
+    //                                 new ArrayCreationExpressionNode(new IdentifierExpressionNode("n"))),
+    //                         new AssignmentStatementNode(
+    //                             new ArrayIndexExpressionNode(
+    //                                 new IdentifierExpressionNode("arr"),
+    //                                 new LiteralExpressionNode("0", LiteralType.IntegerLiteral)), new LiteralExpressionNode("-1", LiteralType.IntegerLiteral)),
+    //                     })
+    //             )
+    //         }));
+    // }
 }
+
+/*
+func void Main() {
+    var int n = 5;
+    var array<int> arr = new(n)[];
+    arr[0] = -1;
+    arr[1] = 2;
+    arr[2] = arr[0] + arr[1];
+    arr[3] = -(arr[0] * arr[1]);
+    arr[4] = arr[0] * (arr[1] + arr[2]) + arr[3];
+    
+    print arr[0];
+    print arr[1];
+    print arr[2];
+    print arr[3];
+    print arr[4];
+
+    return;
+}
+*/
