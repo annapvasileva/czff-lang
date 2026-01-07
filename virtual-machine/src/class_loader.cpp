@@ -214,6 +214,8 @@ void ClassLoader::LoadClasses(ByteReader& r) {
                         break;
                     case OperationCode::PRINT:
                         break;
+                    case OperationCode::RET:
+                        break;
                     case OperationCode::HALT:
                         break;
                     case OperationCode::LDC:
@@ -266,6 +268,8 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
                     break;
                 case OperationCode::PRINT:
                     break;
+                case OperationCode::RET:
+                    break;    
                 case OperationCode::HALT:
                     break;
                 case OperationCode::LDC:

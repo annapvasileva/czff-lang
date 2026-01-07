@@ -75,7 +75,10 @@ TEST(InterpreterIntegrationTestSuite, ExecutesFirstProgramAndPrintsResult) {
     ClassLoader loader(rda);
     Interpreter interpreter(rda);
 
-    ASSERT_NO_THROW(loader.LoadProgram("FirstProgram.ball"));
+    auto data = MakeFirstProgramBall();
+    TempFile tmp("first.ball");
+    WriteFile(tmp.path, data);
+    ASSERT_NO_THROW(loader.LoadProgram(tmp.path));
 
     RuntimeFunction* entry = loader.EntryPoint();
     ASSERT_NE(entry, nullptr);

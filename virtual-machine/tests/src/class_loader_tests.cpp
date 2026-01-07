@@ -81,7 +81,10 @@ TEST(ClassLoaderIntegrationTestSuite, ConstantPoolIsCorrect) {
     RuntimeDataArea rda;
     ClassLoader loader(rda);
 
-    ASSERT_NO_THROW(loader.LoadProgram("FirstProgram.ball"));
+    auto data = MakeFirstProgramBall();
+    TempFile tmp("first.ball");
+    WriteFile(tmp.path, data);
+    ASSERT_NO_THROW(loader.LoadProgram(tmp.path));
 
     const auto& constants = rda.GetMethodArea().ConstantPool();
     ASSERT_GE(constants.size(), 5u);
@@ -134,7 +137,10 @@ TEST(ClassLoaderIntegrationTestSuite, LoadsFirstProgramBall) {
     RuntimeDataArea rda;
     ClassLoader loader(rda);
 
-    ASSERT_NO_THROW(loader.LoadProgram("FirstProgram.ball"));
+    auto data = MakeFirstProgramBall();
+    TempFile tmp("first.ball");
+    WriteFile(tmp.path, data);
+    ASSERT_NO_THROW(loader.LoadProgram(tmp.path));
 
     RuntimeFunction* entry = loader.EntryPoint();
     ASSERT_NE(entry, nullptr);
@@ -152,7 +158,7 @@ TEST(ClassLoaderIntegrationTestSuite, LoadsFirstProgramBall) {
     EXPECT_EQ(params, "");
 
     EXPECT_EQ(entry->locals_count, 3);
-    EXPECT_EQ(entry->max_stack, 0);
+    EXPECT_EQ(entry->max_stack, 2);
 
     EXPECT_TRUE(rda.GetMethodArea().Functions().contains("Main"));
 
@@ -163,7 +169,10 @@ TEST(ClassLoaderIntegrationTestSuite, MainFunctionOperations) {
     RuntimeDataArea rda;
     ClassLoader loader(rda);
 
-    ASSERT_NO_THROW(loader.LoadProgram("FirstProgram.ball"));
+    auto data = MakeFirstProgramBall();
+    TempFile tmp("first.ball");
+    WriteFile(tmp.path, data);
+    ASSERT_NO_THROW(loader.LoadProgram(tmp.path));
 
     RuntimeFunction* entry = loader.EntryPoint();
     ASSERT_NE(entry, nullptr);
@@ -184,7 +193,7 @@ TEST(ClassLoaderIntegrationTestSuite, MainFunctionOperations) {
         {OperationCode::STORE, {0x00, 0x02}},
         {OperationCode::LDV,   {0x00, 0x02}},
         {OperationCode::PRINT, {}},
-        {OperationCode::HALT,  {}},
+        {OperationCode::RET,  {}},
     };
 
     ASSERT_EQ(entry->code.size(), expected.size());

@@ -16,7 +16,8 @@ enum class OperationCode : uint16_t {
     LDV = 0x05,
     ADD = 0x06,
     PRINT = 0x07,
-    HALT = 0x08,
+    RET = 0x08,
+    HALT = 0x09
 };
 
 struct Operation {
