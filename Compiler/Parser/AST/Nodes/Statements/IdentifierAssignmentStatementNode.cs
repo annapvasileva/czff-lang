@@ -2,15 +2,15 @@ using Compiler.Parser.AST.Nodes.Expressions;
 
 namespace Compiler.Parser.AST.Nodes.Statements;
 
-public class AssignmentStatementNode : StatementNode
+public class IdentifierAssignmentStatementNode : StatementNode
 {
     // мб потом конкретизировать, что тут Identifier или ArrayAccess или MemberAccess
     // либо же на этапе какой-нибудь проверки, надо подумать
-    public ExpressionNode Left { get; }
+    public IdentifierExpressionNode Left { get; }
     
     public ExpressionNode Right { get; }
 
-    public AssignmentStatementNode(ExpressionNode left, ExpressionNode right)
+    public IdentifierAssignmentStatementNode(IdentifierExpressionNode left, ExpressionNode right)
     {
         Left = left;
         Right = right;
