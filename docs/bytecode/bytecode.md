@@ -107,5 +107,5 @@ To do
 - `sub` — `0x000F`
 - `div` — `0x0010`
 - `neg` — `0x0011`
-- `call` — `0x0012`
+- `call` — `0x0012 + u2` function index
 - W.I.P.
