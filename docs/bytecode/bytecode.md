@@ -103,7 +103,7 @@ To do
 - `stelem` — `0x000B`
 - `ldelem` — `0x000C`
 - `mul` — `0x000D`
-- `neg` — `0x000E`
+- `min` — `0x000E`
 - `sub` — `0x000F`
 - `div` — `0x0010`
 - `call` — `0x0011 + u2` function index
