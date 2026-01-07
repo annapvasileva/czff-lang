@@ -2,6 +2,7 @@
 using Compiler.Operations;
 using Compiler.Serialization;
 using Compiler.SourceFiles;
+using Compiler.SourceFiles.Constants;
 using Compiler.Util;
 
 namespace Compiler.Tests.SerializerTests;
@@ -14,15 +15,6 @@ public class TestContext : IDisposable
 
     public TestContext()
     {
-        var constants = new List<ConstantItem>
-        {
-            new ConstantItem(5,"Main"),
-            new ConstantItem(5, ""),
-            new ConstantItem(5, "void"),
-            new ConstantItem(4, [0,0,0,2]),
-            new ConstantItem(4, [0,0,0,3]),
-        };
-        
         Operations =
         [
             new Ldc(3), // ldc const[0]
@@ -48,7 +40,12 @@ public class TestContext : IDisposable
             ReturnTypeIndex = 2
         };
 
-        var constantPool = new ConstantPool(constants);
+        var constantPool = new ConstantPool();
+        constantPool.AddConstant(new StringConstant("Main"));
+        constantPool.AddConstant(new StringConstant(""));
+        constantPool.AddConstant(new StringConstant("void"));
+        constantPool.AddConstant(new IntConstant(2));
+        constantPool.AddConstant(new IntConstant(3));
         var functionPool = new FunctionPool([mainFunc]);
         var classPool = new ClassPool();
 

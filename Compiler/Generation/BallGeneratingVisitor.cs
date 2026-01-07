@@ -6,6 +6,7 @@ using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
 using Compiler.SemanticAnalysis.Models;
 using Compiler.SourceFiles;
+using Compiler.SourceFiles.Constants;
 using Compiler.Util;
 
 namespace Compiler.Generation;
@@ -22,8 +23,8 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         switch (literalExpressionNode.Type)
         {
             case LiteralType.IntegerLiteral:
-                var number = ByteConverter.IntToI4(Convert.ToInt32(literalExpressionNode.Value));
-                constant = new ConstantItem(4, number);
+                int number = Convert.ToInt32(literalExpressionNode.Value);
+                constant = new IntConstant(number);
                 break;
             default:
                 throw new NotImplementedException();
@@ -115,7 +116,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         else
         {
             // Name
-            ConstantItem item =  new ConstantItem(5, functionSymbol.Name);
+            ConstantItem item =  new StringConstant(functionSymbol.Name);
             int idx = _target.ConstantPool.GetIndexOrAddConstant(item);
         
             _currentFunction.NameIndex = idx;
@@ -126,7 +127,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             // Return Type
             string returnDescriptor = functionSymbol.ReturnType;
         
-            item =  new ConstantItem(5, returnDescriptor);
+            item =  new StringConstant(returnDescriptor);
             idx = _target.ConstantPool.GetIndexOrAddConstant(item);
             _currentFunction.ReturnTypeIndex = idx;
         
@@ -138,7 +139,6 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             _currentFunction.MaxStackUsed = 0;
         }
         
-        _currentFunction.Operations.Add(new Halt());
         _target.FunctionPool.AddFunction(_currentFunction);
         _currentFunction = null;
     }
@@ -157,7 +157,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             descriptor += parameter.Type.GetName + ";";
         }
         
-        int idx = _target.ConstantPool.GetIndexOrAddConstant(new ConstantItem(5, descriptor));
+        int idx = _target.ConstantPool.GetIndexOrAddConstant(new StringConstant(descriptor));
         
         _currentFunction!.ParameterDescriptorIndex = idx;
     }

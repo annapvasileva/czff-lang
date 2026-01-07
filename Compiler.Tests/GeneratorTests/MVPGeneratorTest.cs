@@ -7,6 +7,7 @@ using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
 using Compiler.SemanticAnalysis.Models;
 using Compiler.SourceFiles;
+using Compiler.SourceFiles.Constants;
 using Compiler.Util;
 
 namespace Compiler.Tests.GeneratorTests;
@@ -49,17 +50,18 @@ public class MVPGeneratorTest
                                     new IdentifierExpressionNode("a"),
                                     new IdentifierExpressionNode("b"),
                                     BinaryOperatorType.Addition)),
-                            new PrintStatementNode(new IdentifierExpressionNode("res"))
+                            new PrintStatementNode(new IdentifierExpressionNode("res")),
+                            new ReturnStatementNode(),
                         }) { Scope = mainBodyTable }
                 )
             }));
         
         var constantPool = new ConstantPool();
-        constantPool.AddConstant(new ConstantItem(5,"Main"));
-        constantPool.AddConstant(new ConstantItem(5, ""));
-        constantPool.AddConstant(new ConstantItem(5, "void"));
-        constantPool.AddConstant(new ConstantItem(4, [0,0,0,2]));
-        constantPool.AddConstant(new ConstantItem(4, [0,0,0,3]));
+        constantPool.AddConstant(new StringConstant("Main"));
+        constantPool.AddConstant(new StringConstant(""));
+        constantPool.AddConstant(new StringConstant("void"));
+        constantPool.AddConstant(new IntConstant(2));
+        constantPool.AddConstant(new IntConstant(3));
         
         var functionPool = new FunctionPool();
         functionPool.AddFunction(new Function()
@@ -78,7 +80,7 @@ public class MVPGeneratorTest
                 new Store(2), // store res
                 new Ldv(2), // load res
                 new Print(),
-                new Halt()],
+                new Ret()],
             ParameterDescriptorIndex = 1,
             ReturnTypeIndex = 2
 

@@ -1,6 +1,7 @@
 ﻿using Compiler.Operations;
 using Compiler.Serialization;
 using Compiler.SourceFiles;
+using Compiler.SourceFiles.Constants;
 
 namespace Compiler.Tests.SerializerTests;
 
@@ -9,14 +10,7 @@ public class GenerateRealFile
     public static void CreateFile()
     {
         // arrange
-        var constants = new List<ConstantItem>
-        {
-            new ConstantItem(5,"Main"),
-            new ConstantItem(5, ""),
-            new ConstantItem(5, "void"),
-            new ConstantItem(4, [0,0,0,2]),
-            new ConstantItem(4, [0,0,0,3]),
-        };
+        
         
         List<IOperation> operations =
         [
@@ -43,7 +37,13 @@ public class GenerateRealFile
             ReturnTypeIndex = 2
         };
 
-        var constantPool = new ConstantPool(constants);
+        var constantPool = new ConstantPool();
+        constantPool.AddConstant(new StringConstant("Main"));
+        constantPool.AddConstant(new StringConstant(""));
+        constantPool.AddConstant(new StringConstant("void"));
+        constantPool.AddConstant(new IntConstant(2));
+        constantPool.AddConstant(new IntConstant(3));
+        
         var functionPool = new FunctionPool([mainFunc]);
         var classPool = new ClassPool();
 
