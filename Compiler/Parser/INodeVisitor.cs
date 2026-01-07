@@ -21,6 +21,7 @@ public interface INodeVisitor
     void Visit(ExpressionStatementNode expressionStatementNode);
     void Visit(AssignmentStatementNode assigmentStatementNode);
     void Visit(BlockNode blockNode);
+    void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode);
     void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode);
     void Visit(MemberAccessNode memberAccessNode);
     void Visit(BreakStatementNode breakStatementNode);

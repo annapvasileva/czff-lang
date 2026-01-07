@@ -81,6 +81,11 @@ public class SymbolTableBuilder : INodeVisitor
         }
     }
 
+    public void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode)
+    {
+        throw new NotImplementedException();
+    }
+
     public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
     {
         throw new NotImplementedException();
