@@ -286,6 +286,83 @@ public class ParserTests
     }
 
     [Fact]
+    public void MultiplicationUnaryExpressionParseExpressionTest()
+    {
+        string source = """
+                        =/
+                        Our first simple program on CZFF 
+                        /=
+                        func void Main() {
+                            var int c = 5;
+                            var int a = 1 * (2 + 3);
+                            var int b = (a + 2) * (-c) + 10;
+                            
+                            return;
+                        }
+                        """;
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(
+                        new List<StatementNode>()
+                        {
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("int"),
+                                "c",
+                                new LiteralExpressionNode("5",  LiteralType.IntegerLiteral)),
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("int"),
+                                "a",
+                                new BinaryExpressionNode(
+                                    new LiteralExpressionNode(
+                                        "1",
+                                        LiteralType.IntegerLiteral),
+                                    new BinaryExpressionNode(
+                                        new LiteralExpressionNode("2", LiteralType.IntegerLiteral),
+                                        new  LiteralExpressionNode("3", LiteralType.IntegerLiteral),
+                                        BinaryOperatorType.Addition),
+                                    BinaryOperatorType.Multiplication)),
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("int"),
+                                "b",
+                                new BinaryExpressionNode(
+                                    new BinaryExpressionNode(
+                                        new BinaryExpressionNode(
+                                            new IdentifierExpressionNode("a"),
+                                            new LiteralExpressionNode("2",  LiteralType.IntegerLiteral),
+                                            BinaryOperatorType.Addition),
+                                        new UnaryExpressionNode(
+                                            UnaryOperatorType.Minus,
+                                            new IdentifierExpressionNode("c")),
+                                        BinaryOperatorType.Multiplication),
+                                    new LiteralExpressionNode("10",  LiteralType.IntegerLiteral),
+                                    BinaryOperatorType.Addition)),
+                            new ReturnStatementNode(null)
+                        })
+                )
+            }));
+
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
+
+    [Fact]
     public void BaseExampleTest()
     {
         string source = """
@@ -416,7 +493,7 @@ public class ParserTests
                         Our first simple program on CZFF 
                         /=
                         func void Main() {
-                            var array<int> arr = new(5)[];
+                            var array<int> arr = new int(5)[];
                             
                             return;
                         }
@@ -433,7 +510,9 @@ public class ParserTests
                         new VariableDeclarationNode(
                             new ArrayTypeNode(new SimpleTypeNode("int")), 
                             "arr",
-                            new ArrayCreationExpressionNode(new LiteralExpressionNode("5", LiteralType.IntegerLiteral))),
+                            new ArrayCreationExpressionNode(
+                                new SimpleTypeNode("int"),
+                                new LiteralExpressionNode("5", LiteralType.IntegerLiteral))),
                         new ReturnStatementNode(null)
                     })
                 )
@@ -455,53 +534,207 @@ public class ParserTests
         Assert.Equal(json1, json2);
     }
 
-// public void ArrayDeclarationTest()
-    // {
-    //     var expectedAst = new AstTree(new ProgramNode(
-    //         new List<FunctionDeclarationNode>()
-    //         {
-    //             new (
-    //                 new SimpleTypeNode("void"),
-    //                 "Foo",
-    //                 new FunctionParametersNode(){ },
-    //                 new BlockNode(
-    //                     new List<StatementNode>()
-    //                     {
-    //                         new VariableDeclarationNode(
-    //                             new SimpleTypeNode("int"),
-    //                             "n",
-    //                             new LiteralExpressionNode("5", LiteralType.IntegerLiteral)),
-    //                         new VariableDeclarationNode(
-    //                             new ArrayTypeNode(
-    //                                 new SimpleTypeNode("int")),
-    //                                 "arr",
-    //                                 new ArrayCreationExpressionNode(new IdentifierExpressionNode("n"))),
-    //                         new AssignmentStatementNode(
-    //                             new ArrayIndexExpressionNode(
-    //                                 new IdentifierExpressionNode("arr"),
-    //                                 new LiteralExpressionNode("0", LiteralType.IntegerLiteral)), new LiteralExpressionNode("-1", LiteralType.IntegerLiteral)),
-    //                     })
-    //             )
-    //         }));
-    // }
-}
+    [Fact]
+    public void IndexArrayTest()
+    {
+        string source = """
+                        =/
+                        Our first simple program on CZFF 
+                        /=
+                        func void Main() {
+                            var int idx = 2;
+                            var array<int> arr = new int(3)[];
+                            arr[0] = 1;
+                            arr[1] = -arr[0];
+                            arr[idx] = (-arr[0] + arr[1]) * arr[0];
+                            return;
+                        }
+                        """;
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "idx",
+                            new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
+                        new VariableDeclarationNode(
+                            new ArrayTypeNode(new SimpleTypeNode("int")), 
+                            "arr",
+                            new ArrayCreationExpressionNode(
+                                new SimpleTypeNode("int"),
+                                new LiteralExpressionNode("3", LiteralType.IntegerLiteral))),
+                        new AssignmentStatementNode(
+                            new ArrayIndexExpressionNode(
+                                new IdentifierExpressionNode("arr"),
+                                new LiteralExpressionNode("0", LiteralType.IntegerLiteral)),
+                            new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
+                        new AssignmentStatementNode(
+                            new ArrayIndexExpressionNode(
+                                new IdentifierExpressionNode("arr"),
+                                new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
+                            new UnaryExpressionNode(
+                                UnaryOperatorType.Minus,
+                                new ArrayIndexExpressionNode(
+                                    new IdentifierExpressionNode("arr"),
+                                    new LiteralExpressionNode("0", LiteralType.IntegerLiteral)))),
+                        new AssignmentStatementNode(
+                            new ArrayIndexExpressionNode(
+                                new IdentifierExpressionNode("arr"),
+                                new IdentifierExpressionNode("idx")),
+                            new BinaryExpressionNode(
+                                new BinaryExpressionNode(
+                                    new UnaryExpressionNode(
+                                        UnaryOperatorType.Minus,
+                                        new ArrayIndexExpressionNode(
+                                            new IdentifierExpressionNode("arr"),
+                                            new LiteralExpressionNode("0", LiteralType.IntegerLiteral))),
+                                    new ArrayIndexExpressionNode(
+                                        new IdentifierExpressionNode("arr"),
+                                        new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
+                                    BinaryOperatorType.Addition),
+                                new ArrayIndexExpressionNode(
+                                    new IdentifierExpressionNode("arr"),
+                                    new LiteralExpressionNode("0", LiteralType.IntegerLiteral)),
+                                BinaryOperatorType.Multiplication)),
+                        new ReturnStatementNode(null)
+                    })
+                )
+            }));
 
-/*
-func void Main() {
-    var int n = 5;
-    var array<int> arr = new(n)[];
-    arr[0] = -1;
-    arr[1] = 2;
-    arr[2] = arr[0] + arr[1];
-    arr[3] = -(arr[0] * arr[1]);
-    arr[4] = arr[0] * (arr[1] + arr[2]) + arr[3];
-    
-    print arr[0];
-    print arr[1];
-    print arr[2];
-    print arr[3];
-    print arr[4];
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
 
-    return;
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
+
+    [Fact]
+    public void SecondExampleTest()
+    {
+        string source = """
+                        =/
+                        Our first simple program on CZFF 
+                        /=
+                        func void Main() {
+                            var int n = 5;
+                            var array<int> arr = new int(n)[];
+                            arr[0] = -1;
+                            arr[1] = 2;
+                            arr[2] = arr[0] + arr[1];
+                            arr[3] = -(arr[0] * arr[1]);
+                            arr[4] = arr[0] * (arr[1] + arr[2]) + arr[3];
+                            
+                            print arr[0];
+                            print arr[1];
+                            print arr[2];
+                            print arr[3];
+                            print arr[4];
+                            
+                            return;
+                        }
+                        """;
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new (
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode(){ },
+                    new BlockNode(
+                        new List<StatementNode>()
+                        {
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("int"),
+                                "n",
+                                new LiteralExpressionNode("5", LiteralType.IntegerLiteral)),
+
+                            new VariableDeclarationNode(
+                                new ArrayTypeNode(new SimpleTypeNode("int")),
+                                "arr",
+                                new ArrayCreationExpressionNode(
+                                        new SimpleTypeNode("int"),
+                                        new IdentifierExpressionNode("n"))),
+
+                            new AssignmentStatementNode(
+                                new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("0",  LiteralType.IntegerLiteral)
+                                ),
+                                new LiteralExpressionNode("-1", LiteralType.IntegerLiteral)),
+
+                            new AssignmentStatementNode(
+                                new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("1",  LiteralType.IntegerLiteral)
+                                ),
+                                new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
+
+                            new AssignmentStatementNode(
+                                new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("2",  LiteralType.IntegerLiteral)
+                                ),
+                                new BinaryExpressionNode(
+                                    new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("0",  LiteralType.IntegerLiteral)),
+                                    new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral)),
+                                    BinaryOperatorType.Addition)),
+
+                            new AssignmentStatementNode(
+                                new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("3",  LiteralType.IntegerLiteral)),
+                                new UnaryExpressionNode(
+                                        UnaryOperatorType.Minus,
+                                        new BinaryExpressionNode(
+                                        new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("0",  LiteralType.IntegerLiteral)),
+                                        new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral)),
+                                        BinaryOperatorType.Multiplication))),
+
+                            new AssignmentStatementNode(
+                                new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("4",  LiteralType.IntegerLiteral)
+                                ),
+                                new BinaryExpressionNode(
+                                    new BinaryExpressionNode(
+                                        new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("0",  LiteralType.IntegerLiteral)),
+                                        new BinaryExpressionNode(
+                                            new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral)),
+                                            new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("2",  LiteralType.IntegerLiteral)),
+                                            BinaryOperatorType.Addition),
+                                        BinaryOperatorType.Multiplication),
+                                    new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("3",  LiteralType.IntegerLiteral)),
+                                    BinaryOperatorType.Addition)),
+
+                            new PrintStatementNode(new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("0",  LiteralType.IntegerLiteral))),
+                            new PrintStatementNode(new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral))),
+                            new PrintStatementNode(new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("2",  LiteralType.IntegerLiteral))),
+                            new PrintStatementNode(new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("3",  LiteralType.IntegerLiteral))),
+                            new PrintStatementNode(new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("4",  LiteralType.IntegerLiteral))),
+
+                            new ReturnStatementNode(null),
+                        })
+                )
+            }));
+        
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
 }
-*/

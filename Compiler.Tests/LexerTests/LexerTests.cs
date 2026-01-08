@@ -140,7 +140,7 @@ public class LexerTests
                         /=
                         func void Main() {
                             var int n = 5;
-                            var array<int> arr = new(n)[];
+                            var array<int> arr = new int(n)[];
                             arr[0] = -1;
                             arr[1] = 2;
                             arr[2] = arr[0] + arr[1];
@@ -180,12 +180,13 @@ public class LexerTests
             new (TokenType.Identifier, "arr", 6, 20),
             new (TokenType.Assign, "=", 6, 24),
             new (TokenType.New, "new", 6, 26),
-            new (TokenType.LeftRoundBracket, "(", 6, 29),
-            new (TokenType.Identifier, "n", 6, 30),
-            new (TokenType.RightRoundBracket, ")", 6, 31),
-            new (TokenType.LeftSquareBracket, "[", 6, 32),
-            new (TokenType.RightSquareBracket, "]", 6, 33),
-            new (TokenType.Semicolon, ";", 6, 34),
+            new (TokenType.Integer, "int", 6, 30),
+            new (TokenType.LeftRoundBracket, "(", 6, 33),
+            new (TokenType.Identifier, "n", 6, 34),
+            new (TokenType.RightRoundBracket, ")", 6, 35),
+            new (TokenType.LeftSquareBracket, "[", 6, 36),
+            new (TokenType.RightSquareBracket, "]", 6, 37),
+            new (TokenType.Semicolon, ";", 6, 38),
 
             new (TokenType.Identifier, "arr", 7, 5),
             new (TokenType.LeftSquareBracket, "[", 7, 8),

@@ -186,6 +186,60 @@ public class SyntaxErrorTestsData : IEnumerable<object[]>
             """,
             "Ожидался RightCurlyBracket, но получен Eof at line 3, column 1"
         };
+
+        yield return new object[]
+        {
+            """
+            func void Main() {
+                var array int> arr = new int(2);
+            """,
+            "Ожидался Less, но получен Integer at line 2, column 15"
+        };
+        
+        yield return new object[]
+        {
+            """
+            func void Main() {
+                var array<> arr = new int(2);
+            """,
+            "BuiltIn type was expected at line 2, column 15"
+        };
+        
+        yield return new object[]
+        {
+            """
+            func void Main() {
+                var array<int arr = new int(2);
+            """,
+            "Ожидался Greater, но получен Identifier at line 2, column 19"
+        };
+        
+        yield return new object[]
+        {
+            """
+            func void Main() {
+                var array<int> arr = int(2);
+            """,
+            "Ожидался expression at line 2, column 26"
+        };
+        
+        yield return new object[]
+        {
+            """
+            func void Main() {
+                var array<int> arr = new(2);
+            """,
+            "Type expected at line 2, column 29"
+        };
+        
+        yield return new object[]
+        {
+            """
+            func void Main() {
+                var array<int> arr = new int();
+            """,
+            "Ожидался expression at line 2, column 34"
+        };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

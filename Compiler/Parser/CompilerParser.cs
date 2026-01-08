@@ -69,14 +69,17 @@ public class CompilerParser
         { 
             MoveNext();
             Expect(TokenType.Less);
-            var elementType = MoveNext();
-            if (!IsBuiltInType(elementType.Kind))
+            // var elementType = MoveNext();
+            if (!IsBuiltInType(CurrentToken.Kind))
             {
                 throw new ParserException("BuiltIn type was expected", CurrentToken.Line, CurrentToken.Start);
             }
+
+            string type = CurrentToken.Lexeme;
+            MoveNext();
             Expect(TokenType.Greater);
 
-            return new ArrayTypeNode(new SimpleTypeNode(elementType.Lexeme));
+            return new ArrayTypeNode(new SimpleTypeNode(type));
         }
         
         throw new ParserException("Type expected", CurrentToken.Line, CurrentToken.Start);
@@ -104,7 +107,7 @@ public class CompilerParser
             TokenType.Var => ParseVariableDeclaration(),
             TokenType.Print => ParsePrint(),
             TokenType.Return => ParseReturn(),
-            _ => ParseExpressionStatement()
+            _ => ParseAssignment() // ParseExpressionStatement()
         };
     }
 
@@ -142,6 +145,22 @@ public class CompilerParser
         }
 
         return new ReturnStatementNode(expression);
+    }
+
+    private StatementNode ParseAssignment()
+    {
+        int saveIndex = _currentTokenIndex;
+        ExpressionNode left = ParseExpression();
+        if (CurrentToken.Kind != TokenType.Assign)
+        {
+            _currentTokenIndex = saveIndex;
+            return ParseExpressionStatement();
+        }
+
+        Expect(TokenType.Assign);
+        ExpressionNode right = ParseExpression();
+
+        return new AssignmentStatementNode(left, right);
     }
 
     private ExpressionStatementNode ParseExpressionStatement()
@@ -184,6 +203,7 @@ public class CompilerParser
     {
         if (CurrentToken.Kind == TokenType.Minus)
         {
+            MoveNext();
             ExpressionNode expr = ParseUnary();
             return new UnaryExpressionNode(UnaryOperatorType.Minus, expr);
         }
@@ -246,13 +266,14 @@ public class CompilerParser
     private ExpressionNode ParseNewExpression()
     {
         Expect(TokenType.New);
+        TypeAnnotationNode elementType = ParseType();
         Expect(TokenType.LeftRoundBracket);
         ExpressionNode arraySize = ParseExpression();
         Expect(TokenType.RightRoundBracket);
         Expect(TokenType.LeftSquareBracket);
         Expect(TokenType.RightSquareBracket);
 
-        return new ArrayCreationExpressionNode(arraySize);
+        return new ArrayCreationExpressionNode(elementType, arraySize);
     }
     
     private bool IsBuiltInType(TokenType tokenType)

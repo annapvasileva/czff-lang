@@ -7,4 +7,6 @@ namespace Compiler.Parser.AST.Nodes.Expressions;
 [JsonDerivedType(typeof(IdentifierExpressionNode), typeDiscriminator: "identifier")]
 [JsonDerivedType(typeof(LiteralExpressionNode), typeDiscriminator: "literal")]
 [JsonDerivedType(typeof(ArrayCreationExpressionNode), typeDiscriminator: "arrayCreation")]
+[JsonDerivedType(typeof(ArrayIndexExpressionNode), typeDiscriminator: "arrayIndex")]
+[JsonDerivedType(typeof(UnaryExpressionNode), typeDiscriminator: "unary")]
 public abstract class ExpressionNode : AstNode { }
