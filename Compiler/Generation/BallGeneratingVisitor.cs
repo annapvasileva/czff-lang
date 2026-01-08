@@ -89,7 +89,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(UnaryExpressionNode unaryExpressionNode)
     {
-        unaryExpressionNode.Accept(this);
+        unaryExpressionNode.Expression.Accept(this);
 
         switch (unaryExpressionNode.UnaryOperatorType)
         {
@@ -189,9 +189,33 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         throw new NotImplementedException();
     }
 
-    public void Visit(AssignmentStatementNode assigmentStatementNode)
+    public void Visit(ArrayAssignmentStatementNode arrayAssigmentStatementNode)
     {
-        throw new NotImplementedException();
+        var array = arrayAssigmentStatementNode.Left;
+        
+        array.Array.Accept(this);
+        array.Index.Accept(this);
+            
+        arrayAssigmentStatementNode.Right.Accept(this);
+            
+        _currentFunction!.Operations.Add(new Stelem());
+    }
+
+    public void Visit(IdentifierAssignmentStatementNode identifierAssignmentStatementNode)
+    {
+        string name = identifierAssignmentStatementNode.Left.Name;
+        
+        Symbol symbol = _scope.Lookup(name);
+        if (symbol is VariableSymbol variable)
+        {
+            identifierAssignmentStatementNode.Right.Accept(this);
+            int idx = variable.Index;
+            _currentFunction!.Operations.Add(new Store(idx));
+        }
+        else
+        {
+            throw new GeneratorException($"Symbol {name} is not a variable.");
+        }
     }
 
     public void Visit(BlockNode blockNode)
@@ -204,17 +228,25 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             statement.Accept(this);
         }
 
-        _scope = _scope.Parent;
+        _scope = _scope.Parent!;
     }
 
     public void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode)
     {
-        throw new NotImplementedException();
+        arrayCreationExpressionNode.Size.Accept(this);
+
+        var item = new StringConstant(arrayCreationExpressionNode.ElementType.GetName);
+        int idx = _target.ConstantPool.GetIndexOrAddConstant(item);
+        
+        _currentFunction!.Operations.Add(new Newarr(idx));
     }
 
     public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
     {
-        throw new NotImplementedException();
+        arrayIndexExpressionNode.Array.Accept(this);
+        arrayIndexExpressionNode.Index.Accept(this);
+        
+        _currentFunction!.Operations.Add(new Ldelem());
     }
 
     public void Visit(MemberAccessNode memberAccessNode)

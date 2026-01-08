@@ -67,7 +67,12 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(ExpressionStatementNode expressionStatementNode) { }
 
-    public void Visit(AssignmentStatementNode assigmentStatementNode)
+    public void Visit(ArrayAssignmentStatementNode assigmentStatementNode)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
     {
         throw new NotImplementedException();
     }
