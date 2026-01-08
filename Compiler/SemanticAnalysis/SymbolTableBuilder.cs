@@ -26,14 +26,18 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(ArrayTypeNode arrayTypeNode)
     {
-        throw new NotImplementedException();
+        arrayTypeNode.ElementType.Accept(this);
     }
 
-    public void Visit(BinaryExpressionNode binaryExpressionNode) { }
+    public void Visit(BinaryExpressionNode binaryExpressionNode)
+    {
+        binaryExpressionNode.LeftExpression.Accept(this);
+        binaryExpressionNode.RightExpression.Accept(this);
+    }
 
     public void Visit(UnaryExpressionNode unaryExpressionNode)
     {
-        throw new NotImplementedException();
+        unaryExpressionNode.Expression.Accept(this);
     }
 
     public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
@@ -69,12 +73,14 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(ArrayAssignmentStatementNode assigmentStatementNode)
     {
-        throw new NotImplementedException();
+        assigmentStatementNode.Left.Accept(this);
+        assigmentStatementNode.Right.Accept(this);
     }
     
     public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
     {
-        throw new NotImplementedException();
+        assigmentStatementNode.Left.Accept(this);
+        assigmentStatementNode.Right.Accept(this);
     }
 
     public void Visit(BlockNode blockNode)
@@ -88,12 +94,14 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode)
     {
-        throw new NotImplementedException();
+        arrayCreationExpressionNode.ElementType.Accept(this);
+        arrayCreationExpressionNode.Size.Accept(this);
     }
 
     public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
     {
-        throw new NotImplementedException();
+        arrayIndexExpressionNode.Array.Accept(this);
+        arrayIndexExpressionNode.Index.Accept(this);
     }
 
     public void Visit(MemberAccessNode memberAccessNode)
@@ -113,7 +121,10 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(ReturnStatementNode returnStatementNode)
     {
-        throw new NotImplementedException();
+        if (returnStatementNode.Expression != null)
+        {
+            returnStatementNode.Expression.Accept(this);
+        }
     }
 
     public void Visit(IfStatementNode ifStatementNode)
@@ -136,7 +147,10 @@ public class SymbolTableBuilder : INodeVisitor
         throw new NotImplementedException();
     }
 
-    public void Visit(PrintStatementNode printStatementNode) { }
+    public void Visit(PrintStatementNode printStatementNode)
+    {
+        printStatementNode.Expression.Accept(this);
+    }
 
     public void Visit(ProgramNode programNode)
     {

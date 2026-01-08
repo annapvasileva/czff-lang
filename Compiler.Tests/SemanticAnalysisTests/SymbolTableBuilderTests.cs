@@ -33,11 +33,14 @@ public class SymbolTableBuilderTests
                     "Main",
                     new FunctionParametersNode { },
                     new BlockNode(
-                        new List<StatementNode> { })
+                        new List<StatementNode>
+                        {
+                            new ReturnStatementNode(null)
+                        })
                 )
             }));
         var symbolTableBuilder = new SymbolTableBuilder();
-        symbolTableBuilder.Visit((ProgramNode)ast.Root);
+        ast.Root.Accept(symbolTableBuilder);
         var table = symbolTableBuilder.SymbolTable;
         
         var json1 = JsonSerializer.Serialize(expectedTable, 
@@ -84,12 +87,13 @@ public class SymbolTableBuilderTests
                                 new BinaryExpressionNode(
                                     new IdentifierExpressionNode("a"),
                                     new IdentifierExpressionNode("b"),
-                                    BinaryOperatorType.Addition))
+                                    BinaryOperatorType.Addition)),
+                            new ReturnStatementNode(null)
                         })
                 )
             }));
         var symbolTableBuilder = new SymbolTableBuilder();
-        symbolTableBuilder.Visit((ProgramNode)ast.Root);
+        ast.Root.Accept(symbolTableBuilder);
         var table = symbolTableBuilder.SymbolTable;
         
         var json1 = JsonSerializer.Serialize(expectedTable, 
@@ -141,7 +145,8 @@ public class SymbolTableBuilderTests
                                 new BinaryExpressionNode(
                                     new IdentifierExpressionNode("a"),
                                     new IdentifierExpressionNode("b"),
-                                    BinaryOperatorType.Addition))
+                                    BinaryOperatorType.Addition)),
+                            new ReturnStatementNode(null)
                         })
                 ),
                 new (
@@ -158,13 +163,78 @@ public class SymbolTableBuilderTests
                             new VariableDeclarationNode(
                                 new SimpleTypeNode("int"),
                                 "b",
-                                new LiteralExpressionNode("5", LiteralType.IntegerLiteral))
+                                new LiteralExpressionNode("5", LiteralType.IntegerLiteral)),
+                            new ReturnStatementNode(null)
                         }
                     )
                 )
             }));
         var symbolTableBuilder = new SymbolTableBuilder();
-        symbolTableBuilder.Visit((ProgramNode)ast.Root);
+        ast.Root.Accept(symbolTableBuilder);
+        var table = symbolTableBuilder.SymbolTable;
+        
+        var json1 = JsonSerializer.Serialize(expectedTable, 
+            new JsonSerializerOptions { WriteIndented = true });
+        var json2 = JsonSerializer.Serialize(table, 
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+        _output.WriteLine(json2);
+
+        Assert.Equal(json1, json2);
+    }
+
+    [Fact]
+    public void ArrayDeclarationAndIndexingTest()
+    {
+        var expectedTable = new SymbolTable(null);
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 3 });
+        var mainBodyTable = new SymbolTable(expectedTable);
+        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
+        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));
+        mainBodyTable.Symbols.Add("arr", new VariableSymbol("arr", "[I", 2));
+        
+        var ast = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new (
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode { },
+                    new BlockNode(
+                        new List<StatementNode>
+                        {
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("int"),
+                                "a",
+                                new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("int"),
+                                "b",
+                                new LiteralExpressionNode("3", LiteralType.IntegerLiteral)),
+                            new VariableDeclarationNode(
+                                new ArrayTypeNode(
+                                    new SimpleTypeNode("int")), 
+                                "arr",
+                                new ArrayCreationExpressionNode(
+                                    new SimpleTypeNode("int"),
+                                    new LiteralExpressionNode("4", LiteralType.IntegerLiteral))),
+                            new ArrayAssignmentStatementNode(
+                                new ArrayIndexExpressionNode(
+                                    new IdentifierExpressionNode("arr"),
+                                    new LiteralExpressionNode("0", LiteralType.IntegerLiteral)),
+                                new IdentifierExpressionNode("a")),
+                            new ArrayAssignmentStatementNode(
+                                new ArrayIndexExpressionNode(
+                                    new IdentifierExpressionNode("arr"),
+                                    new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
+                                new IdentifierExpressionNode("b")),
+                            new ReturnStatementNode(null)
+                        })
+                )
+            }));
+        
+        var symbolTableBuilder = new SymbolTableBuilder();
+        ast.Root.Accept(symbolTableBuilder);
         var table = symbolTableBuilder.SymbolTable;
         
         var json1 = JsonSerializer.Serialize(expectedTable, 

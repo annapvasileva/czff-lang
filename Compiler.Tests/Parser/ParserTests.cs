@@ -484,6 +484,56 @@ public class ParserTests
 
         Assert.Equal(json1, json2);
     }
+    
+    [Fact]
+    public void VariableAssigmentTest()
+    {
+        string source = """
+                        =/
+                        Our first simple program on CZFF 
+                        /=
+                        func void Main() {
+                            var int n;
+                            n = 0;
+                            
+                            return;
+                        }
+                        """;
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "n"),
+                        new IdentifierAssignmentStatementNode(
+                            new IdentifierExpressionNode("n"),
+                            new LiteralExpressionNode("0", LiteralType.IntegerLiteral)),
+                        new ReturnStatementNode(null)
+                    })
+                )
+            }));
+
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
 
     [Fact]
     public void ArrayDeclarationTest()
@@ -569,12 +619,12 @@ public class ParserTests
                             new ArrayCreationExpressionNode(
                                 new SimpleTypeNode("int"),
                                 new LiteralExpressionNode("3", LiteralType.IntegerLiteral))),
-                        new AssignmentStatementNode(
+                        new ArrayAssignmentStatementNode(
                             new ArrayIndexExpressionNode(
                                 new IdentifierExpressionNode("arr"),
                                 new LiteralExpressionNode("0", LiteralType.IntegerLiteral)),
                             new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
-                        new AssignmentStatementNode(
+                        new ArrayAssignmentStatementNode(
                             new ArrayIndexExpressionNode(
                                 new IdentifierExpressionNode("arr"),
                                 new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
@@ -583,7 +633,7 @@ public class ParserTests
                                 new ArrayIndexExpressionNode(
                                     new IdentifierExpressionNode("arr"),
                                     new LiteralExpressionNode("0", LiteralType.IntegerLiteral)))),
-                        new AssignmentStatementNode(
+                        new ArrayAssignmentStatementNode(
                             new ArrayIndexExpressionNode(
                                 new IdentifierExpressionNode("arr"),
                                 new IdentifierExpressionNode("idx")),
@@ -670,17 +720,17 @@ public class ParserTests
                                         new SimpleTypeNode("int"),
                                         new IdentifierExpressionNode("n"))),
 
-                            new AssignmentStatementNode(
+                            new ArrayAssignmentStatementNode(
                                 new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("0",  LiteralType.IntegerLiteral)
                                 ),
                                 new LiteralExpressionNode("-1", LiteralType.IntegerLiteral)),
 
-                            new AssignmentStatementNode(
+                            new ArrayAssignmentStatementNode(
                                 new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("1",  LiteralType.IntegerLiteral)
                                 ),
                                 new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
 
-                            new AssignmentStatementNode(
+                            new ArrayAssignmentStatementNode(
                                 new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("2",  LiteralType.IntegerLiteral)
                                 ),
                                 new BinaryExpressionNode(
@@ -688,7 +738,7 @@ public class ParserTests
                                     new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral)),
                                     BinaryOperatorType.Addition)),
 
-                            new AssignmentStatementNode(
+                            new ArrayAssignmentStatementNode(
                                 new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("3",  LiteralType.IntegerLiteral)),
                                 new UnaryExpressionNode(
                                         UnaryOperatorType.Minus,
@@ -697,7 +747,7 @@ public class ParserTests
                                         new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral)),
                                         BinaryOperatorType.Multiplication))),
 
-                            new AssignmentStatementNode(
+                            new ArrayAssignmentStatementNode(
                                 new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("4",  LiteralType.IntegerLiteral)
                                 ),
                                 new BinaryExpressionNode(

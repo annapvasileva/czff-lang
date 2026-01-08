@@ -160,7 +160,17 @@ public class CompilerParser
         Expect(TokenType.Assign);
         ExpressionNode right = ParseExpression();
 
-        return new AssignmentStatementNode(left, right);
+        if (left is IdentifierExpressionNode identifierExpressionNode)
+        {
+            return new IdentifierAssignmentStatementNode(identifierExpressionNode, right);
+        }
+        if (left is ArrayIndexExpressionNode arrayIndexExpressionNode)
+        {
+            return new ArrayAssignmentStatementNode(arrayIndexExpressionNode, right);
+        }
+
+        Token start = _tokens[_currentTokenIndex];
+        throw new ParserException("Identifier or array index was expected", start.Line, start.Start);
     }
 
     private ExpressionStatementNode ParseExpressionStatement()
