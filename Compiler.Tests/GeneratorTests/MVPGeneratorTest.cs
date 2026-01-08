@@ -135,7 +135,7 @@ public class MVPGeneratorTest
             Assert.Equal(a.LocalsLength, b.LocalsLength);
             Assert.Equal(a.OperationsLength, b.OperationsLength);
 
-            for (int j = 0; i < a.Operations.Count; i++)
+            for (int j = 0; j < a.Operations.Count; j++)
             {
                 var operationA = a.Operations[j];
                 var operationB = b.Operations[j];
@@ -203,7 +203,7 @@ public class MVPGeneratorTest
                                         ,new BinaryExpressionNode(
                                         new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("0",  LiteralType.IntegerLiteral)),
                                         new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral)),
-                                        BinaryOperatorType.Addition))),
+                                        BinaryOperatorType.Multiplication))),
                                 
                             new ArrayAssignmentStatementNode(
                                 new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("4",  LiteralType.IntegerLiteral)
@@ -418,7 +418,7 @@ public class MVPGeneratorTest
             Assert.Equal(a.LocalsLength, b.LocalsLength);
             Assert.Equal(a.OperationsLength, b.OperationsLength);
 
-            for (int j = 0; i < a.Operations.Count; i++)
+            for (int j = 0; j < a.Operations.Count; j++)
             {
                 var operationA = a.Operations[j];
                 var operationB = b.Operations[j];

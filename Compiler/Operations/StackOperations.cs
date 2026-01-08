@@ -160,6 +160,6 @@ public class Div : IOperation
 
     public string GetString()
     {
-        return "dev";
+        return "div";
     }
 }
