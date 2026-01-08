@@ -1,0 +1,387 @@
+using Compiler.Parser;
+using Compiler.Parser.AST.Nodes;
+using Compiler.Parser.AST.Nodes.Core;
+using Compiler.Parser.AST.Nodes.Expressions;
+using Compiler.Parser.AST.Nodes.Statements;
+using Compiler.SemanticAnalysis.Models;
+
+namespace Compiler.SemanticAnalysis;
+
+public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
+{
+    private SymbolTable _scope = scope;
+    private Stack<HashSet<VariableSymbol>> _initStack = new();
+
+    public void Visit(LiteralExpressionNode literalExpressionNode) { }
+
+    public void Visit(IdentifierExpressionNode identifierExpressionNode)
+    {
+        var symb = _scope.Lookup(identifierExpressionNode.Name);
+        if (symb is VariableSymbol variableSymbol && !IsInitialized(variableSymbol))
+        {
+            throw new SemanticException($"Variable {identifierExpressionNode.Name} is not initialized");
+        }
+    }
+
+    public void Visit(SimpleTypeNode simpleTypeNode)
+    {
+        if (simpleTypeNode.Name == "I" || simpleTypeNode.Name == "bool" || simpleTypeNode.Name == "void")
+        {
+            return;
+        }
+        // тут потом проверять существование класса, если тип - это класс
+        
+        throw new Exception($"Type {simpleTypeNode.Name} does not exist");
+    }
+
+    public void Visit(ArrayTypeNode arrayTypeNode) { }
+
+    public void Visit(BinaryExpressionNode binaryExpressionNode)
+    {
+        binaryExpressionNode.LeftExpression.Accept(this);
+        binaryExpressionNode.RightExpression.Accept(this);
+
+        // type checking
+        GetBinaryExpressionType(binaryExpressionNode);
+    }
+
+    public void Visit(UnaryExpressionNode unaryExpressionNode)
+    {
+        unaryExpressionNode.Expression.Accept(this);
+        // type checking
+        GetUnaryExpressionType(unaryExpressionNode);
+    }
+
+    public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(VariableDeclarationNode variableDeclarationNode)
+    {
+        // check type
+        variableDeclarationNode.Type.Accept(this);
+        if (variableDeclarationNode.Expression != null)
+        {
+            variableDeclarationNode.Expression.Accept(this);
+            var symbol = _scope.Lookup(variableDeclarationNode.Name);
+            _initStack.Peek().Add((VariableSymbol)symbol);
+
+            var varTypeName = variableDeclarationNode.Type.GetName;
+            var initExpressionTypeName = GetExpressionType(variableDeclarationNode.Expression);
+            if (varTypeName != initExpressionTypeName)
+            {
+                throw new SemanticException($"Variable {variableDeclarationNode.Name}: type - {initExpressionTypeName} does not match {varTypeName}");
+            }
+        }
+        if (variableDeclarationNode.Type is ArrayTypeNode && variableDeclarationNode.Expression == null)
+        {
+
+            throw new SemanticException("You must provide an array size");
+        }
+        
+        if (CheckVoidType(variableDeclarationNode.Type))
+        {
+            throw new SemanticException("Variable declaration must not have void type");
+        }
+    }
+
+    public void Visit(FunctionDeclarationNode functionDeclarationNode)
+    {
+        functionDeclarationNode.Body.Accept(this);
+        var expectedReturnType = functionDeclarationNode.ReturnType.GetName;
+        var returnType =
+            GetExpressionType(((ReturnStatementNode)functionDeclarationNode.Body.Statements.Last()).Expression);
+        if (expectedReturnType != returnType)
+        {
+            throw new SemanticException($"Function {functionDeclarationNode.Name} expected return type is {expectedReturnType} but got {returnType}");
+        }
+    }
+
+    public void Visit(ClassDeclarationNode classDeclarationNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(FunctionParametersNode functionParametersNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(ExpressionStatementNode expressionStatementNode)
+    {
+        expressionStatementNode.Accept(this);
+    }
+
+    public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
+    {
+        var symb = _scope.Lookup(assigmentStatementNode.Left.Name);
+        if (symb is VariableSymbol variableSymbol)
+        {
+            _initStack.Peek().Add(variableSymbol);
+        }
+        else
+        {
+            throw new SemanticException($"Expected that {assigmentStatementNode.Left.Name} is a variable");
+        }
+        
+        assigmentStatementNode.Right.Accept(this);
+
+        var left = GetExpressionType(assigmentStatementNode.Left);
+        var right = GetExpressionType(assigmentStatementNode.Right);
+        if (left != right)
+        {
+            throw new SemanticException($"Assigment: identifier have type: {left} but got type: {right}");
+        }
+    }
+
+    public void Visit(ArrayAssignmentStatementNode assigmentStatementNode)
+    {
+        assigmentStatementNode.Left.Accept(this);
+        assigmentStatementNode.Right.Accept(this);
+        var left = GetExpressionType(assigmentStatementNode.Left);
+        var right = GetExpressionType(assigmentStatementNode.Right);
+        if (left != right)
+        {
+            throw new SemanticException($"Assigment: array have type: {left} but got type: {right}");
+        }
+    }
+
+    public void Visit(BlockNode blockNode)
+    {
+        EnterScope();
+        _scope = blockNode.Scope;
+        
+        foreach (var statement in blockNode.Statements)
+        {
+            statement.Accept(this);
+        }
+
+        ExitScope();
+        _scope = _scope.Parent!;
+    }
+
+    public void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode)
+    {
+        arrayCreationExpressionNode.ElementType.Accept(this);
+        arrayCreationExpressionNode.Size.Accept(this);
+        
+        var sizeType = GetExpressionType(arrayCreationExpressionNode.Size);
+        if (sizeType != "I")
+            throw new SemanticException($"Array creation: size type is {sizeType} but must be I");
+    }
+
+    public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
+    {
+        arrayIndexExpressionNode.Array.Accept(this);
+        arrayIndexExpressionNode.Index.Accept(this);
+        
+        var indexType = GetExpressionType(arrayIndexExpressionNode.Index);
+        if (indexType != "I")
+            throw new SemanticException($"Array index: index type is {indexType} but must be I");
+    }
+
+    public void Visit(MemberAccessNode memberAccessNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(BreakStatementNode breakStatementNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(ContinueStatementNode continueStatementNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(ReturnStatementNode returnStatementNode)
+    {
+        if (returnStatementNode.Expression != null)
+        {
+            returnStatementNode.Expression.Accept(this);
+        }
+    }
+
+    public void Visit(IfStatementNode ifStatementNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(ElifStatementNode elifStatementNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(WhileStatementNode whileStatementNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(ForStatementNode forStatementNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(PrintStatementNode printStatementNode)
+    {
+        printStatementNode.Expression.Accept(this);
+    }
+
+    public void Visit(ProgramNode programNode)
+    {
+        foreach (var func in programNode.Functions)
+        {
+            func.Accept(this);
+        }
+    }
+    
+    public void EnterScope()
+    {
+        _initStack.Push(new HashSet<VariableSymbol>());
+    }
+
+    public void ExitScope()
+    {
+        foreach (var symbol in _scope.Symbols)
+        {
+            if (symbol.Value is VariableSymbol variableSymbol && !_initStack.Last().Contains(variableSymbol))
+            {
+                throw new SemanticException($"Variable {variableSymbol.Name} is not initialized");
+            }
+        }
+        _initStack.Pop();
+    }
+    
+    private bool IsInitialized(VariableSymbol symbol)
+    {
+        foreach (var scope in _initStack)
+        {
+            if (scope.Contains(symbol))
+                return true;
+        }
+
+        return false;
+    }
+
+    private string GetExpressionType(ExpressionNode? expressionNode)
+    {
+        if (expressionNode is null)
+        {
+            return "void";
+        }
+        if (expressionNode is ArrayCreationExpressionNode arrayCreationExpression)
+        {
+            return GetArrayCreationType(arrayCreationExpression);
+        }
+
+        if (expressionNode is ArrayIndexExpressionNode arrayIndexExpression)
+        {
+            return GetArrayIndexType(arrayIndexExpression);
+        }
+
+        if (expressionNode is BinaryExpressionNode binaryExpression)
+        {
+            return GetBinaryExpressionType(binaryExpression);
+        }
+
+        if (expressionNode is IdentifierExpressionNode identifierExpressionNode)
+        {
+            return GetIdentifierType(identifierExpressionNode);
+        }
+        
+        if (expressionNode is LiteralExpressionNode literalExpressionNode)
+        {
+            return GetLiteralType(literalExpressionNode);
+        }
+
+        if (expressionNode is UnaryExpressionNode unaryExpression)
+        {
+            return GetUnaryExpressionType(unaryExpression);
+        }
+
+        throw new SemanticException("Unknown expression type");
+    }
+
+    private string GetArrayCreationType(ArrayCreationExpressionNode arrayCreationExpression)
+    {
+        return "[" + arrayCreationExpression.ElementType.GetName;
+    }
+
+    private string GetArrayIndexType(ArrayIndexExpressionNode arrayIndexExpression)
+    {
+        return GetExpressionType(arrayIndexExpression.Index);
+    }
+
+    private string GetBinaryExpressionType(BinaryExpressionNode binaryExpression)
+    {
+        var leftType = GetExpressionType(binaryExpression.LeftExpression);
+        var rightType = GetExpressionType(binaryExpression.RightExpression);
+        
+        return binaryExpression.BinaryOperatorType switch
+        {
+           BinaryOperatorType.Addition or 
+               BinaryOperatorType.Subtraction or 
+               BinaryOperatorType.Multiplication or 
+               BinaryOperatorType.Division or 
+               BinaryOperatorType.Modulus =>
+                GetArithmeticOperationType(leftType, rightType),
+            // Операции сравнения (bool)
+            // Логические операции (bool)
+            _ => throw new SemanticException($"Unsupported binary operator {binaryExpression.BinaryOperatorType}")
+        };
+    }
+
+    private string GetIdentifierType(IdentifierExpressionNode identifierNode)
+    {
+        var symbol = _scope.Lookup(identifierNode.Name);
+        if (symbol is VariableSymbol variableSymbol)
+            return variableSymbol.Type;
+
+        if (symbol is FunctionSymbol)
+            throw new SemanticException("Functions as types are not supported now");
+        
+        throw new SemanticException($"Unknown identifier {identifierNode.Name}");
+    }
+
+    private string GetLiteralType(LiteralExpressionNode expressionNode)
+    {
+        switch (expressionNode.Type)
+        {
+            case LiteralType.IntegerLiteral:
+                return "I";
+            case LiteralType.BooleanLiteral:
+                return "bool";
+            case LiteralType.StringLiteral:
+                return "string";
+            default:
+                throw new  SemanticException($"Unknown literal type {expressionNode.Type}");
+        }
+    }
+
+    private string GetUnaryExpressionType(UnaryExpressionNode unaryExpression)
+    {
+        var expressionType = GetExpressionType(unaryExpression.Expression);
+        if (unaryExpression.UnaryOperatorType == UnaryOperatorType.Minus && expressionType == "I")
+            return expressionType;
+
+        throw new SemanticException($"Unsupported unary operation for operator {unaryExpression.UnaryOperatorType} and type {expressionType}");
+    }
+
+    private string GetArithmeticOperationType(string left, string right)
+    {
+        if (left == right)
+            return left;
+        throw new SemanticException($"Different types in arithmetic exception: {left} and {right}");
+    }
+    
+    private bool CheckVoidType(TypeAnnotationNode node)
+    {
+        if (node is SimpleTypeNode simpleTypeNode)
+            return simpleTypeNode.Name == "void";
+        if (node is ArrayTypeNode arrayTypeNode)
+            return CheckVoidType(arrayTypeNode.ElementType);
+        return false;
+    }
+}

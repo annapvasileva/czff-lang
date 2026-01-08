@@ -17,10 +17,13 @@ public class SymbolTableBuilder : INodeVisitor
     {
         SymbolTableManager = new SymbolTableManager();
     }
-    
+
     public void Visit(LiteralExpressionNode literalExpressionNode) { }
 
-    public void Visit(IdentifierExpressionNode identifierExpressionNode) { }
+    public void Visit(IdentifierExpressionNode identifierExpressionNode)
+    {
+        SymbolTable.Lookup(identifierExpressionNode.Name);
+    }
 
     public void Visit(SimpleTypeNode simpleTypeNode) { }
 
@@ -48,11 +51,15 @@ public class SymbolTableBuilder : INodeVisitor
     public void Visit(VariableDeclarationNode variableDeclarationNode)
     {
         SymbolTableManager.DeclareVariable(variableDeclarationNode.Name, variableDeclarationNode.Type.GetName);
+        variableDeclarationNode.Type.Accept(this);
+        if (variableDeclarationNode.Expression != null)
+        {
+            variableDeclarationNode.Expression.Accept(this);
+        }
     }
 
     public void Visit(FunctionDeclarationNode functionDeclarationNode)
     {
-        SymbolTableManager.DeclareFunction(functionDeclarationNode.Name, functionDeclarationNode.ReturnType.GetName);
         SymbolTableManager.EnterScope(true);
         functionDeclarationNode.Body.Accept(this);
         SymbolTableManager.SetFunctionLocalsLength(functionDeclarationNode.Name);
@@ -69,7 +76,10 @@ public class SymbolTableBuilder : INodeVisitor
         throw new NotImplementedException();
     }
 
-    public void Visit(ExpressionStatementNode expressionStatementNode) { }
+    public void Visit(ExpressionStatementNode expressionStatementNode)
+    {
+        expressionStatementNode.Expression.Accept(this);
+    }
 
     public void Visit(ArrayAssignmentStatementNode assigmentStatementNode)
     {
@@ -154,6 +164,17 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(ProgramNode programNode)
     {
+        if (!programNode.Functions.Select(f => f.Name).Contains("Main"))
+        {
+            throw new SemanticException("Program does not contain the Main function");
+        }
+
+        // прежде записываем информацию о всех функциях,
+        // чтобы можно было вызывать одну функцию из другой в независимости от порядка объявления
+        foreach (var funcDeclaration in programNode.Functions)
+        {
+            SymbolTableManager.DeclareFunction(funcDeclaration.Name, funcDeclaration.ReturnType.GetName);
+        }
         foreach (var funcDeclaration in programNode.Functions)
         {
             funcDeclaration.Accept(this);
