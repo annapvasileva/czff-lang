@@ -95,3 +95,25 @@ TEST(InterpreterIntegrationTestSuite, ExecutesFirstProgramAndPrintsResult) {
     EXPECT_EQ(output, "5");
     EXPECT_TRUE(rda.GetStack().Empty());
 }
+
+TEST(InterpreterIntegrationTestSuite, ExecutesArrayProgram) {
+    RuntimeDataArea rda;
+    ClassLoader loader(rda);
+    Interpreter interpreter(rda);
+
+    auto data = MakeArrayProgramBall();
+    TempFile tmp("array.ball");
+    WriteFile(tmp.path,data);
+
+    loader.LoadProgram(tmp.path);
+
+    std::ostringstream out;
+    auto* old = std::cout.rdbuf(out.rdbuf());
+
+    interpreter.Execute();
+
+    std::cout.rdbuf(old);
+
+    EXPECT_EQ(out.str(), "-1212-1");
+    EXPECT_TRUE(rda.GetStack().Empty());
+}
