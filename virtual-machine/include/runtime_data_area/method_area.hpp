@@ -1,24 +1,21 @@
 #pragma once
 
-#include <cstdint>
 #include <memory>
 
 #include "common.hpp"
 
 namespace czffvm {
-
-class RuntimeDataArea {
+class MethodArea {
 public:
-    RuntimeDataArea();
-    ~RuntimeDataArea();
+    MethodArea() = default;
+    ~MethodArea() = default;
 
-    template<typename T, typename... Args>
-    T* Allocate(Args&&... args);
+    MethodArea(const MethodArea&) = delete;
+    MethodArea& operator=(const MethodArea&) = delete;
 
-    void RegisterClass(RuntimeClass* cls);
-    void RegisterFunction(RuntimeFunction* fn);
-
-    uint32_t InternConstant(const Constant& c);
+    RuntimeClass* RegisterClass(std::unique_ptr<RuntimeClass> cls);
+    RuntimeFunction* RegisterFunction(std::unique_ptr<RuntimeFunction> fn);
+    uint32_t RegisterConstant(const Constant& c);
 
     RuntimeClass* GetClass(const std::string& name) const;
     RuntimeFunction* GetFunction(const std::string& name) const;
@@ -26,7 +23,7 @@ public:
 
     const std::unordered_map<std::string, RuntimeClass*>& Classes() const;
     const std::unordered_map<std::string, RuntimeFunction*>& Functions() const;
-    const std::vector<Constant>& Constants() const;
+    const std::vector<Constant>& ConstantPool() const;
 
 private:
     std::vector<std::unique_ptr<RuntimeClass>> classes_;
@@ -35,6 +32,7 @@ private:
 
     std::unordered_map<std::string, RuntimeClass*> class_table_;
     std::unordered_map<std::string, RuntimeFunction*> function_table_;
-};
 
-}  // namespace czffvm
+    std::string ResolveName(uint16_t constant_index) const;
+};
+}

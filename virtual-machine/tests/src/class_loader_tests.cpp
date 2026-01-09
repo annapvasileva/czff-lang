@@ -33,7 +33,7 @@ TEST(ClassLoaderTestSuite, LoadsMinimalProgramAndResolvesEntryPoint) {
     ASSERT_NO_THROW(loader.LoadProgram(tmp.path));
     ASSERT_NE(loader.EntryPoint(), nullptr);
 
-    EXPECT_TRUE(rda.Functions().contains("Main"));
+    EXPECT_TRUE(rda.GetMethodArea().Functions().contains("Main"));
 }
 
 // ---------- header ----------
@@ -81,9 +81,12 @@ TEST(ClassLoaderIntegrationTestSuite, ConstantPoolIsCorrect) {
     RuntimeDataArea rda;
     ClassLoader loader(rda);
 
-    ASSERT_NO_THROW(loader.LoadProgram("FirstProgram.ball"));
+    auto data = MakeFirstProgramBall();
+    TempFile tmp("first.ball");
+    WriteFile(tmp.path, data);
+    ASSERT_NO_THROW(loader.LoadProgram(tmp.path));
 
-    const auto& constants = rda.Constants();
+    const auto& constants = rda.GetMethodArea().ConstantPool();
     ASSERT_GE(constants.size(), 5u);
 
     // 0: "Main"
@@ -134,27 +137,30 @@ TEST(ClassLoaderIntegrationTestSuite, LoadsFirstProgramBall) {
     RuntimeDataArea rda;
     ClassLoader loader(rda);
 
-    ASSERT_NO_THROW(loader.LoadProgram("FirstProgram.ball"));
+    auto data = MakeFirstProgramBall();
+    TempFile tmp("first.ball");
+    WriteFile(tmp.path, data);
+    ASSERT_NO_THROW(loader.LoadProgram(tmp.path));
 
     RuntimeFunction* entry = loader.EntryPoint();
     ASSERT_NE(entry, nullptr);
 
-    auto fn_name_raw = rda.GetConstant(entry->name_index).data;
+    auto fn_name_raw = rda.GetMethodArea().GetConstant(entry->name_index).data;
     std::string fn_name(fn_name_raw.begin(), fn_name_raw.end());
     EXPECT_EQ(fn_name, "Main");
 
-    auto return_type_raw = rda.GetConstant(entry->return_type_index).data;
+    auto return_type_raw = rda.GetMethodArea().GetConstant(entry->return_type_index).data;
     std::string return_type(return_type_raw.begin(), return_type_raw.end());
     EXPECT_EQ(return_type, "void");
 
-    auto params_raw = rda.GetConstant(entry->params_descriptor_index).data;
+    auto params_raw = rda.GetMethodArea().GetConstant(entry->params_descriptor_index).data;
     std::string params(params_raw.begin(), params_raw.end());
     EXPECT_EQ(params, "");
 
     EXPECT_EQ(entry->locals_count, 3);
-    EXPECT_EQ(entry->max_stack, 0);
+    EXPECT_EQ(entry->max_stack, 2);
 
-    EXPECT_TRUE(rda.Functions().contains("Main"));
+    EXPECT_TRUE(rda.GetMethodArea().Functions().contains("Main"));
 
     EXPECT_FALSE(entry->code.empty());
 }
@@ -163,7 +169,10 @@ TEST(ClassLoaderIntegrationTestSuite, MainFunctionOperations) {
     RuntimeDataArea rda;
     ClassLoader loader(rda);
 
-    ASSERT_NO_THROW(loader.LoadProgram("FirstProgram.ball"));
+    auto data = MakeFirstProgramBall();
+    TempFile tmp("first.ball");
+    WriteFile(tmp.path, data);
+    ASSERT_NO_THROW(loader.LoadProgram(tmp.path));
 
     RuntimeFunction* entry = loader.EntryPoint();
     ASSERT_NE(entry, nullptr);
@@ -184,7 +193,7 @@ TEST(ClassLoaderIntegrationTestSuite, MainFunctionOperations) {
         {OperationCode::STORE, {0x00, 0x02}},
         {OperationCode::LDV,   {0x00, 0x02}},
         {OperationCode::PRINT, {}},
-        {OperationCode::HALT,  {}},
+        {OperationCode::RET,  {}},
     };
 
     ASSERT_EQ(entry->code.size(), expected.size());
@@ -202,5 +211,3 @@ TEST(ClassLoaderIntegrationTestSuite, MainFunctionOperations) {
         }
     }
 }
-
-
