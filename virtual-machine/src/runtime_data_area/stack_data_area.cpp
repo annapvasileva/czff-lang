@@ -26,6 +26,10 @@ CallFrame& StackDataArea::CurrentFrame() {
     return frames_.back();
 }
 
+const std::vector<CallFrame>& StackDataArea::GetFrames() const {
+    return frames_;
+}
+
 bool StackDataArea::Empty() const {
     return frames_.empty();
 }
