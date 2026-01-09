@@ -28,8 +28,7 @@ static bool CheckReturnType(const std::string& expected, const Value& v) {
     }, v);
 }
 
-void Interpreter::Execute() {
-    RuntimeFunction* entry = rda_.GetMethodArea().GetFunction("Main");
+void Interpreter::Execute(RuntimeFunction* entry) {
     if (!entry) {
         throw std::runtime_error("Main not found");
     }

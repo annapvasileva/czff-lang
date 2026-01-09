@@ -16,7 +16,7 @@ void VirtualMachine::LoadProgram(const std::string& path) {
 }
 
 void VirtualMachine::Run() {
-    interpreter_.Execute();
+    interpreter_.Execute(loader_.EntryPoint());
 }
 
 } // namespace czffvm

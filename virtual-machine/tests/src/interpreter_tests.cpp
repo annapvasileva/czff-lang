@@ -31,7 +31,7 @@ TEST(InterpreterIntegrationTestSuite, RunsEmptyMainWithoutCrashing) {
 
     ASSERT_NO_THROW(loader.LoadProgram(tmp.path));
 
-    EXPECT_NO_THROW(interpreter.Execute());
+    EXPECT_NO_THROW(interpreter.Execute(loader.EntryPoint()));
 }
 
 TEST(InterpreterIntegrationTestSuite, StackIsEmptyAfterExecution) {
@@ -47,7 +47,7 @@ TEST(InterpreterIntegrationTestSuite, StackIsEmptyAfterExecution) {
 
     EXPECT_TRUE(rda.GetStack().Empty());
 
-    interpreter.Execute();
+    interpreter.Execute(loader.EntryPoint());
 
     EXPECT_TRUE(rda.GetStack().Empty());
 }
@@ -65,7 +65,7 @@ TEST(InterpreterIntegrationTestSuite, MainFrameIsCreatedAndDestroyed) {
 
     EXPECT_TRUE(rda.GetStack().Empty());
 
-    interpreter.Execute();
+    interpreter.Execute(loader.EntryPoint());
 
     EXPECT_TRUE(rda.GetStack().Empty());
 }
@@ -86,7 +86,7 @@ TEST(InterpreterIntegrationTestSuite, ExecutesFirstProgramAndPrintsResult) {
     std::ostringstream captured;
     auto* old_buf = std::cout.rdbuf(captured.rdbuf());
 
-    ASSERT_NO_THROW(interpreter.Execute());
+    ASSERT_NO_THROW(interpreter.Execute(loader.EntryPoint()));
 
     std::cout.rdbuf(old_buf);
 
@@ -110,7 +110,7 @@ TEST(InterpreterIntegrationTestSuite, ExecutesArrayProgram) {
     std::ostringstream out;
     auto* old = std::cout.rdbuf(out.rdbuf());
 
-    interpreter.Execute();
+    interpreter.Execute(loader.EntryPoint());
 
     std::cout.rdbuf(old);
 

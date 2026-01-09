@@ -56,20 +56,10 @@ struct RuntimeField {
     uint16_t field_descriptor_index;
 };
 
-struct RuntimeMethod {
-    uint16_t name_index;
-    uint16_t params_descriptor_index;
-    uint16_t return_type_index;
-
-    uint16_t max_stack;
-    uint16_t locals_count;
-    std::vector<Operation> code;
-};
-
 struct RuntimeClass {
     uint16_t name_index;
     std::vector<RuntimeField> fields;
-    std::vector<RuntimeMethod> methods;
+    std::vector<uint16_t> methods;
 };
 
 struct RuntimeFunction {

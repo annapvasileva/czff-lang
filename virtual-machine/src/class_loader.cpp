@@ -179,7 +179,7 @@ void ClassLoader::LoadClasses(ByteReader& r) {
     uint16_t count = r.ReadU2();
 
     for (uint16_t i = 0; i < count; ++i) {
-        auto cls = std::make_unique<RuntimeClass>();
+        auto cls = new RuntimeClass();
         cls->name_index = r.ReadU2();
 
         uint16_t fields_count = r.ReadU2();
@@ -192,49 +192,12 @@ void ClassLoader::LoadClasses(ByteReader& r) {
 
         uint16_t methods_count = r.ReadU2();
         for (uint16_t m = 0; m < methods_count; ++m) {
-            RuntimeMethod method;
-            method.name_index = r.ReadU2();
-            method.params_descriptor_index = r.ReadU2();
-            method.return_type_index = r.ReadU2();
+            uint16_t method_index = r.ReadU2();
 
-            method.max_stack = r.ReadU2();
-            method.locals_count = r.ReadU2();
-
-            uint16_t code_len = r.ReadU2();
-            method.code.resize(code_len);
-            for (uint16_t b = 0; b < code_len; ++b) {
-                Operation op;
-                op.code = static_cast<OperationCode>(r.ReadU2());
-                switch (op.code) {
-                    case OperationCode::STELEM:
-                    case OperationCode::LDELEM:
-                    case OperationCode::MUL:
-                    case OperationCode::MIN:
-                    case OperationCode::SUB:
-                    case OperationCode::DIV:
-                    case OperationCode::DUP:
-                    case OperationCode::SWAP:
-                    case OperationCode::ADD:
-                    case OperationCode::PRINT:
-                    case OperationCode::RET:
-                        break;
-                    case OperationCode::NEWARR:
-                    case OperationCode::CALL:
-                    case OperationCode::HALT:
-                    case OperationCode::LDC:
-                    case OperationCode::STORE:
-                    case OperationCode::LDV:
-                        op.arguments.push_back(r.ReadU1());
-                        op.arguments.push_back(r.ReadU1());
-                        break;
-                }
-                method.code[b] = std::move(op);
-            }
-
-            cls->methods.push_back(std::move(method));
+            cls->methods.push_back(method_index);
         }
 
-        rda_.GetMethodArea().RegisterClass(std::move(cls));
+        rda_.GetMethodArea().RegisterClass(cls);
     }
 }
 
@@ -242,7 +205,7 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
     uint16_t count = r.ReadU2();
 
     for (uint16_t i = 0; i < count; ++i) {
-        auto fn = std::make_unique<RuntimeFunction>();
+        auto fn = new RuntimeFunction();
 
         fn->name_index = r.ReadU2();
         fn->params_descriptor_index = r.ReadU2();
@@ -279,15 +242,25 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
                     op.arguments.push_back(r.ReadU1());
                     break;
             }
-            fn->code[b] = std::move(op);
+            fn->code[b] = op;
         }
 
-        rda_.GetMethodArea().RegisterFunction(std::move(fn));
+        rda_.GetMethodArea().RegisterFunction(fn);
     }
 }
 
 void ClassLoader::ResolveEntryPoint() {
-    auto* fn = rda_.GetMethodArea().GetFunction("Main");
+    const auto& functions = rda_.GetMethodArea().Functions();
+    RuntimeFunction* fn = NULL;
+    for (auto f : functions) {
+        Constant name_raw = rda_.GetMethodArea().GetConstant(f->name_index);
+        std::string name(name_raw.data.begin(), name_raw.data.end());
+        if (name == "Main") {
+            fn = f;
+            break;
+        }
+    }
+    
     if (!fn) {
         throw ClassLoaderError("EntryPoint", "Main not found");
     }
