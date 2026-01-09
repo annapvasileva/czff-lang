@@ -81,6 +81,9 @@ internal abstract class Program
         var analyzer = new SymbolTableBuilder();
         ast.Root.Accept(analyzer);
 
+        var analyzerSecondStage = new SemanticAnalyzer(analyzer.SymbolTable);
+        ast.Root.Accept(analyzerSecondStage);
+
         SymbolTable scope = analyzer.SymbolTable;
         
         var generator = new Generator(compilerSettings);

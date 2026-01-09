@@ -31,6 +31,24 @@ public class CompilerLexer
             return CreateNewToken(TokenType.Plus, "+", startLine, startColumn);
         }
 
+        if (_currentChar == '*')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.Multiply, "*", startLine, startColumn);
+        }
+
+        if (_currentChar == '<')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.Less, "<", startLine, startColumn);
+        }
+
+        if (_currentChar == '>')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.Greater, ">", startLine, startColumn);
+        }
+
         if (_currentChar == '=')
         {
             cursor.MoveNext();
@@ -67,6 +85,18 @@ public class CompilerLexer
             return CreateNewToken(TokenType.RightCurlyBracket, "}", startLine, startColumn);
         }
 
+        if (_currentChar == '[')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.LeftSquareBracket, "[", startLine, startColumn);
+        }
+
+        if (_currentChar == ']')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.RightSquareBracket, "]", startLine, startColumn);
+        }
+
         if (_currentChar == '\0')
         {
             cursor.MoveNewLine();
@@ -84,10 +114,15 @@ public class CompilerLexer
 
             return CreateNewToken(tokenType.Value, word, startLine, startColumn);
         }
-        if (char.IsDigit(_currentChar))
+        if (char.IsDigit(_currentChar) || _currentChar == '-' && char.IsDigit(Peek()))
         {
             string number = ReadNumber();
             return CreateNewToken(TokenType.IntegerLiteral, number, startLine, startColumn);
+        }
+        else if (_currentChar == '-')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.Minus, "-", startLine, startColumn);
         }
         
         throw new LexerException($"Unexpected character: {_currentChar}", startLine + 1, startColumn + 1);
@@ -248,6 +283,12 @@ public class CompilerLexer
                 return TokenType.Integer;
             case "void":
                 return TokenType.Void;
+            case "array":
+                return TokenType.Array;
+            case "return":
+                return TokenType.Return;
+            case "new":
+                return TokenType.New;
         }
 
         return null;
