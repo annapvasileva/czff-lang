@@ -69,7 +69,6 @@ public class CompilerParser
         { 
             MoveNext();
             Expect(TokenType.Less);
-            // var elementType = MoveNext();
             if (!IsBuiltInType(CurrentToken.Kind))
             {
                 throw new ParserException("BuiltIn type was expected", CurrentToken.Line, CurrentToken.Start);
@@ -107,14 +106,13 @@ public class CompilerParser
             TokenType.Var => ParseVariableDeclaration(),
             TokenType.Print => ParsePrint(),
             TokenType.Return => ParseReturn(),
-            _ => ParseAssignment() // ParseExpressionStatement()
+            _ => ParseAssignment()
         };
     }
 
     private VariableDeclarationNode ParseVariableDeclaration()
     {
         Expect(TokenType.Var);
-        // where check no void?
         var variableType = ParseType();
         var variableName = Expect(TokenType.Identifier).Lexeme;
         

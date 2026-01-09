@@ -255,6 +255,80 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             """,
             "Functions as types are not supported now"
         };
+
+        yield return new object[]
+        {
+            """
+            func void Main() {
+                var array<int> arr = new int(5)[];
+                var int n = 5;
+                var int res = n + arr;
+                return;
+            }
+
+            """,
+            "Now arithmetic operations only for int. Got: I and [I"
+        };
+        
+        yield return new object[]
+        {
+            """
+            func void Main() {
+                var array<int> arr = new int(5)[];
+                var int n = 5;
+                var int m = 9;
+                var int res = (n + m) * arr;
+                return;
+            }
+
+            """,
+            "Now arithmetic operations only for int. Got: I and [I"
+        };
+        
+        yield return new object[]
+        {
+            """
+            func void Main() {
+                var array<int> arr = new int(5)[];
+                var int n = 5;
+                var int m = 9;
+                arr = n + m;
+                return;
+            }
+
+            """,
+            $"Assigment: identifier have type: [I but got type: I"
+        };
+        
+        yield return new object[]
+        {
+            """
+            func void Main() {
+                var array<int> arr = new int(5)[];
+                var array<int> arr2 = new int(5)[];
+                arr2 = -arr;
+                return;
+            }
+
+            """,
+            "Unsupported unary operation for operator Minus and type [I"
+        };
+        
+        yield return new object[]
+        {
+            """
+            func void foo() {
+                 return;
+            }
+            
+            func void Main() {
+                foo = 8;
+                return;
+            }
+
+            """,
+            "Expected that foo is a variable"
+        };
     }
 
     IEnumerator IEnumerable.GetEnumerator () => GetEnumerator();

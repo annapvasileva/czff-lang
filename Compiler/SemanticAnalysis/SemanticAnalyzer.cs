@@ -226,6 +226,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(PrintStatementNode printStatementNode)
     {
+        // подумать о том, что можно вывести
+        // по необходимости добавить проверку
         printStatementNode.Expression.Accept(this);
     }
 
@@ -371,6 +373,11 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     private string GetArithmeticOperationType(string left, string right)
     {
+        if (left != "I" || right != "I")
+        {
+            throw new SemanticException($"Now arithmetic operations only for int. Got: {left} and {right}");
+        }
+
         if (left == right)
             return left;
         throw new SemanticException($"Different types in arithmetic exception: {left} and {right}");
