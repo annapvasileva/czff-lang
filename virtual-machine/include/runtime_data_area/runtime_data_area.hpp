@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "method_area.hpp"
 #include "stack_data_area.hpp"
+#include "heap_data_area.hpp"
 
 namespace czffvm {
 
@@ -19,10 +20,12 @@ public:
 
     MethodArea& GetMethodArea();
     StackDataArea& GetStack();
+    Heap& GetHeap();
 
 private:
     MethodArea method_area_;
     StackDataArea stack_;
+    Heap heap_;
 };
 
 }  // namespace czffvm
