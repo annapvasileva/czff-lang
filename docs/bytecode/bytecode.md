@@ -55,15 +55,9 @@ Field is a variable inside a class, all fields are public
 2. **Type link**, string descriptor
 
 ### Method
-Method is a function inside a class, all methods are public
+Method is a function inside a class, all methods are public. It has access to fields of class object. Method is stored in function pool, class stores it index.
 
-1. **Name**, string
-2. **Parameters**, string descriptor
-3. **Return type link**, string descriptor
-4. **Max stack used**, uint_16 *(Optimization, not for MVP)*
-5. **Locals length**, uint_16 *(Optimization, not for MVP)*
-6. **Code length**, uint_16
-7. **Code**, op_code[]
+1. **Link to function**, uint_16
 
 ### Tag
 Tag is byte primitive type signature
@@ -116,4 +110,9 @@ String Descriptor is a string constant, that provides you inforamtion about type
 - `sub` — `0x000F`
 - `div` — `0x0010`
 - `call` — `0x0011 + u2` function index
+- `eq` — `0x0012`
+- `lt` — `0x0013`
+- `leq` — `0x0014`
+- `jmp` — `0x0015 + u2` opcode index
+- `jnz` — `0x0016 + u2` opcode index
 - W.I.P.
