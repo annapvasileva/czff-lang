@@ -6,6 +6,7 @@ using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
 using Compiler.SemanticAnalysis;
 using Compiler.SemanticAnalysis.Models;
+using Compiler.Tests.Storage;
 using Xunit.Abstractions;
 
 namespace Compiler.Tests.SemanticAnalysisTests;
