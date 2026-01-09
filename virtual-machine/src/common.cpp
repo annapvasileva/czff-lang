@@ -50,4 +50,20 @@ Value ConstantToValue(const Constant& c) {
             throw std::runtime_error("Unsupported constant tag");
     }
 }
+
+bool HeapRef::operator==(const HeapRef& other) const {
+    return id == other.id;
+}
+
+bool HeapRef::operator!=(const HeapRef& other) const {
+    return !(*this == other);
+}
+}
+
+namespace std {
+
+size_t hash<czffvm::HeapRef>::operator()(const czffvm::HeapRef& r) const noexcept {
+    return std::hash<uint32_t>{}(r.id);
+}
+
 }

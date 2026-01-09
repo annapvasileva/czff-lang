@@ -82,6 +82,14 @@ struct RuntimeFunction {
     std::vector<Operation> code;
 };
 
+struct HeapRef {
+    uint32_t id = 0;
+
+    bool operator==(const HeapRef& other) const;
+
+    bool operator!=(const HeapRef& other) const;
+};
+
 using Value = std::variant<
     uint8_t,        // U1
     uint16_t,       // U2
@@ -90,8 +98,19 @@ using Value = std::variant<
     std::string,    // STRING
     uint64_t,       // U8
     int64_t,        // I8
-    bool            // BOOL
+    bool,           // BOOL
+    HeapRef
 >;
 
 Value ConstantToValue(const Constant& c);
+
+}
+
+namespace std {
+
+template<>
+struct hash<czffvm::HeapRef> {
+    size_t operator()(const czffvm::HeapRef& r) const noexcept;
+};
+
 }
