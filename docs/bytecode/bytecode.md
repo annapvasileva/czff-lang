@@ -86,8 +86,17 @@ Tags list:
 - **Arguments**, if mentioned
 
 ## String Descriptor
-To do
+String Descriptor is a string constant, that provides you inforamtion about types.
 
+- Primitives:
+    - `int` : `I;`
+    - `bool`: `B;`
+- Array is stated as `[` symbol, it doesn't have `;` on the end because it's a composite type and have and also no other type do have `[` in it. After `[` descriptor of inner type is stated.
+    - `array<int>` : `[I;`
+    - `array<array<int>>` : `[[I;`
+- Classes:
+    - W.I.P.
+  
 ## Operation Codes List
 
 - `ldc` — `0x0001 + u2` constant index
