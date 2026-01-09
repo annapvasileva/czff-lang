@@ -93,7 +93,14 @@ void Interpreter::Execute() {
                 f.operand_stack.pop_back();
 
                 std::visit([](auto&& x) {
-                    std::cout << x;
+                    using T = std::decay_t<decltype(x)>;
+
+                    if constexpr (std::is_same_v<T, HeapRef>) {
+                        std::cout << "<obj @" << x.id << ">";
+                    }
+                    else {
+                        std::cout << x;
+                    }
                 }, v);
 
                 break;
@@ -153,6 +160,44 @@ void Interpreter::Execute() {
             case OperationCode::DUP:
                 break;
             case OperationCode::SWAP:
+                break;
+            case OperationCode::NEWARR: {
+                Value v_size = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                uint32_t arr_size;
+                if (auto p = std::get_if<uint8_t>(&v_size))      arr_size = *p;
+                else if (auto p = std::get_if<uint16_t>(&v_size)) arr_size = *p;
+                else if (auto p = std::get_if<uint32_t>(&v_size)) arr_size = *p;
+                else if (auto p = std::get_if<int32_t>(&v_size))  arr_size = static_cast<uint32_t>(*p);
+                else {
+                    throw std::runtime_error("NEWARR: array size must be integer");
+                }
+
+                uint16_t type_idx = (op.arguments[0] << 8) | op.arguments[1];
+                const Constant& type_c = rda_.GetMethodArea().GetConstant(type_idx);
+                std::string type_str(type_c.data.begin(), type_c.data.end()); // пример: I; или [I;
+
+                std::vector<Value> elements(arr_size);
+
+                HeapRef ref = rda_.GetHeap().Allocate(type_str, std::move(elements));
+
+                f.operand_stack.push_back(ref);
+                break;
+            }
+            case OperationCode::STELEM:
+                break;
+            case OperationCode::LDELEM:
+                break;
+            case OperationCode::MUL:
+                break;
+            case OperationCode::MIN:
+                break;
+            case OperationCode::SUB:
+                break;
+            case OperationCode::DIV:
+                break;
+            case OperationCode::CALL:
                 break;
             default:
                 throw std::runtime_error("Unknown opcode");
