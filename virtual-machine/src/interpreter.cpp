@@ -57,6 +57,9 @@ void Interpreter::Execute() {
             }
             case OperationCode::STORE: {
                 uint16_t idx = (op.arguments[0] << 8) | op.arguments[1];
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("STORE: Operand stack underflow");
+                }
                 f.locals.at(idx) = f.operand_stack.back();
                 f.operand_stack.pop_back();
                 break;
@@ -67,7 +70,13 @@ void Interpreter::Execute() {
                 break;
             }
             case OperationCode::ADD: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("ADD: Operand stack underflow");
+                }
                 Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("ADD: Operand stack underflow");
+                }
                 Value a = f.operand_stack.back(); f.operand_stack.pop_back();
 
                 auto result = std::visit(
@@ -89,6 +98,9 @@ void Interpreter::Execute() {
                 break;
             }
             case OperationCode::PRINT: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("PRINT: Operand stack underflow");
+                }
                 Value v = f.operand_stack.back();
                 f.operand_stack.pop_back();
 
@@ -157,10 +169,31 @@ void Interpreter::Execute() {
 
                 std::exit(exit_code);
             }
-            case OperationCode::DUP:
+            case OperationCode::DUP: {
+                CallFrame& f = rda_.GetStack().CurrentFrame();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("DUP: Operand stack underflow");
+                }
+                f.operand_stack.push_back(f.operand_stack.back());
                 break;
-            case OperationCode::SWAP:
+            }
+            case OperationCode::SWAP: {
+                CallFrame& f = rda_.GetStack().CurrentFrame();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("SWAP: Operand stack underflow");
+                }
+                auto first = f.operand_stack.back();
+                f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("SWAP: Operand stack underflow");
+                }
+                auto second = f.operand_stack.back();
+                f.operand_stack.pop_back();
+                
+                f.operand_stack.push_back(first);
+                f.operand_stack.push_back(second);
                 break;
+            }
             case OperationCode::NEWARR: {
                 Value v_size = f.operand_stack.back();
                 f.operand_stack.pop_back();
@@ -189,14 +222,112 @@ void Interpreter::Execute() {
                 break;
             case OperationCode::LDELEM:
                 break;
-            case OperationCode::MUL:
+            case OperationCode::MUL:  {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("MUL: Operand stack underflow");
+                }
+                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("MUL: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_integral_v<X>)) {
+                            return x * y;
+                        } else {
+                            throw std::runtime_error("MUL: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
                 break;
-            case OperationCode::MIN:
+            }
+            case OperationCode::MIN: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("MIN: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto x) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+
+                        if constexpr (std::is_integral_v<X>) {
+                            return -x;
+                        } else {
+                            throw std::runtime_error("MIN: incompatible types");
+                        }
+                    },
+                    a
+                );
+
+                f.operand_stack.push_back(result);
                 break;
-            case OperationCode::SUB:
+            }
+            case OperationCode::SUB: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("SUB: Operand stack underflow");
+                }
+                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("SUB: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_integral_v<X>)) {
+                            return x - y;
+                        } else {
+                            throw std::runtime_error("SUB: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
                 break;
-            case OperationCode::DIV:
+            }
+            case OperationCode::DIV:  {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("DIV: Operand stack underflow");
+                }
+                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("DIV: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_integral_v<X>)) {
+                            return x / y;
+                        } else {
+                            throw std::runtime_error("DIV: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
                 break;
+            }
             case OperationCode::CALL:
                 break;
             default:
