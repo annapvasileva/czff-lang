@@ -218,10 +218,78 @@ void Interpreter::Execute() {
                 f.operand_stack.push_back(ref);
                 break;
             }
-            case OperationCode::STELEM:
+            case OperationCode::STELEM: {
+                Value v_value = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                Value v_index = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                uint32_t index;
+                if (auto p = std::get_if<uint8_t>(&v_index))       index = *p;
+                else if (auto p = std::get_if<uint16_t>(&v_index)) index = *p;
+                else if (auto p = std::get_if<uint32_t>(&v_index)) index = *p;
+                else if (auto p = std::get_if<int32_t>(&v_index))  index = *p;
+                else {
+                    throw std::runtime_error("STELEM: index must be integer");
+                }
+
+                Value v_arr = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                auto* ref = std::get_if<HeapRef>(&v_arr);
+                if (!ref) {
+                    throw std::runtime_error("STELEM: not array reference");
+                }
+
+                HeapObject& obj = rda_.GetHeap().Get(*ref);
+
+                if (obj.type.empty() || obj.type[0] != '[') {
+                    throw std::runtime_error("STELEM: object is not array");
+                }
+
+                if (index >= obj.fields.size()) {
+                    throw std::runtime_error("STELEM: index out of bounds");
+                }
+
+                obj.fields[index] = v_value;
+
                 break;
-            case OperationCode::LDELEM:
+            }
+            case OperationCode::LDELEM: {
+                Value v_index = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                uint32_t index;
+                if (auto p = std::get_if<uint8_t>(&v_index)) index = *p;
+                else if (auto p = std::get_if<uint16_t>(&v_index)) index = *p;
+                else if (auto p = std::get_if<uint32_t>(&v_index)) index = *p;
+                else if (auto p = std::get_if<int32_t>(&v_index)) index = *p;
+                else {
+                    throw std::runtime_error("LDELEM: index must be integer");
+                }
+
+                Value v_arr = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                auto* ref = std::get_if<HeapRef>(&v_arr);
+                if (!ref) {
+                    throw std::runtime_error("LDELEM: not an array reference");
+                }
+
+                HeapObject& obj = rda_.GetHeap().Get(*ref);
+
+                if (obj.type.empty() || obj.type[0] != '[') {
+                    throw std::runtime_error("LDELEM: object is not array");
+                }
+
+                if (index >= obj.fields.size()) {
+                    throw std::runtime_error("LDELEM: index out of bounds");
+                }
+
+                f.operand_stack.push_back(obj.fields[index]);
                 break;
+            }
             case OperationCode::MUL:  {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("MUL: Operand stack underflow");
