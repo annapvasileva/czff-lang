@@ -192,7 +192,7 @@ public class MVPGeneratorTest
                 )
             }));
 
-        var expectedBall = BallStore.ReturnBall("ArrayBallBall");
+        var expectedBall = BallStore.ReturnBall("ArrayBall");
 
         var generator = new Generator(new CompilerSettings()
         {
