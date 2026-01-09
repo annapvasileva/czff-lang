@@ -13,4 +13,8 @@ StackDataArea& RuntimeDataArea::GetStack() {
     return stack_;
 }
 
+Heap& RuntimeDataArea::GetHeap() {
+    return heap_;
+}
+
 }  // namespace czffvm

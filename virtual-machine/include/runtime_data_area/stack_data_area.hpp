@@ -16,6 +16,7 @@ class StackDataArea {
 public:
     void PushFrame(RuntimeFunction* fn);
     void PopFrame();
+    const std::vector<CallFrame>& GetFrames() const;
 
     CallFrame& CurrentFrame();
     bool Empty() const;

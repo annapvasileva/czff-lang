@@ -9,15 +9,23 @@
 
 namespace czffvm {
 enum class OperationCode : uint16_t {
-    LDC = 0x01,
-    DUP = 0x02,
-    SWAP = 0x03,
-    STORE = 0x04,
-    LDV = 0x05,
-    ADD = 0x06,
-    PRINT = 0x07,
-    RET = 0x08,
-    HALT = 0x09
+    LDC = 0x0001,
+    DUP = 0x0002,
+    SWAP = 0x0003,
+    STORE = 0x0004,
+    LDV = 0x0005,
+    ADD = 0x0006,
+    PRINT = 0x0007,
+    RET = 0x0008,
+    HALT = 0x0009,
+    NEWARR = 0x000A,
+    STELEM = 0x000B,
+    LDELEM = 0x000C,
+    MUL = 0x000D,
+    MIN = 0x000E,
+    SUB = 0x000F,
+    DIV = 0x0010,
+    CALL = 0x0011,
 };
 
 struct Operation {
@@ -74,6 +82,14 @@ struct RuntimeFunction {
     std::vector<Operation> code;
 };
 
+struct HeapRef {
+    uint32_t id = 0;
+
+    bool operator==(const HeapRef& other) const;
+
+    bool operator!=(const HeapRef& other) const;
+};
+
 using Value = std::variant<
     uint8_t,        // U1
     uint16_t,       // U2
@@ -82,8 +98,19 @@ using Value = std::variant<
     std::string,    // STRING
     uint64_t,       // U8
     int64_t,        // I8
-    bool            // BOOL
+    bool,           // BOOL
+    HeapRef
 >;
 
 Value ConstantToValue(const Constant& c);
+
+}
+
+namespace std {
+
+template<>
+struct hash<czffvm::HeapRef> {
+    size_t operator()(const czffvm::HeapRef& r) const noexcept;
+};
+
 }

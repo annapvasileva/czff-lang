@@ -169,7 +169,7 @@ void ClassLoader::LoadConstantPool(ByteReader& r) {
                 c.data.push_back(r.ReadU1());
                 break;
             default:
-                throw ClassLoaderError("FileLoading", "Cannot determine the type of constant in constant pool");
+                throw ClassLoaderError("FileLoading", "Unsupported type of constant in constant pool");
         }
         rda_.GetMethodArea().RegisterConstant(c);
     }
@@ -206,28 +206,23 @@ void ClassLoader::LoadClasses(ByteReader& r) {
                 Operation op;
                 op.code = static_cast<OperationCode>(r.ReadU2());
                 switch (op.code) {
+                    case OperationCode::STELEM:
+                    case OperationCode::LDELEM:
+                    case OperationCode::MUL:
+                    case OperationCode::MIN:
+                    case OperationCode::SUB:
+                    case OperationCode::DIV:
                     case OperationCode::DUP:
-                        break;
                     case OperationCode::SWAP:
-                        break;
                     case OperationCode::ADD:
-                        break;
                     case OperationCode::PRINT:
-                        break;
                     case OperationCode::RET:
                         break;
+                    case OperationCode::NEWARR:
+                    case OperationCode::CALL:
                     case OperationCode::HALT:
-                        op.arguments.push_back(r.ReadU1());
-                        op.arguments.push_back(r.ReadU1());
-                        break;
                     case OperationCode::LDC:
-                        op.arguments.push_back(r.ReadU1());
-                        op.arguments.push_back(r.ReadU1());
-                        break;
                     case OperationCode::STORE:
-                        op.arguments.push_back(r.ReadU1());
-                        op.arguments.push_back(r.ReadU1());
-                        break;
                     case OperationCode::LDV:
                         op.arguments.push_back(r.ReadU1());
                         op.arguments.push_back(r.ReadU1());
@@ -262,28 +257,23 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
             Operation op;
             op.code = static_cast<OperationCode>(r.ReadU2());
             switch (op.code) {
+                case OperationCode::STELEM:
+                case OperationCode::LDELEM:
+                case OperationCode::MUL:
+                case OperationCode::MIN:
+                case OperationCode::SUB:
+                case OperationCode::DIV:
                 case OperationCode::DUP:
-                    break;
                 case OperationCode::SWAP:
-                    break;
                 case OperationCode::ADD:
-                    break;
                 case OperationCode::PRINT:
-                    break;
                 case OperationCode::RET:
-                    break;    
+                    break;
+                case OperationCode::NEWARR:
+                case OperationCode::CALL:
                 case OperationCode::HALT:
-                    op.arguments.push_back(r.ReadU1());
-                    op.arguments.push_back(r.ReadU1());
-                    break;
                 case OperationCode::LDC:
-                    op.arguments.push_back(r.ReadU1());
-                    op.arguments.push_back(r.ReadU1());
-                    break;
                 case OperationCode::STORE:
-                    op.arguments.push_back(r.ReadU1());
-                    op.arguments.push_back(r.ReadU1());
-                    break;
                 case OperationCode::LDV:
                     op.arguments.push_back(r.ReadU1());
                     op.arguments.push_back(r.ReadU1());

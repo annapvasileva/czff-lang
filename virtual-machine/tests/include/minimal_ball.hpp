@@ -193,3 +193,192 @@ inline std::vector<uint8_t> MakeFirstProgramBall() {
     return w.b;
 }
 
+inline std::vector<uint8_t> MakeArrayProgramBall() {
+    using namespace ball;
+    Builder w;
+
+    // ---------- Header ----------
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0);
+    w.u1(0);
+
+    // ---------- Constant pool ----------
+    w.u2(11);
+
+    // 0 "Main"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("Main");
+
+    // 1 params ""
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("");
+
+    // 2 return "void"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("void");
+
+    // 3 int 5
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(5);
+
+    // 4 type "[I;"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("[I;");
+
+    // values
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(0); // 5
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(-1); // 6
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(1); // 7
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(2); // 8
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(3); // 9
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(4); // 10
+
+    // ---------- Functions ----------
+    w.u2(1);
+
+    w.u2(0); // Main
+    w.u2(1); // ""
+    w.u2(2); // void
+
+    w.u2(6); // max stack
+    w.u2(2); // locals
+
+    std::vector<uint16_t> code;
+
+    auto op  = [&](auto c){ code.push_back((uint16_t)c); };
+    auto op2 = [&](auto c,uint16_t a){
+        code.push_back((uint16_t)c);
+        code.push_back(a);
+    };
+
+    // n = 5
+    op2(czffvm::OperationCode::LDC,3);
+    op2(czffvm::OperationCode::STORE,0);
+
+    // arr = new int[n]
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::NEWARR,4);
+    op2(czffvm::OperationCode::STORE,1);
+
+    // arr[0] = -1
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,5);
+    op2(czffvm::OperationCode::LDC,6);
+    op (czffvm::OperationCode::STELEM);
+
+    // arr[1] = 2
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,7);
+    op2(czffvm::OperationCode::LDC,8);
+    op (czffvm::OperationCode::STELEM);
+
+    // arr[2] = arr[0] + arr[1]
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,8);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,5);
+    op (czffvm::OperationCode::LDELEM);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,7);
+    op (czffvm::OperationCode::LDELEM);
+
+    op (czffvm::OperationCode::ADD);
+    op (czffvm::OperationCode::STELEM);
+
+    // arr[3] = -(arr[0] * arr[1])
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,9);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,5);
+    op (czffvm::OperationCode::LDELEM);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,7);
+    op (czffvm::OperationCode::LDELEM);
+
+    op (czffvm::OperationCode::MUL);
+    op (czffvm::OperationCode::MIN);
+    op (czffvm::OperationCode::STELEM);
+
+    // arr[4] = arr[0] * (arr[1]+arr[2]) + arr[3]
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,10);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,5);
+    op (czffvm::OperationCode::LDELEM);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,7);
+    op (czffvm::OperationCode::LDELEM);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,8);
+    op (czffvm::OperationCode::LDELEM);
+
+    op (czffvm::OperationCode::ADD);
+    op (czffvm::OperationCode::MUL);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,9);
+    op (czffvm::OperationCode::LDELEM);
+
+    op (czffvm::OperationCode::ADD);
+    op (czffvm::OperationCode::STELEM);
+
+    // print arr[0..4]
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,5);
+    op (czffvm::OperationCode::LDELEM);
+    op (czffvm::OperationCode::PRINT);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,7);
+    op (czffvm::OperationCode::LDELEM);
+    op (czffvm::OperationCode::PRINT);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,8);
+    op (czffvm::OperationCode::LDELEM);
+    op (czffvm::OperationCode::PRINT);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,9);
+    op (czffvm::OperationCode::LDELEM);
+    op (czffvm::OperationCode::PRINT);
+
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,10);
+    op (czffvm::OperationCode::LDELEM);
+    op (czffvm::OperationCode::PRINT);
+
+    op(czffvm::OperationCode::RET);
+
+    // count instructions
+    size_t instr = 0;
+    for (size_t i=0;i<code.size();) {
+        instr++;
+        auto o=(czffvm::OperationCode)code[i];
+        switch(o){
+            case czffvm::OperationCode::LDC:
+            case czffvm::OperationCode::STORE:
+            case czffvm::OperationCode::LDV:
+            case czffvm::OperationCode::NEWARR:
+            case czffvm::OperationCode::CALL:
+            case czffvm::OperationCode::HALT:
+                i+=2; break;
+            default:
+                i+=1;
+        }
+    }
+
+    w.u2(instr);
+    for(auto x:code) w.u2(x);
+
+    // ---------- Classes ----------
+    w.u2(0);
+
+    return w.b;
+}

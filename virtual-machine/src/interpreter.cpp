@@ -57,6 +57,9 @@ void Interpreter::Execute() {
             }
             case OperationCode::STORE: {
                 uint16_t idx = (op.arguments[0] << 8) | op.arguments[1];
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("STORE: Operand stack underflow");
+                }
                 f.locals.at(idx) = f.operand_stack.back();
                 f.operand_stack.pop_back();
                 break;
@@ -67,7 +70,13 @@ void Interpreter::Execute() {
                 break;
             }
             case OperationCode::ADD: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("ADD: Operand stack underflow");
+                }
                 Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("ADD: Operand stack underflow");
+                }
                 Value a = f.operand_stack.back(); f.operand_stack.pop_back();
 
                 auto result = std::visit(
@@ -89,11 +98,21 @@ void Interpreter::Execute() {
                 break;
             }
             case OperationCode::PRINT: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("PRINT: Operand stack underflow");
+                }
                 Value v = f.operand_stack.back();
                 f.operand_stack.pop_back();
 
                 std::visit([](auto&& x) {
-                    std::cout << x;
+                    using T = std::decay_t<decltype(x)>;
+
+                    if constexpr (std::is_same_v<T, HeapRef>) {
+                        std::cout << "<obj @" << x.id << ">";
+                    }
+                    else {
+                        std::cout << x;
+                    }
                 }, v);
 
                 break;
@@ -150,9 +169,234 @@ void Interpreter::Execute() {
 
                 std::exit(exit_code);
             }
-            case OperationCode::DUP:
+            case OperationCode::DUP: {
+                CallFrame& f = rda_.GetStack().CurrentFrame();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("DUP: Operand stack underflow");
+                }
+                f.operand_stack.push_back(f.operand_stack.back());
                 break;
-            case OperationCode::SWAP:
+            }
+            case OperationCode::SWAP: {
+                CallFrame& f = rda_.GetStack().CurrentFrame();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("SWAP: Operand stack underflow");
+                }
+                auto first = f.operand_stack.back();
+                f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("SWAP: Operand stack underflow");
+                }
+                auto second = f.operand_stack.back();
+                f.operand_stack.pop_back();
+                
+                f.operand_stack.push_back(first);
+                f.operand_stack.push_back(second);
+                break;
+            }
+            case OperationCode::NEWARR: {
+                Value v_size = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                uint32_t arr_size;
+                if (auto p = std::get_if<uint8_t>(&v_size))      arr_size = *p;
+                else if (auto p = std::get_if<uint16_t>(&v_size)) arr_size = *p;
+                else if (auto p = std::get_if<uint32_t>(&v_size)) arr_size = *p;
+                else if (auto p = std::get_if<int32_t>(&v_size))  arr_size = static_cast<uint32_t>(*p);
+                else {
+                    throw std::runtime_error("NEWARR: array size must be integer");
+                }
+
+                uint16_t type_idx = (op.arguments[0] << 8) | op.arguments[1];
+                const Constant& type_c = rda_.GetMethodArea().GetConstant(type_idx);
+                std::string type_str(type_c.data.begin(), type_c.data.end()); // пример: I; или [I;
+
+                std::vector<Value> elements(arr_size);
+
+                HeapRef ref = rda_.GetHeap().Allocate(type_str, std::move(elements));
+
+                f.operand_stack.push_back(ref);
+                break;
+            }
+            case OperationCode::STELEM: {
+                Value v_value = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                Value v_index = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                uint32_t index;
+                if (auto p = std::get_if<uint8_t>(&v_index))       index = *p;
+                else if (auto p = std::get_if<uint16_t>(&v_index)) index = *p;
+                else if (auto p = std::get_if<uint32_t>(&v_index)) index = *p;
+                else if (auto p = std::get_if<int32_t>(&v_index))  index = *p;
+                else {
+                    throw std::runtime_error("STELEM: index must be integer");
+                }
+
+                Value v_arr = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                auto* ref = std::get_if<HeapRef>(&v_arr);
+                if (!ref) {
+                    throw std::runtime_error("STELEM: not array reference");
+                }
+
+                HeapObject& obj = rda_.GetHeap().Get(*ref);
+
+                if (obj.type.empty() || obj.type[0] != '[') {
+                    throw std::runtime_error("STELEM: object is not array");
+                }
+
+                if (index >= obj.fields.size()) {
+                    throw std::runtime_error("STELEM: index out of bounds");
+                }
+
+                obj.fields[index] = v_value;
+
+                break;
+            }
+            case OperationCode::LDELEM: {
+                Value v_index = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                uint32_t index;
+                if (auto p = std::get_if<uint8_t>(&v_index)) index = *p;
+                else if (auto p = std::get_if<uint16_t>(&v_index)) index = *p;
+                else if (auto p = std::get_if<uint32_t>(&v_index)) index = *p;
+                else if (auto p = std::get_if<int32_t>(&v_index)) index = *p;
+                else {
+                    throw std::runtime_error("LDELEM: index must be integer");
+                }
+
+                Value v_arr = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                auto* ref = std::get_if<HeapRef>(&v_arr);
+                if (!ref) {
+                    throw std::runtime_error("LDELEM: not an array reference");
+                }
+
+                HeapObject& obj = rda_.GetHeap().Get(*ref);
+
+                if (obj.type.empty() || obj.type[0] != '[') {
+                    throw std::runtime_error("LDELEM: object is not array");
+                }
+
+                if (index >= obj.fields.size()) {
+                    throw std::runtime_error("LDELEM: index out of bounds");
+                }
+
+                f.operand_stack.push_back(obj.fields[index]);
+                break;
+            }
+            case OperationCode::MUL:  {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("MUL: Operand stack underflow");
+                }
+                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("MUL: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_integral_v<X>)) {
+                            return x * y;
+                        } else {
+                            throw std::runtime_error("MUL: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::MIN: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("MIN: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto x) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+
+                        if constexpr (std::is_integral_v<X>) {
+                            return -x;
+                        } else {
+                            throw std::runtime_error("MIN: incompatible types");
+                        }
+                    },
+                    a
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::SUB: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("SUB: Operand stack underflow");
+                }
+                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("SUB: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_integral_v<X>)) {
+                            return x - y;
+                        } else {
+                            throw std::runtime_error("SUB: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::DIV:  {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("DIV: Operand stack underflow");
+                }
+                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("DIV: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_integral_v<X>)) {
+                            return x / y;
+                        } else {
+                            throw std::runtime_error("DIV: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::CALL:
                 break;
             default:
                 throw std::runtime_error("Unknown opcode");
