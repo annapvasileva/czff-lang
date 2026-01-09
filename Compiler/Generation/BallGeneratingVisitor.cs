@@ -176,7 +176,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         
         foreach (var parameter in functionParametersNode.Parameters)
         {
-            descriptor += parameter.Type.GetName + ";";
+            descriptor += parameter.Type.GetName;
         }
         
         int idx = _target.ConstantPool.GetIndexOrAddConstant(new StringConstant(descriptor));

@@ -22,7 +22,7 @@ public class SymbolTableBuilderTests
     public void OneEmptyFunctionTest()
     {
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void"));
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;"));
         var mainBodyTable = new SymbolTable(expectedTable);
 
         var ast = AstStore.GetAst("OneEmptyFunction");
@@ -44,11 +44,11 @@ public class SymbolTableBuilderTests
     public void OneFunctionWithVariableDeclarationsTest()
     {
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 3 });
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 3 });
         var mainBodyTable = new SymbolTable(expectedTable);
-        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
-        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));
-        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "I", 2));
+        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I;", 0));
+        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I;", 1));
+        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "I;", 2));
         
         var ast = AstStore.GetAst("OneFunctionWithVariableDeclarations");
         var symbolTableBuilder = new SymbolTableBuilder();
@@ -69,16 +69,16 @@ public class SymbolTableBuilderTests
     public void SeveralFunctionsWithVariableDeclarationsTest()
     {
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 3 });
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 3 });
         var mainBodyTable = new SymbolTable(expectedTable);
-        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
-        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));
-        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "I", 2));
+        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I;", 0));
+        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I;", 1));
+        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "I;", 2));
 
-        expectedTable.Symbols.Add("foo", new FunctionSymbol("foo", "void") { LocalsLength = 2 });
+        expectedTable.Symbols.Add("foo", new FunctionSymbol("foo", "void;") { LocalsLength = 2 });
         var fooBodyTable = new SymbolTable(expectedTable);
-        fooBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
-        fooBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));
+        fooBodyTable.Symbols.Add("a", new VariableSymbol("a", "I;", 0));
+        fooBodyTable.Symbols.Add("b", new VariableSymbol("b", "I;", 1));
 
         var ast = AstStore.GetAst("SeveralFunctionsWithVariableDeclarations");
         var symbolTableBuilder = new SymbolTableBuilder();
@@ -99,11 +99,11 @@ public class SymbolTableBuilderTests
     public void ArrayDeclarationAndIndexingTest()
     {
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 3 });
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 3 });
         var mainBodyTable = new SymbolTable(expectedTable);
-        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
-        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));
-        mainBodyTable.Symbols.Add("arr", new VariableSymbol("arr", "[I", 2));
+        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I;", 0));
+        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I;", 1));
+        mainBodyTable.Symbols.Add("arr", new VariableSymbol("arr", "[I;", 2));
         
         var ast = AstStore.GetAst("ArrayDeclarationAndIndexing");
         var symbolTableBuilder = new SymbolTableBuilder();
@@ -124,10 +124,10 @@ public class SymbolTableBuilderTests
     public void SecondExampleTest()
     {
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 2 });
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 2 });
         var mainBodyTable = new SymbolTable(expectedTable);
-        mainBodyTable.Symbols.Add("n", new VariableSymbol("n", "I", 0));
-        mainBodyTable.Symbols.Add("arr", new VariableSymbol("arr", "[I", 1));
+        mainBodyTable.Symbols.Add("n", new VariableSymbol("n", "I;", 0));
+        mainBodyTable.Symbols.Add("arr", new VariableSymbol("arr", "[I;", 1));
         
         var ast = AstStore.GetAst("SecondExample");
         var symbolTableBuilder = new SymbolTableBuilder();

@@ -19,11 +19,11 @@ public class MVPGeneratorTest
     {
         // Arrange
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 3 });
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 3 });
         var mainBodyTable = new SymbolTable(expectedTable);
-        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I", 0));
-        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I", 1));
-        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "I", 2));
+        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I;", 0));
+        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I;", 1));
+        mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "I;", 2));
         
         var ast = new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
@@ -59,7 +59,7 @@ public class MVPGeneratorTest
         var constantPool = new ConstantPool();
         constantPool.AddConstant(new StringConstant("Main"));
         constantPool.AddConstant(new StringConstant(""));
-        constantPool.AddConstant(new StringConstant("void"));
+        constantPool.AddConstant(new StringConstant("void;"));
         constantPool.AddConstant(new IntConstant(2));
         constantPool.AddConstant(new IntConstant(3));
         
@@ -150,10 +150,10 @@ public class MVPGeneratorTest
     {
         // Arrange
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void") { LocalsLength = 2 });
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 2 });
         var mainBodyTable = new SymbolTable(expectedTable);
-        mainBodyTable.Symbols.Add("n", new VariableSymbol("n", "I", 0));
-        mainBodyTable.Symbols.Add("arr", new VariableSymbol("arr", "[I", 1));
+        mainBodyTable.Symbols.Add("n", new VariableSymbol("n", "I;", 0));
+        mainBodyTable.Symbols.Add("arr", new VariableSymbol("arr", "[I;", 1));
         expectedTable.Children.Add(mainBodyTable);
         
         var ast = new AstTree(new ProgramNode(
@@ -233,7 +233,7 @@ public class MVPGeneratorTest
         var constantPool = new ConstantPool();
         constantPool.AddConstant(new StringConstant("Main"));
         constantPool.AddConstant(new StringConstant(""));
-        constantPool.AddConstant(new StringConstant("void"));
+        constantPool.AddConstant(new StringConstant("void;"));
         constantPool.AddConstant(new IntConstant(5));
         constantPool.AddConstant(new StringConstant("I"));
         constantPool.AddConstant(new IntConstant(0));
