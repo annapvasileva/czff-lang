@@ -83,6 +83,27 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             case BinaryOperatorType.Division:
                 _currentFunction!.Operations.Add(new Div());
                 break;
+            case BinaryOperatorType.Less:
+                _currentFunction!.Operations.Add(new Lt());
+                break;
+            case BinaryOperatorType.LessOrEqual:
+                _currentFunction!.Operations.Add(new Leq());
+                break;
+            case BinaryOperatorType.Equal:
+                _currentFunction!.Operations.Add(new Eq());
+                break;
+            case BinaryOperatorType.Greater:
+                _currentFunction!.Operations.Add(new Swap());
+                _currentFunction!.Operations.Add(new Lt());
+                break;
+            case BinaryOperatorType.GreaterOrEqual:
+                _currentFunction!.Operations.Add(new Swap());
+                _currentFunction!.Operations.Add(new Leq());
+                break;
+            case BinaryOperatorType.NotEqual:
+                _currentFunction!.Operations.Add(new Eq());
+                _currentFunction!.Operations.Add(new Neg());
+                break;
             default:
                 throw new NotImplementedException();
         }
@@ -97,8 +118,11 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             case UnaryOperatorType.Minus:
                 _currentFunction!.Operations.Add(new Min());
                 break;
+            case UnaryOperatorType.Negation:
+                _currentFunction!.Operations.Add(new Neg());
+                break;
             default:
-                throw new NotImplementedException();
+                throw new GeneratorException("Unary operator not supported.");
         }
     }
 
@@ -206,7 +230,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(ExpressionStatementNode expressionStatementNode)
     {
-        throw new NotImplementedException();
+        expressionStatementNode.Expression.Accept(this);
     }
 
     public void Visit(ArrayAssignmentStatementNode arrayAssigmentStatementNode)
