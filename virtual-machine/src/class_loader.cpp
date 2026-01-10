@@ -270,7 +270,7 @@ void ClassLoader::ResolveEntryPoint() {
     const auto& params =
         rda_.GetMethodArea().GetConstant(fn->params_descriptor_index).data;
 
-    if (std::string(ret.begin(), ret.end()) != "void" ||
+    if (std::string(ret.begin(), ret.end()) != "void;" ||
         !params.empty()) {
         throw ClassLoaderError("EntryPoint", "Invalid Main signature");
     }

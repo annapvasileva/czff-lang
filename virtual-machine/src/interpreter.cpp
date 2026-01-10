@@ -15,17 +15,54 @@ static bool CheckReturnType(const std::string& expected, const Value& v) {
     return std::visit([&](auto&& x) {
         using T = std::decay_t<decltype(x)>;
 
-        if (expected == "u1")     return std::is_same_v<T, uint8_t>;
-        if (expected == "u2")     return std::is_same_v<T, uint16_t>;
-        if (expected == "u4")     return std::is_same_v<T, uint32_t>;
-        if (expected == "i4")     return std::is_same_v<T, int32_t>;
-        if (expected == "u8")     return std::is_same_v<T, uint64_t>;
-        if (expected == "i8")     return std::is_same_v<T, int64_t>;
-        if (expected == "bool")   return std::is_same_v<T, bool>;
-        if (expected == "string") return std::is_same_v<T, std::string>;
+        if (expected == "I;")   return std::is_same_v<T, int32_t>;
+        if (expected == "B;")   return std::is_same_v<T, bool>;
+
+        if (!expected.empty() && expected[0] == '[')
+            return std::is_same_v<T, HeapRef>;
+
+        if (expected == "void;")
+            return true;
 
         return false;
     }, v);
+}
+
+static size_t CountParams(const std::string& s) {
+    size_t i = 0;
+    size_t count = 0;
+
+    while (i < s.size()) {
+        if (s[i] == '[') {
+            while (s[i] == '[') i++;
+
+            if (s[i] == 'I' || s[i] == 'B') {
+                i++;
+                if (s[i] != ';')
+                    throw std::runtime_error("Bad descriptor");
+                i++;
+            }
+            else {
+                throw std::runtime_error("Unknown type");
+            }
+
+            count++;
+            continue;
+        }
+
+        if (s[i] == 'I' || s[i] == 'B') {
+            i++;
+            if (s[i] != ';')
+                throw std::runtime_error("Bad descriptor");
+            i++;
+            count++;
+            continue;
+        }
+
+        throw std::runtime_error("Bad descriptor");
+    }
+
+    return count;
 }
 
 void Interpreter::Execute(RuntimeFunction* entry) {
@@ -125,7 +162,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
 
                 std::optional<Value> ret_value;
 
-                if (ret_type != "void") {
+                if (ret_type != "void;") {
                     if (f.operand_stack.empty()) {
                         throw std::runtime_error("RET: missing return value");
                     }
@@ -395,8 +432,46 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 f.operand_stack.push_back(result);
                 break;
             }
-            case OperationCode::CALL:
+            case OperationCode::CALL: {
+                uint16_t fn_idx = (op.arguments[0] << 8) | op.arguments[1];
+
+                const RuntimeFunction* callee =
+                    rda_.GetMethodArea().GetFunction(fn_idx);
+
+                CallFrame& caller =
+                    rda_.GetStack().CurrentFrame();
+
+                const Constant& params_c =
+                    rda_.GetMethodArea().GetConstant(
+                        callee->params_descriptor_index
+                    );
+
+                std::string sig(
+                    params_c.data.begin(),
+                    params_c.data.end()
+                );
+
+                size_t argc = CountParams(sig);
+
+                if (caller.operand_stack.size() < argc)
+                    throw std::runtime_error("CALL: not enough arguments");
+
+                std::vector<Value> args(argc);
+                for (size_t i = 0; i < argc; ++i) {
+                    args[argc - 1 - i] = caller.operand_stack.back();
+                    caller.operand_stack.pop_back();
+                }
+
+                rda_.GetStack().PushFrame(const_cast<RuntimeFunction*>(callee));
+                CallFrame& callee_frame =
+                    rda_.GetStack().CurrentFrame();
+
+                for (auto& v : args) {
+                    callee_frame.operand_stack.push_back(v);
+                }
+
                 break;
+            }
             default:
                 throw std::runtime_error("Unknown opcode");
         }

@@ -115,12 +115,12 @@ TEST(ClassLoaderIntegrationTestSuite, ConstantPoolIsCorrect) {
         EXPECT_EQ(s, "");
     }
 
-    // 2: "void"
+    // 2: "void;"
     {
         const auto& c = constants[2];
         EXPECT_EQ(c.tag, ConstantTag::STRING);
         std::string s(c.data.begin(), c.data.end());
-        EXPECT_EQ(s, "void");
+        EXPECT_EQ(s, "void;");
     }
 
     // 3: 2
@@ -161,7 +161,7 @@ TEST(ClassLoaderIntegrationTestSuite, LoadsFirstProgramBall) {
 
     auto return_type_raw = rda.GetMethodArea().GetConstant(entry->return_type_index).data;
     std::string return_type(return_type_raw.begin(), return_type_raw.end());
-    EXPECT_EQ(return_type, "void");
+    EXPECT_EQ(return_type, "void;");
 
     auto params_raw = rda.GetMethodArea().GetConstant(entry->params_descriptor_index).data;
     std::string params(params_raw.begin(), params_raw.end());
