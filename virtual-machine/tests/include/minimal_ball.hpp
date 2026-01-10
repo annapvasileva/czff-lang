@@ -24,7 +24,7 @@ inline std::vector<uint8_t> MakeMinimalBallWithMain() {
 
     // 2: return "void"
     w.u1(static_cast<uint8_t>(czffvm::ConstantTag::STRING));
-    w.string("void");
+    w.string("void;");
 
     // ---- Functions ----
     w.u2(1);
@@ -64,7 +64,7 @@ inline std::vector<uint8_t> MakeMinimalBallWithoutMain() {
 
     // 2: return "void"
     w.u1(static_cast<uint8_t>(czffvm::ConstantTag::STRING));
-    w.string("void");
+    w.string("void;");
 
     // ---- Functions ----
     w.u2(1);
@@ -104,7 +104,7 @@ inline std::vector<uint8_t> MakeMinimalBallWithWrongMainSignature() {
 
     // 2: return "void"
     w.u1(static_cast<uint8_t>(czffvm::ConstantTag::STRING));
-    w.string("int");
+    w.string("I;");
 
     // ---- Functions ----
     w.u2(1);
@@ -144,7 +144,7 @@ inline std::vector<uint8_t> MakeFirstProgramBall() {
 
     // 2: return "void"
     w.u1(static_cast<uint8_t>(czffvm::ConstantTag::STRING));
-    w.string("void");
+    w.string("void;");
 
     // 3: int 2
     w.u1(static_cast<uint8_t>(czffvm::ConstantTag::I4));
@@ -159,7 +159,7 @@ inline std::vector<uint8_t> MakeFirstProgramBall() {
 
     w.u2(0);       // name_index ("Main")
     w.u2(1);       // params_index ("")
-    w.u2(2);       // return_index ("void")
+    w.u2(2);       // return_index ("void;")
 
     w.u2(2);       // max_stack (a,b for ADD)
     w.u2(3);       // locals_count (a,b,c)
@@ -215,7 +215,7 @@ inline std::vector<uint8_t> MakeArrayProgramBall() {
 
     // 2 return "void"
     w.u1((uint8_t)czffvm::ConstantTag::STRING);
-    w.string("void");
+    w.string("void;");
 
     // 3 int 5
     w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(5);
@@ -237,7 +237,7 @@ inline std::vector<uint8_t> MakeArrayProgramBall() {
 
     w.u2(0); // Main
     w.u2(1); // ""
-    w.u2(2); // void
+    w.u2(2); // void;
 
     w.u2(6); // max stack
     w.u2(2); // locals
@@ -382,3 +382,110 @@ inline std::vector<uint8_t> MakeArrayProgramBall() {
 
     return w.b;
 }
+
+inline std::vector<uint8_t> MakeCallProgramBall() {
+    using namespace ball;
+    Builder w;
+
+    // ---------- Header ----------
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0);
+    w.u1(0);
+
+    // ---------- Constant pool ----------
+    w.u2(8);
+
+    // 0 "Sum"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("Sum");
+
+    // 1 "I;I;"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("I;I;");
+
+    // 2 "I;"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("I;");
+
+    // 3 "Main"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("Main");
+
+    // 4 ""
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("");
+
+    // 5 "void;"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("void;");
+
+    // 6 int 1
+    w.u1((uint8_t)czffvm::ConstantTag::I4);
+    w.u4(1);
+
+    // 7 int 2
+    w.u1((uint8_t)czffvm::ConstantTag::I4);
+    w.u4(2);
+
+    // ---------- Functions ----------
+    w.u2(2);
+
+    auto op = [&](auto c){ w.u2((uint16_t)c); };
+    auto op2=[&](auto c,uint16_t a){
+        w.u2((uint16_t)c);
+        w.u1(a>>8); w.u1(a&0xFF);
+    };
+
+    /* ---------- Sum ---------- */
+    w.u2(0); // name "Sum"
+    w.u2(1); // params "I;I;"
+    w.u2(2); // return "I;"
+
+    w.u2(2); // max stack
+    w.u2(2); // locals
+
+    w.u2(6); // code length
+
+    op2(czffvm::OperationCode::STORE,0); // a
+    op2(czffvm::OperationCode::STORE,1); // b
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDV,1);
+    op (czffvm::OperationCode::ADD);
+    op (czffvm::OperationCode::RET);
+
+    /* ---------- Main ---------- */
+    w.u2(3); // "Main"
+    w.u2(4); // ""
+    w.u2(5); // "void;"
+
+    w.u2(3); // max stack
+    w.u2(3); // locals
+
+    w.u2(11);
+
+    // x = 1
+    op2(czffvm::OperationCode::LDC,6);
+    op2(czffvm::OperationCode::STORE,0);
+
+    // y = 2
+    op2(czffvm::OperationCode::LDC,7);
+    op2(czffvm::OperationCode::STORE,1);
+
+    // z = Sum(x,y)
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::CALL,0); // Sum index = 0
+    op2(czffvm::OperationCode::STORE,2);
+
+    // print z
+    op2(czffvm::OperationCode::LDV,2);
+    op (czffvm::OperationCode::PRINT);
+
+    op (czffvm::OperationCode::RET);
+
+    // ---------- Classes ----------
+    w.u2(0);
+
+    return w.b;
+}
+

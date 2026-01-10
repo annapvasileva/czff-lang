@@ -32,8 +32,18 @@ TEST(ClassLoaderTestSuite, LoadsMinimalProgramAndResolvesEntryPoint) {
 
     ASSERT_NO_THROW(loader.LoadProgram(tmp.path));
     ASSERT_NE(loader.EntryPoint(), nullptr);
-
-    EXPECT_TRUE(rda.GetMethodArea().Functions().contains("Main"));
+    
+    const auto& functions = rda.GetMethodArea().Functions();
+    bool found = false;
+    for (auto f : functions) {
+        Constant name_raw = rda.GetMethodArea().GetConstant(f->name_index);
+        std::string name(name_raw.data.begin(), name_raw.data.end());
+        if (name == "Main") {
+            found = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found);
 }
 
 // ---------- header ----------
@@ -105,12 +115,12 @@ TEST(ClassLoaderIntegrationTestSuite, ConstantPoolIsCorrect) {
         EXPECT_EQ(s, "");
     }
 
-    // 2: "void"
+    // 2: "void;"
     {
         const auto& c = constants[2];
         EXPECT_EQ(c.tag, ConstantTag::STRING);
         std::string s(c.data.begin(), c.data.end());
-        EXPECT_EQ(s, "void");
+        EXPECT_EQ(s, "void;");
     }
 
     // 3: 2
@@ -151,7 +161,7 @@ TEST(ClassLoaderIntegrationTestSuite, LoadsFirstProgramBall) {
 
     auto return_type_raw = rda.GetMethodArea().GetConstant(entry->return_type_index).data;
     std::string return_type(return_type_raw.begin(), return_type_raw.end());
-    EXPECT_EQ(return_type, "void");
+    EXPECT_EQ(return_type, "void;");
 
     auto params_raw = rda.GetMethodArea().GetConstant(entry->params_descriptor_index).data;
     std::string params(params_raw.begin(), params_raw.end());
@@ -160,7 +170,17 @@ TEST(ClassLoaderIntegrationTestSuite, LoadsFirstProgramBall) {
     EXPECT_EQ(entry->locals_count, 3);
     EXPECT_EQ(entry->max_stack, 2);
 
-    EXPECT_TRUE(rda.GetMethodArea().Functions().contains("Main"));
+    const auto& functions = rda.GetMethodArea().Functions();
+    bool found = false;
+    for (auto f : functions) {
+        Constant name_raw = rda.GetMethodArea().GetConstant(f->name_index);
+        std::string name(name_raw.data.begin(), name_raw.data.end());
+        if (name == "Main") {
+            found = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found);
 
     EXPECT_FALSE(entry->code.empty());
 }

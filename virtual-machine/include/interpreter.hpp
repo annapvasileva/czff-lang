@@ -8,7 +8,7 @@ class Interpreter {
 public:
     explicit Interpreter(RuntimeDataArea& rda);
 
-    void Execute();
+    void Execute(RuntimeFunction* entry);
 
 private:
     RuntimeDataArea& rda_;

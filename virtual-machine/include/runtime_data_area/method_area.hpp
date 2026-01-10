@@ -13,25 +13,22 @@ public:
     MethodArea(const MethodArea&) = delete;
     MethodArea& operator=(const MethodArea&) = delete;
 
-    RuntimeClass* RegisterClass(std::unique_ptr<RuntimeClass> cls);
-    RuntimeFunction* RegisterFunction(std::unique_ptr<RuntimeFunction> fn);
-    uint32_t RegisterConstant(const Constant& c);
+    uint16_t RegisterClass(RuntimeClass* cls);
+    uint16_t RegisterFunction(RuntimeFunction* fn);
+    uint16_t RegisterConstant(const Constant& c);
 
-    RuntimeClass* GetClass(const std::string& name) const;
-    RuntimeFunction* GetFunction(const std::string& name) const;
+    const RuntimeClass* GetClass(uint16_t) const;
+    const RuntimeFunction* GetFunction(uint16_t index) const;
     const Constant& GetConstant(uint16_t index) const;
 
-    const std::unordered_map<std::string, RuntimeClass*>& Classes() const;
-    const std::unordered_map<std::string, RuntimeFunction*>& Functions() const;
+    const std::vector<RuntimeClass*>& Classes() const;
+    const std::vector<RuntimeFunction*>& Functions() const;
     const std::vector<Constant>& ConstantPool() const;
 
 private:
-    std::vector<std::unique_ptr<RuntimeClass>> classes_;
-    std::vector<std::unique_ptr<RuntimeFunction>> functions_;
+    std::vector<RuntimeClass*> classes_;
+    std::vector<RuntimeFunction*> functions_;
     std::vector<Constant> constant_pool_;
-
-    std::unordered_map<std::string, RuntimeClass*> class_table_;
-    std::unordered_map<std::string, RuntimeFunction*> function_table_;
 
     std::string ResolveName(uint16_t constant_index) const;
 };

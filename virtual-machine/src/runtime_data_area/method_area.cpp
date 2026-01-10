@@ -2,10 +2,10 @@
 
 namespace czffvm {
 
-uint32_t MethodArea::RegisterConstant(const Constant& constant) {
+uint16_t MethodArea::RegisterConstant(const Constant& constant) {
     constant_pool_.push_back(constant);
 
-    return static_cast<uint32_t>(constant_pool_.size() - 1);
+    return static_cast<uint16_t>(constant_pool_.size() - 1);
 }
 
 const Constant& MethodArea::GetConstant(uint16_t index) const {
@@ -16,60 +16,48 @@ const Constant& MethodArea::GetConstant(uint16_t index) const {
     return constant_pool_[index];
 }
 
-RuntimeClass* MethodArea::RegisterClass(std::unique_ptr<RuntimeClass> cls) {
+uint16_t MethodArea::RegisterClass(RuntimeClass* cls) {
     if (!cls) {
         throw std::invalid_argument("MethodArea: null RuntimeClass");
     }
 
-    std::string name = ResolveName(cls->name_index);
-
-    if (class_table_.count(name)) {
-        throw std::runtime_error("Duplicate class: " + name);
-    }
-
-    RuntimeClass* raw = cls.get();
     classes_.push_back(std::move(cls));
-    class_table_[name] = raw;
 
-    return raw;
+    return static_cast<uint16_t>(classes_.size() - 1);
 }
 
-RuntimeFunction* MethodArea::RegisterFunction(std::unique_ptr<RuntimeFunction> fn) {
+uint16_t MethodArea::RegisterFunction(RuntimeFunction* fn) {
     if (!fn) {
         throw std::invalid_argument("MethodArea: null RuntimeFunction");
     }
 
-    std::string name = ResolveName(fn->name_index);
+    functions_.push_back(fn);
 
-    if (function_table_.count(name)) {
-        throw std::runtime_error("Duplicate function: " + name);
+    return static_cast<uint16_t>(functions_.size() - 1);
+}
+
+const RuntimeClass* MethodArea::GetClass(uint16_t index) const {
+    if (index >= classes_.size()) {
+        throw std::out_of_range("MethodArea: class pool index out of range");
     }
 
-    RuntimeFunction* raw = fn.get();
-    functions_.push_back(std::move(fn));
-    function_table_[name] = raw;
-
-    return raw;
+    return classes_[index];
 }
 
-RuntimeClass* MethodArea::GetClass(const std::string& name) const {
-    auto it = class_table_.find(name);
+const RuntimeFunction* MethodArea::GetFunction(uint16_t index) const {
+    if (index >= functions_.size()) {
+        throw std::out_of_range("MethodArea: function pool index out of range");
+    }
 
-    return it == class_table_.end() ? nullptr : it->second;
+    return functions_[index];
 }
 
-RuntimeFunction* MethodArea::GetFunction(const std::string& name) const {
-    auto it = function_table_.find(name);
-
-    return it == function_table_.end() ? nullptr : it->second;
+const std::vector<RuntimeClass*>& MethodArea::Classes() const  {
+    return classes_;
 }
 
-const std::unordered_map<std::string, RuntimeClass*>& MethodArea::Classes() const {
-    return class_table_;
-}
-
-const std::unordered_map<std::string, RuntimeFunction*>& MethodArea::Functions() const {
-    return function_table_;
+const std::vector<RuntimeFunction*>& MethodArea::Functions() const {
+    return functions_;
 }
 
 const std::vector<Constant>& MethodArea::ConstantPool() const {
