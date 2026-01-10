@@ -146,7 +146,24 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(ExpressionStatementNode expressionStatementNode)
     {
-        expressionStatementNode.Expression.Accept(this);
+        if (expressionStatementNode.Expression is FunctionCallExpressionNode functionCallExpressionNode)
+        {
+            var funcName = functionCallExpressionNode.Name;
+            var funcSymb = _scope.Lookup(funcName);
+            if (funcSymb is FunctionSymbol functionSymbol)
+            {
+                if (functionSymbol.ReturnType != "void;")
+                {
+                    throw new SemanticException("Result of expression must be used");
+                }
+            }
+            else
+            {
+                throw new SemanticException($"{funcName} is not function. You can call only function");
+            }
+            expressionStatementNode.Expression.Accept(this);
+        }
+        throw new SemanticException("Result of expression must be used");
     }
 
     public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)

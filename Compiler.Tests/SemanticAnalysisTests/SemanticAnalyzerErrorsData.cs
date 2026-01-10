@@ -391,6 +391,34 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
              """,
              "Assigment: identifier have type: [I; but got type: I;"
          };
+         
+         yield return new object[]
+         {
+             """
+             func void Main() {
+                 1;
+                 return;
+             }
+
+             """,
+             "Result of expression must be used"
+         };
+
+         yield return new object[]
+         {
+             """
+             func int foo() {
+                return 1;
+             }
+             
+             func void Main() {
+                 foo();
+                 return;
+             }
+
+             """,
+             "Result of expression must be used"
+         };
     }
 
     IEnumerator IEnumerable.GetEnumerator () => GetEnumerator();
