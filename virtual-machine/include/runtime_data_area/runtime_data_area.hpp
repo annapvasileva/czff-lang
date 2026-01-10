@@ -12,7 +12,7 @@ namespace czffvm {
 
 class RuntimeDataArea {
 public:
-    RuntimeDataArea();
+    RuntimeDataArea(uint32_t max_heap_size = 50);
     ~RuntimeDataArea();
 
     RuntimeDataArea(const RuntimeDataArea&) = delete;

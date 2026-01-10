@@ -25,7 +25,6 @@ add_library(czff_virtual_machine_lib
     src/runtime_data_area/method_area.cpp
     src/runtime_data_area/heap_data_area.cpp
     src/runtime_data_area/stack_data_area.cpp
-    src/runtime_data_area/classic_garbage_collector.cpp
 )
 
 target_include_directories(czff_virtual_machine_lib

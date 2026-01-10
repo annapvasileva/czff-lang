@@ -2,7 +2,11 @@
 
 namespace czffvm {
 
-RuntimeDataArea::RuntimeDataArea() = default;
+RuntimeDataArea::RuntimeDataArea(uint32_t max_heap_size)
+    : stack_(StackDataArea()),
+    method_area_(MethodArea()),
+    heap_(Heap(stack_, max_heap_size)) { }
+
 RuntimeDataArea::~RuntimeDataArea() = default;
 
 MethodArea& RuntimeDataArea::GetMethodArea() {
