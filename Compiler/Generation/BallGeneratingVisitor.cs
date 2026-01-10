@@ -16,6 +16,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
     private readonly Ball _target = target;
     private Function? _currentFunction;
     private SymbolTable _scope = scope;
+    private List<List<IOperation>> _buffer = new List<List<IOperation>>();
     
     public void Visit(LiteralExpressionNode literalExpressionNode)
     {
@@ -287,7 +288,19 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(IfStatementNode ifStatementNode)
     {
-        throw new NotImplementedException();
+        ifStatementNode.Condition.Accept(this);
+        
+        var buff = _currentFunction!;
+        _currentFunction = new Function();
+        
+        ifStatementNode.IfBlock.Accept(this);
+        int jzIdx = buff.Operations.Count + _currentFunction.Operations.Count + 1;
+        
+        _currentFunction = buff;
+        _currentFunction.Operations.Add(new Jz(jzIdx));
+        _currentFunction.Operations.AddRange(buff.Operations);
+        
+        ifStatementNode.ElseBlock?.Accept(this);
     }
 
     public void Visit(ElifStatementNode elifStatementNode)

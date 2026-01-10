@@ -96,6 +96,19 @@ public class Min : IOperation
     }
 }
 
+public class Neg : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "min";
+    }
+}
+
 public class Sub : IOperation
 {
     public void Accept(IOperationVisitor operationVisitor)
@@ -119,5 +132,93 @@ public class Div : IOperation
     public string GetString()
     {
         return "div";
+    }
+}
+
+
+public class Eq : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "eq";
+    }
+}
+
+
+public class Lt : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "lt";
+    }
+}
+
+
+public class Leq : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "leq";
+    }
+}
+
+
+public class Jmp(int idx) : IOperation
+{
+    public int JumpIndex { get; set; } = idx;
+    
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "jmp" + JumpIndex;
+    }
+}
+
+public class Jz(int idx) : IOperation
+{
+    public int JumpIndex { get; set; } = idx;
+    
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "jmp" + JumpIndex;
+    }
+}
+
+public class Jnz(int idx) : IOperation
+{
+    public int JumpIndex { get; set; } = idx;
+    
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "jnz" + JumpIndex;
     }
 }
