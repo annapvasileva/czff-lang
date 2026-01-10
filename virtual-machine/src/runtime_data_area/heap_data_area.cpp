@@ -2,8 +2,15 @@
 
 namespace czffvm {
 
+Heap::Heap(StackDataArea& stack, uint32_t max_heap_size)
+    : stack_(stack), max_heap_size_(max_heap_size) {}
+
 HeapRef Heap::Allocate(const std::string& type,
                        std::vector<Value> fields) {
+
+    if (next_id_ > max_heap_size_) {
+        Collect(0);
+    }
 
     HeapRef ref{ next_id_++ };
 
@@ -24,13 +31,13 @@ HeapObject& Heap::Get(HeapRef ref) {
     return it->second;
 }
 
-void Heap::Collect(StackDataArea& stack) {
-    MarkFromRoots(stack);
-    Sweep();
+void Heap::Collect(size_t generation) {
+    MarkFromRoots();
+    Sweep(generation);
 }
 
-void Heap::MarkFromRoots(StackDataArea& stack) {
-    for (auto& frame : stack.GetFrames()) {
+void Heap::MarkFromRoots() {
+    for (auto& frame : stack_.GetFrames()) {
         for (auto& v : frame.locals)
             if (auto* r = std::get_if<HeapRef>(&v))
                 Mark(*r);
@@ -55,12 +62,20 @@ void Heap::Mark(const HeapRef& ref) {
             Mark(*r);
 }
 
-void Heap::Sweep() {
+void Heap::Sweep(size_t generation) {
     for (auto it = objects_.begin(); it != objects_.end();) {
-        if (!it->second.marked)
+        HeapObject& obj = it->second;
+        if (obj.generation != generation) {
+            ++it;
+            continue;
+        }
+
+        if (!obj.marked) {
             it = objects_.erase(it);
-        else {
-            it->second.marked = false;
+        } else {
+            if (obj.generation < 2)
+                obj.generation++;
+            obj.marked = false;
             ++it;
         }
     }
