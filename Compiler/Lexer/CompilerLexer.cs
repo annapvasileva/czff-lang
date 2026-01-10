@@ -55,6 +55,12 @@ public class CompilerLexer
             return CreateNewToken(TokenType.Assign, "=", startLine, startColumn);
         }
 
+        if (_currentChar == ',')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.Comma, ",", startLine, startColumn);
+        }
+
         if (_currentChar == ';')
         {
             cursor.MoveNext();

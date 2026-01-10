@@ -1,15 +1,19 @@
+using Compiler.Parser.AST.Nodes.Core;
+
 namespace Compiler.SemanticAnalysis.Models;
 
 public class SymbolTableManager
 {
     private SymbolTable _currentScope;
     private int _variableCounter;
+    private int _functionCounter;
     public int MaxCounter;
     
     public SymbolTableManager()
     {
         _currentScope = new SymbolTable(null); // global scope
         _variableCounter = 0;
+        _functionCounter = 0;
         MaxCounter = 0;
     }
 
@@ -53,7 +57,8 @@ public class SymbolTableManager
     
     public void DeclareFunction(string name, string returnType)
     {
-        var symbol = new FunctionSymbol(name, returnType);
+        var symbol = new FunctionSymbol(name, returnType) { Index = _functionCounter };
+        _functionCounter++;
         if (!_currentScope.Declare(symbol))
         {
             throw new SemanticException($"Function {name} has been already declared");

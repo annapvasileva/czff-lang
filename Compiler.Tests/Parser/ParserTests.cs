@@ -6,6 +6,7 @@ using Compiler.Parser.AST.Nodes;
 using Compiler.Parser.AST.Nodes.Core;
 using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
+using Compiler.Tests.Storage;
 using Xunit.Abstractions;
 
 namespace Compiler.Tests.Parser;
@@ -698,79 +699,189 @@ public class ParserTests
                             return;
                         }
                         """;
+        var expectedAst = AstStore.GetAst("SecondExample");
+        
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
+    
+    [Fact]
+    public void DifferentParamsAmountFunctionsTest()
+    {
+        string source = """
+                        func void empty() {
+                            return;
+                        }
+                        func int SumOne(int a) {
+                            return a;
+                        }
+                        func int SumTwo(int a, int b) {
+                            return a + b;
+                        }
+                        func int SumThree(int a, int b, int c) {
+                            return a + b + c;
+                        }
+                        func void Main() {
+                            empty();
+                            var int x = 1;
+                            var int y = SumOne(x);
+                            var int z = SumTwo(x, y);
+                            var int k;
+                            k = SumThree(x, y, z);
+
+                            return;
+                        }
+                        """;
+
         var expectedAst = new AstTree(new ProgramNode(
-            new List<FunctionDeclarationNode>()
+            new List<FunctionDeclarationNode>
             {
-                new (
+                new FunctionDeclarationNode(
+                    new SimpleTypeNode("void"), 
+                    "empty",
+                    new FunctionParametersNode(),
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new ReturnStatementNode(null),
+                    })
+                ),
+                new FunctionDeclarationNode(
+                    new SimpleTypeNode("int"), 
+                    "SumOne",
+                    new FunctionParametersNode(new List<FunctionParametersNode.Variable>()
+                    {
+                        new FunctionParametersNode.Variable("a", new SimpleTypeNode("int"))
+                    }),
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new ReturnStatementNode(new IdentifierExpressionNode("a")),
+                    })
+                ),
+                new FunctionDeclarationNode(
+                    new SimpleTypeNode("int"), 
+                    "SumTwo",
+                    new FunctionParametersNode(new List<FunctionParametersNode.Variable>()
+                    {
+                        new FunctionParametersNode.Variable("a", new SimpleTypeNode("int")),
+                        new FunctionParametersNode.Variable("b", new SimpleTypeNode("int"))
+                    }),
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new ReturnStatementNode(new BinaryExpressionNode(
+                            new IdentifierExpressionNode("a"),
+                            new IdentifierExpressionNode("b"),
+                            BinaryOperatorType.Addition)),
+                    })
+                ),
+                new FunctionDeclarationNode(
+                    new SimpleTypeNode("int"), 
+                    "SumThree",
+                    new FunctionParametersNode(new List<FunctionParametersNode.Variable>()
+                    {
+                        new FunctionParametersNode.Variable("a", new SimpleTypeNode("int")),
+                        new FunctionParametersNode.Variable("b", new SimpleTypeNode("int")),
+                        new FunctionParametersNode.Variable("c", new SimpleTypeNode("int")),
+                    }),
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new ReturnStatementNode(new BinaryExpressionNode(
+                            new BinaryExpressionNode(
+                                new IdentifierExpressionNode("a"),
+                                new IdentifierExpressionNode("b"),
+                                BinaryOperatorType.Addition),
+                            new IdentifierExpressionNode("c"),
+                            BinaryOperatorType.Addition)),
+                    })
+                ),
+                new FunctionDeclarationNode(
                     new SimpleTypeNode("void"),
                     "Main",
-                    new FunctionParametersNode(){ },
-                    new BlockNode(
-                        new List<StatementNode>()
-                        {
-                            new VariableDeclarationNode(
-                                new SimpleTypeNode("int"),
-                                "n",
-                                new LiteralExpressionNode("5", LiteralType.IntegerLiteral)),
-
-                            new VariableDeclarationNode(
-                                new ArrayTypeNode(new SimpleTypeNode("int")),
-                                "arr",
-                                new ArrayCreationExpressionNode(
-                                        new SimpleTypeNode("int"),
-                                        new IdentifierExpressionNode("n"))),
-
-                            new ArrayAssignmentStatementNode(
-                                new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("0",  LiteralType.IntegerLiteral)
-                                ),
-                                new LiteralExpressionNode("-1", LiteralType.IntegerLiteral)),
-
-                            new ArrayAssignmentStatementNode(
-                                new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("1",  LiteralType.IntegerLiteral)
-                                ),
-                                new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
-
-                            new ArrayAssignmentStatementNode(
-                                new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("2",  LiteralType.IntegerLiteral)
-                                ),
-                                new BinaryExpressionNode(
-                                    new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("0",  LiteralType.IntegerLiteral)),
-                                    new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral)),
-                                    BinaryOperatorType.Addition)),
-
-                            new ArrayAssignmentStatementNode(
-                                new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("3",  LiteralType.IntegerLiteral)),
-                                new UnaryExpressionNode(
-                                        UnaryOperatorType.Minus,
-                                        new BinaryExpressionNode(
-                                        new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("0",  LiteralType.IntegerLiteral)),
-                                        new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral)),
-                                        BinaryOperatorType.Multiplication))),
-
-                            new ArrayAssignmentStatementNode(
-                                new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new LiteralExpressionNode("4",  LiteralType.IntegerLiteral)
-                                ),
-                                new BinaryExpressionNode(
-                                    new BinaryExpressionNode(
-                                        new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("0",  LiteralType.IntegerLiteral)),
-                                        new BinaryExpressionNode(
-                                            new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral)),
-                                            new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("2",  LiteralType.IntegerLiteral)),
-                                            BinaryOperatorType.Addition),
-                                        BinaryOperatorType.Multiplication),
-                                    new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("3",  LiteralType.IntegerLiteral)),
-                                    BinaryOperatorType.Addition)),
-
-                            new PrintStatementNode(new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("0",  LiteralType.IntegerLiteral))),
-                            new PrintStatementNode(new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("1",  LiteralType.IntegerLiteral))),
-                            new PrintStatementNode(new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("2",  LiteralType.IntegerLiteral))),
-                            new PrintStatementNode(new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("3",  LiteralType.IntegerLiteral))),
-                            new PrintStatementNode(new ArrayIndexExpressionNode(new IdentifierExpressionNode("arr"), new  LiteralExpressionNode("4",  LiteralType.IntegerLiteral))),
-
-                            new ReturnStatementNode(null),
-                        })
+                    new FunctionParametersNode(),
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new ExpressionStatementNode(
+                            new FunctionCallExpressionNode("empty", new List<ExpressionNode>())),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "x",
+                            new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "y",
+                            new FunctionCallExpressionNode("SumOne", new List<ExpressionNode>(){ new IdentifierExpressionNode("x") })),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "z",
+                            new FunctionCallExpressionNode("SumTwo", new List<ExpressionNode>(){
+                                new IdentifierExpressionNode("x"),
+                                new IdentifierExpressionNode("y")
+                            })),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "k"),
+                        new IdentifierAssignmentStatementNode(
+                            new IdentifierExpressionNode("k"),
+                            new FunctionCallExpressionNode("SumThree", new List<ExpressionNode>(){
+                                new IdentifierExpressionNode("x"),
+                                new IdentifierExpressionNode("y"),
+                                new IdentifierExpressionNode("z")
+                            })),
+                        new ReturnStatementNode(null),
+                    })
                 )
             }));
+        
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
+
+    [Fact]
+    public void ThirdExampleTest()
+    {
+        string source = """
+                        =/
+                        Our third simple program on CZFF 
+                        /=
+                        func int Sum(int a, int b) {
+                            return a + b;
+                        }
+
+                        func void Main() {
+                            var int x = 1;
+                            var int y = 2;
+                            var int z = Sum(x, y);
+                            
+                            print z;
+
+                            return;
+                        }
+                        """;
+
+        var expectedAst = AstStore.GetAst("ThirdExample");
         
         var lexer = new CompilerLexer(source);
         var tokens = lexer.GetTokens().ToList();

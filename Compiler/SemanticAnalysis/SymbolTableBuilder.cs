@@ -45,7 +45,10 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
     {
-        throw new NotImplementedException();
+        foreach (var arg in functionCallExpressionNode.Arguments)
+        {
+            arg.Accept(this);
+        }
     }
 
     public void Visit(VariableDeclarationNode variableDeclarationNode)
@@ -60,7 +63,14 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(FunctionDeclarationNode functionDeclarationNode)
     {
+        var funcSymb = (FunctionSymbol)SymbolTable.Lookup(functionDeclarationNode.Name);
         SymbolTableManager.EnterScope(true);
+        functionDeclarationNode.Parameters.Accept(this);
+        foreach (var parameter in functionDeclarationNode.Parameters.Parameters)
+        {
+            var varSymb = (VariableSymbol)SymbolTable.Lookup(parameter.Name);
+            funcSymb.Parameters.Add(varSymb);
+        }
         functionDeclarationNode.Body.Accept(this);
         SymbolTableManager.SetFunctionLocalsLength(functionDeclarationNode.Name);
         SymbolTableManager.ExitScope();
@@ -73,7 +83,11 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(FunctionParametersNode functionParametersNode)
     {
-        throw new NotImplementedException();
+        foreach (var parameter in functionParametersNode.Parameters)
+        {
+            SymbolTableManager.DeclareVariable(parameter.Name, parameter.Type.GetName);
+            parameter.Type.Accept(this);
+        }
     }
 
     public void Visit(ExpressionStatementNode expressionStatementNode)

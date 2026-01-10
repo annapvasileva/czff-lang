@@ -150,6 +150,12 @@ public class OneLexemeTestData : IEnumerable<object[]>
             "-", 
             new Token(TokenType.Minus, "-", 1, 1) 
         };
+
+        yield return new object[] 
+        { 
+            ",", 
+            new Token(TokenType.Comma, ",", 1, 1) 
+        };
     }
     
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

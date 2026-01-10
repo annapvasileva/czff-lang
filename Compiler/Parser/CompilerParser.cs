@@ -47,6 +47,7 @@ public class CompilerParser
         var returnType = ParseType();
         var funcName = Expect(TokenType.Identifier).Lexeme;
         Expect(TokenType.LeftRoundBracket);
+        var funcParams = ParseFunctionParameters();
         Expect(TokenType.RightRoundBracket);
         var body = ParseBlock();
         if (body.Statements.Count == 0 || !(body.Statements.Last() is ReturnStatementNode))
@@ -54,7 +55,7 @@ public class CompilerParser
             throw new ParserException("Ожидался return в конце функции", CurrentToken.Line, CurrentToken.Start);
         }
 
-        return new FunctionDeclarationNode(returnType, funcName, new FunctionParametersNode(), body);
+        return new FunctionDeclarationNode(returnType, funcName, funcParams, body);
     }
 
     private TypeAnnotationNode ParseType()
@@ -82,6 +83,26 @@ public class CompilerParser
         }
         
         throw new ParserException("Type expected", CurrentToken.Line, CurrentToken.Start);
+    }
+
+    private FunctionParametersNode ParseFunctionParameters()
+    {
+        var parameters = new List<FunctionParametersNode.Variable>();
+        if (CurrentToken.Kind != TokenType.RightRoundBracket)
+        {
+            bool flag = false;
+            do
+            {
+                if (flag)
+                    Expect(TokenType.Comma);
+                flag = true;
+                var paramType = ParseType();
+                var paramName = Expect(TokenType.Identifier).Lexeme;
+                parameters.Add(new FunctionParametersNode.Variable(paramName, paramType));
+            } while (CurrentToken.Kind == TokenType.Comma);
+        }
+
+        return new FunctionParametersNode(parameters);
     }
 
     private BlockNode ParseBlock()
@@ -230,6 +251,24 @@ public class CompilerParser
                 ExpressionNode index = ParseExpression();
                 Expect(TokenType.RightSquareBracket);
                 expr = new ArrayIndexExpressionNode(expr, index);
+            }
+            else if (CurrentToken.Kind == TokenType.LeftRoundBracket && expr is IdentifierExpressionNode identifierExpressionNode)
+            {
+                MoveNext();
+                var args = new List<ExpressionNode>();
+                if (CurrentToken.Kind != TokenType.RightRoundBracket)
+                {
+                    bool flag = false;
+                    do
+                    {
+                        if (flag)
+                            Expect(TokenType.Comma);
+                        flag = true;
+                        args.Add(ParseExpression());
+                    } while (CurrentToken.Kind == TokenType.Comma);
+                }
+                Expect(TokenType.RightRoundBracket);
+                expr = new FunctionCallExpressionNode(identifierExpressionNode.Name, args);
             }
             else
             {

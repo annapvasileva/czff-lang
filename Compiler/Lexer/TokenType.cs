@@ -23,6 +23,7 @@ public enum TokenType
     Less,
     Greater,
 
+    Comma,              // ,
     Semicolon,          // ;
     LeftRoundBracket,   // (
     RightRoundBracket,  // )
