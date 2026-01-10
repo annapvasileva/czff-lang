@@ -12,16 +12,29 @@ public enum TokenType
     Integer,
     Void,
     Array,
+    Bool,
 
     IntegerLiteral,
+    BoolLiteral,
 
     Plus,
     Minus,
     Multiply,
+    Divide,
+    Modulo,
+
+    LogicalOr,
+    LogicalAnd,
+    LogicalNegation,
+
     Assign,
 
     Less,
     Greater,
+    LessEqual,
+    GreaterEqual,
+    Equal,
+    NotEqual,
 
     Comma,              // ,
     Semicolon,          // ;

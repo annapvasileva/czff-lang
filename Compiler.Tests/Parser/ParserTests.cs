@@ -898,4 +898,77 @@ public class ParserTests
 
         Assert.Equal(json1, json2);
     }
+    
+    [Fact]
+    public void LogicalOperationsTest()
+    {
+        // (((10 % 3) - 1) > (5 / 2)) || ((!flag) && (true != flag));
+        string source = """
+                        func void Main() {
+                            var bool flag = false;
+                            var bool flag2 = 10 % 3 - 1 > 5 / 2 || !flag && true != flag;
+                            return;
+                        }
+                        """;
+
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("bool"),
+                            "flag",
+                            new LiteralExpressionNode("false", LiteralType.BooleanLiteral)),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("bool"),
+                            "flag2",
+                            new BinaryExpressionNode(
+                                new BinaryExpressionNode(
+                                    new BinaryExpressionNode(
+                                        new BinaryExpressionNode(
+                                            new LiteralExpressionNode("10", LiteralType.IntegerLiteral),
+                                            new LiteralExpressionNode("3", LiteralType.IntegerLiteral),
+                                            BinaryOperatorType.Modulus),
+                                        new LiteralExpressionNode("1", LiteralType.IntegerLiteral),
+                                        BinaryOperatorType.Subtraction),
+                                    new BinaryExpressionNode(
+                                        new LiteralExpressionNode("5", LiteralType.IntegerLiteral),
+                                        new LiteralExpressionNode("2", LiteralType.IntegerLiteral),
+                                        BinaryOperatorType.Division),
+                                    BinaryOperatorType.Greater),
+                            new BinaryExpressionNode(
+                                new UnaryExpressionNode(
+                                    UnaryOperatorType.Negation,
+                                    new IdentifierExpressionNode("flag")),
+                                new BinaryExpressionNode(
+                                    new LiteralExpressionNode("true", LiteralType.BooleanLiteral),
+                                    new IdentifierExpressionNode("flag"),
+                                    BinaryOperatorType.NotEqual),
+                                BinaryOperatorType.LogicalAnd),
+                            BinaryOperatorType.LogicalOr)),
+                        new ReturnStatementNode(null)
+                    })
+                )
+            }));
+        
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
 }

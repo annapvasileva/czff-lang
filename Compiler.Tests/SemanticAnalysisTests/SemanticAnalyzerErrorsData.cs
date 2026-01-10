@@ -419,6 +419,69 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
              """,
              "Result of expression must be used"
          };
+         
+         yield return new object[]
+         {
+             """
+             func void Main() {
+                 var bool flag = 1;
+                 return;
+             }
+
+             """,
+             $"Variable flag: type - I; does not match B;"
+         };
+
+         yield return new object[]
+         {
+             """
+             func void Main() {
+                 var bool flag = false;
+                 flag = flag + 1;
+                 return;
+             }
+
+             """,
+             $"Now arithmetic operations only for int. Got: B; and I;"
+         };
+         
+         yield return new object[]
+         {
+             """
+             func void Main() {
+                 var bool flag = false;
+                 flag = flag && 1;
+                 return;
+             }
+
+             """,
+             $"Logical operations only for bool. Got: B; and I;"
+         };
+         
+         yield return new object[]
+         {
+             """
+             func void Main() {
+                 var bool flag = false;
+                 flag = flag == 1;
+                 return;
+             }
+
+             """,
+             "Different types in comparison: B; and I;"
+         };
+         
+         yield return new object[]
+         {
+             """
+             func void Main() {
+                 var bool flag = !1;
+                 return;
+             }
+
+             """,
+             $"Unsupported unary operation for operator Negation and type I;"
+         };
     }
 
     IEnumerator IEnumerable.GetEnumerator () => GetEnumerator();

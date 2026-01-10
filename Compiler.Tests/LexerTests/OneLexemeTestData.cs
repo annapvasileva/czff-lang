@@ -12,25 +12,25 @@ public class OneLexemeTestData : IEnumerable<object[]>
             "ababb", 
             new Token(TokenType.Identifier, "ababb", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "var",
             new Token(TokenType.Var, "var", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "func", 
             new Token(TokenType.Func, "func", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "print", 
             new Token(TokenType.Print, "print", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "int", 
@@ -42,61 +42,61 @@ public class OneLexemeTestData : IEnumerable<object[]>
             "void", 
             new Token(TokenType.Void, "void", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "12389128432241", 
             new Token(TokenType.IntegerLiteral, "12389128432241", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "+", 
             new Token(TokenType.Plus, "+", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "=", 
             new Token(TokenType.Assign, "=", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             ";", 
             new Token(TokenType.Semicolon, ";", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "(", 
             new Token(TokenType.LeftRoundBracket, "(", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             ")", 
             new Token(TokenType.RightRoundBracket, ")", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "{", 
             new Token(TokenType.LeftCurlyBracket, "{", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "}", 
             new Token(TokenType.RightCurlyBracket, "}", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "return", 
             new Token(TokenType.Return, "return", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "-123", 
@@ -108,53 +108,125 @@ public class OneLexemeTestData : IEnumerable<object[]>
             "new", 
             new Token(TokenType.New, "new", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "array", 
             new Token(TokenType.Array, "array", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "*", 
             new Token(TokenType.Multiply, "*", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "<", 
             new Token(TokenType.Less, "<", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             ">", 
             new Token(TokenType.Greater, ">", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "[", 
             new Token(TokenType.LeftSquareBracket, "[", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "]", 
             new Token(TokenType.RightSquareBracket, "]", 1, 1) 
         };
-
+        
         yield return new object[] 
         { 
             "-", 
             new Token(TokenType.Minus, "-", 1, 1) 
         };
+        
+        yield return new object[] 
+        { 
+            ",",
+            new Token(TokenType.Comma, ",", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "bool",
+            new Token(TokenType.Bool, "bool", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "true",
+            new Token(TokenType.BoolLiteral, "true", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "false",
+            new Token(TokenType.BoolLiteral, "false", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "/",
+            new Token(TokenType.Divide, "/", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "%",
+            new Token(TokenType.Modulo, "%", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "!",
+            new Token(TokenType.LogicalNegation, "!", 1, 1) 
+        };
 
         yield return new object[] 
         { 
-            ",", 
-            new Token(TokenType.Comma, ",", 1, 1) 
+            "&&",
+            new Token(TokenType.LogicalAnd, "&&", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "||",
+            new Token(TokenType.LogicalOr, "||", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "<=",
+            new Token(TokenType.LessEqual, "<=", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            ">=",
+            new Token(TokenType.GreaterEqual, ">=", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "==",
+            new Token(TokenType.Equal, "==", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "!=",
+            new Token(TokenType.NotEqual, "!=", 1, 1) 
         };
     }
     

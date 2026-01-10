@@ -11,13 +11,13 @@ public class LexerTests
         var expected = new List<Token>()
         {
             expectedToken,
-            new (TokenType.Eof, "\0", 2, 1),
+            new(TokenType.Eof, "\0", 2, 1),
         };
-        
+
         var lexer = new CompilerLexer(source);
         var tokens = lexer.GetTokens().ToList();
 
-        Assert.Equal(expected.Count, tokens.Count);
+        // Assert.Equal(expected.Count, tokens.Count);
         Assert.Equal(expected, tokens);
     }
 
@@ -51,17 +51,17 @@ public class LexerTests
     {
         var expected = new List<Token>()
         {
-            new (TokenType.Var, "var", 1, 1),
-            new (TokenType.Integer, "int", 1, 5),
-            new (TokenType.Identifier, "a", 1, 9),
-            new (TokenType.Assign, "=", 1, 11),
-            new (TokenType.IntegerLiteral, "50", 1, 13),
-            new (TokenType.Semicolon, ";", 1, 15),
-            new (TokenType.Eof, "\0", 2, 1),
+            new(TokenType.Var, "var", 1, 1),
+            new(TokenType.Integer, "int", 1, 5),
+            new(TokenType.Identifier, "a", 1, 9),
+            new(TokenType.Assign, "=", 1, 11),
+            new(TokenType.IntegerLiteral, "50", 1, 13),
+            new(TokenType.Semicolon, ";", 1, 15),
+            new(TokenType.Eof, "\0", 2, 1),
         };
         var lexer = new CompilerLexer("var int a = 50;");
         var tokens = lexer.GetTokens().ToList();
-        
+
         Assert.Equal(expected.Count, tokens.Count);
         Assert.Equal(expected, tokens);
     }
@@ -83,50 +83,50 @@ public class LexerTests
                         """;
         var expected = new List<Token>()
         {
-            new (TokenType.Func, "func", 4, 1),
-            new (TokenType.Void, "void", 4, 6),
-            new (TokenType.Identifier, "Main", 4, 11),
-            new (TokenType.LeftRoundBracket, "(", 4, 15),
-            new (TokenType.RightRoundBracket, ")", 4, 16),
-            new (TokenType.LeftCurlyBracket, "{", 4, 18),
-            
-            new (TokenType.Var, "var", 5, 5),
-            new (TokenType.Integer, "int", 5, 9),
-            new (TokenType.Identifier, "a", 5, 13),
-            new (TokenType.Assign, "=", 5, 15),
-            new (TokenType.IntegerLiteral, "2", 5, 17),
-            new (TokenType.Semicolon, ";", 5, 18),
-            
-            new (TokenType.Var, "var", 6, 5),
-            new (TokenType.Integer, "int", 6, 9),
-            new (TokenType.Identifier, "b", 6, 13),
-            new (TokenType.Assign, "=", 6, 15),
-            new (TokenType.IntegerLiteral, "3", 6, 17),
-            new (TokenType.Semicolon, ";", 6, 18),
-            
-            new (TokenType.Var, "var", 7, 5),
-            new (TokenType.Integer, "int", 7, 9),
-            new (TokenType.Identifier, "res", 7, 13),
-            new (TokenType.Assign, "=", 7, 17),
-            new (TokenType.Identifier, "a", 7, 19),
-            new (TokenType.Plus, "+", 7, 21),
-            new (TokenType.Identifier, "b", 7, 23),
-            new (TokenType.Semicolon, ";", 7, 24),
-            
-            new (TokenType.Print, "print", 8, 5),
-            new (TokenType.Identifier, "res", 8, 11),
-            new (TokenType.Semicolon, ";", 8, 14),
-            
-            new (TokenType.Return, "return", 9, 5),
-            new (TokenType.Semicolon, ";", 9, 11),
-            
-            new (TokenType.RightCurlyBracket, "}", 10, 1),
-            
-            new (TokenType.Eof, "\0", 11, 1),
+            new(TokenType.Func, "func", 4, 1),
+            new(TokenType.Void, "void", 4, 6),
+            new(TokenType.Identifier, "Main", 4, 11),
+            new(TokenType.LeftRoundBracket, "(", 4, 15),
+            new(TokenType.RightRoundBracket, ")", 4, 16),
+            new(TokenType.LeftCurlyBracket, "{", 4, 18),
+
+            new(TokenType.Var, "var", 5, 5),
+            new(TokenType.Integer, "int", 5, 9),
+            new(TokenType.Identifier, "a", 5, 13),
+            new(TokenType.Assign, "=", 5, 15),
+            new(TokenType.IntegerLiteral, "2", 5, 17),
+            new(TokenType.Semicolon, ";", 5, 18),
+
+            new(TokenType.Var, "var", 6, 5),
+            new(TokenType.Integer, "int", 6, 9),
+            new(TokenType.Identifier, "b", 6, 13),
+            new(TokenType.Assign, "=", 6, 15),
+            new(TokenType.IntegerLiteral, "3", 6, 17),
+            new(TokenType.Semicolon, ";", 6, 18),
+
+            new(TokenType.Var, "var", 7, 5),
+            new(TokenType.Integer, "int", 7, 9),
+            new(TokenType.Identifier, "res", 7, 13),
+            new(TokenType.Assign, "=", 7, 17),
+            new(TokenType.Identifier, "a", 7, 19),
+            new(TokenType.Plus, "+", 7, 21),
+            new(TokenType.Identifier, "b", 7, 23),
+            new(TokenType.Semicolon, ";", 7, 24),
+
+            new(TokenType.Print, "print", 8, 5),
+            new(TokenType.Identifier, "res", 8, 11),
+            new(TokenType.Semicolon, ";", 8, 14),
+
+            new(TokenType.Return, "return", 9, 5),
+            new(TokenType.Semicolon, ";", 9, 11),
+
+            new(TokenType.RightCurlyBracket, "}", 10, 1),
+
+            new(TokenType.Eof, "\0", 11, 1),
         };
         var lexer = new CompilerLexer(source);
         var tokens = lexer.GetTokens().ToList();
-        
+
         Assert.Equal(expected.Count, tokens.Count);
         Assert.Equal(expected, tokens);
     }
@@ -152,166 +152,251 @@ public class LexerTests
                             print arr[2];
                             print arr[3];
                             print arr[4];
-                        
+
                             return;
                         }
                         """;
         var expected = new List<Token>()
         {
-            new (TokenType.Func, "func", 4, 1),
-            new (TokenType.Void, "void", 4, 6),
-            new (TokenType.Identifier, "Main", 4, 11),
-            new (TokenType.LeftRoundBracket, "(", 4, 15),
-            new (TokenType.RightRoundBracket, ")", 4, 16),
-            new (TokenType.LeftCurlyBracket, "{", 4, 18),
+            new(TokenType.Func, "func", 4, 1),
+            new(TokenType.Void, "void", 4, 6),
+            new(TokenType.Identifier, "Main", 4, 11),
+            new(TokenType.LeftRoundBracket, "(", 4, 15),
+            new(TokenType.RightRoundBracket, ")", 4, 16),
+            new(TokenType.LeftCurlyBracket, "{", 4, 18),
 
-            new (TokenType.Var, "var", 5, 5),
-            new (TokenType.Integer, "int", 5, 9),
-            new (TokenType.Identifier, "n", 5, 13),
-            new (TokenType.Assign, "=", 5, 15),
-            new (TokenType.IntegerLiteral, "5", 5, 17),
-            new (TokenType.Semicolon, ";", 5, 18),
+            new(TokenType.Var, "var", 5, 5),
+            new(TokenType.Integer, "int", 5, 9),
+            new(TokenType.Identifier, "n", 5, 13),
+            new(TokenType.Assign, "=", 5, 15),
+            new(TokenType.IntegerLiteral, "5", 5, 17),
+            new(TokenType.Semicolon, ";", 5, 18),
 
-            new (TokenType.Var, "var", 6, 5),
-            new (TokenType.Array, "array", 6, 9),
-            new (TokenType.Less, "<", 6, 14),
-            new (TokenType.Integer, "int", 6, 15),
-            new (TokenType.Greater, ">", 6, 18),
-            new (TokenType.Identifier, "arr", 6, 20),
-            new (TokenType.Assign, "=", 6, 24),
-            new (TokenType.New, "new", 6, 26),
-            new (TokenType.Integer, "int", 6, 30),
-            new (TokenType.LeftRoundBracket, "(", 6, 33),
-            new (TokenType.Identifier, "n", 6, 34),
-            new (TokenType.RightRoundBracket, ")", 6, 35),
-            new (TokenType.LeftSquareBracket, "[", 6, 36),
-            new (TokenType.RightSquareBracket, "]", 6, 37),
-            new (TokenType.Semicolon, ";", 6, 38),
+            new(TokenType.Var, "var", 6, 5),
+            new(TokenType.Array, "array", 6, 9),
+            new(TokenType.Less, "<", 6, 14),
+            new(TokenType.Integer, "int", 6, 15),
+            new(TokenType.Greater, ">", 6, 18),
+            new(TokenType.Identifier, "arr", 6, 20),
+            new(TokenType.Assign, "=", 6, 24),
+            new(TokenType.New, "new", 6, 26),
+            new(TokenType.Integer, "int", 6, 30),
+            new(TokenType.LeftRoundBracket, "(", 6, 33),
+            new(TokenType.Identifier, "n", 6, 34),
+            new(TokenType.RightRoundBracket, ")", 6, 35),
+            new(TokenType.LeftSquareBracket, "[", 6, 36),
+            new(TokenType.RightSquareBracket, "]", 6, 37),
+            new(TokenType.Semicolon, ";", 6, 38),
 
-            new (TokenType.Identifier, "arr", 7, 5),
-            new (TokenType.LeftSquareBracket, "[", 7, 8),
-            new (TokenType.IntegerLiteral, "0", 7, 9),
-            new (TokenType.RightSquareBracket, "]", 7, 10),
-            new (TokenType.Assign, "=", 7, 12),
-            new (TokenType.IntegerLiteral, "-1", 7, 14),
-            new (TokenType.Semicolon, ";", 7, 16),
+            new(TokenType.Identifier, "arr", 7, 5),
+            new(TokenType.LeftSquareBracket, "[", 7, 8),
+            new(TokenType.IntegerLiteral, "0", 7, 9),
+            new(TokenType.RightSquareBracket, "]", 7, 10),
+            new(TokenType.Assign, "=", 7, 12),
+            new(TokenType.IntegerLiteral, "-1", 7, 14),
+            new(TokenType.Semicolon, ";", 7, 16),
 
-            new (TokenType.Identifier, "arr", 8, 5),
-            new (TokenType.LeftSquareBracket, "[", 8, 8),
-            new (TokenType.IntegerLiteral, "1", 8, 9),
-            new (TokenType.RightSquareBracket, "]", 8, 10),
-            new (TokenType.Assign, "=", 8, 12),
-            new (TokenType.IntegerLiteral, "2", 8, 14),
-            new (TokenType.Semicolon, ";", 8, 15),
+            new(TokenType.Identifier, "arr", 8, 5),
+            new(TokenType.LeftSquareBracket, "[", 8, 8),
+            new(TokenType.IntegerLiteral, "1", 8, 9),
+            new(TokenType.RightSquareBracket, "]", 8, 10),
+            new(TokenType.Assign, "=", 8, 12),
+            new(TokenType.IntegerLiteral, "2", 8, 14),
+            new(TokenType.Semicolon, ";", 8, 15),
 
-            new (TokenType.Identifier, "arr", 9, 5),
-            new (TokenType.LeftSquareBracket, "[", 9, 8),
-            new (TokenType.IntegerLiteral, "2", 9, 9),
-            new (TokenType.RightSquareBracket, "]", 9, 10),
-            new (TokenType.Assign, "=", 9, 12),
-            new (TokenType.Identifier, "arr", 9, 14),
-            new (TokenType.LeftSquareBracket, "[", 9, 17),
-            new (TokenType.IntegerLiteral, "0", 9, 18),
-            new (TokenType.RightSquareBracket, "]", 9, 19),
-            new (TokenType.Plus, "+", 9, 21),
-            new (TokenType.Identifier, "arr", 9, 23),
-            new (TokenType.LeftSquareBracket, "[", 9, 26),
-            new (TokenType.IntegerLiteral, "1", 9, 27),
-            new (TokenType.RightSquareBracket, "]", 9, 28),
-            new (TokenType.Semicolon, ";", 9, 29),
+            new(TokenType.Identifier, "arr", 9, 5),
+            new(TokenType.LeftSquareBracket, "[", 9, 8),
+            new(TokenType.IntegerLiteral, "2", 9, 9),
+            new(TokenType.RightSquareBracket, "]", 9, 10),
+            new(TokenType.Assign, "=", 9, 12),
+            new(TokenType.Identifier, "arr", 9, 14),
+            new(TokenType.LeftSquareBracket, "[", 9, 17),
+            new(TokenType.IntegerLiteral, "0", 9, 18),
+            new(TokenType.RightSquareBracket, "]", 9, 19),
+            new(TokenType.Plus, "+", 9, 21),
+            new(TokenType.Identifier, "arr", 9, 23),
+            new(TokenType.LeftSquareBracket, "[", 9, 26),
+            new(TokenType.IntegerLiteral, "1", 9, 27),
+            new(TokenType.RightSquareBracket, "]", 9, 28),
+            new(TokenType.Semicolon, ";", 9, 29),
 
-            new (TokenType.Identifier, "arr", 10, 5),
-            new (TokenType.LeftSquareBracket, "[", 10, 8),
-            new (TokenType.IntegerLiteral, "3", 10, 9),
-            new (TokenType.RightSquareBracket, "]", 10, 10),
-            new (TokenType.Assign, "=", 10, 12),
-            new (TokenType.Minus, "-", 10, 14),
-            new (TokenType.LeftRoundBracket, "(", 10, 15),
-            new (TokenType.Identifier, "arr", 10, 16),
-            new (TokenType.LeftSquareBracket, "[", 10, 19),
-            new (TokenType.IntegerLiteral, "0", 10, 20),
-            new (TokenType.RightSquareBracket, "]", 10, 21),
-            new (TokenType.Multiply, "*", 10, 23),
-            new (TokenType.Identifier, "arr", 10, 25),
-            new (TokenType.LeftSquareBracket, "[", 10, 28),
-            new (TokenType.IntegerLiteral, "1", 10, 29),
-            new (TokenType.RightSquareBracket, "]", 10, 30),
-            new (TokenType.RightRoundBracket, ")", 10, 31),
-            new (TokenType.Semicolon, ";", 10, 32),
+            new(TokenType.Identifier, "arr", 10, 5),
+            new(TokenType.LeftSquareBracket, "[", 10, 8),
+            new(TokenType.IntegerLiteral, "3", 10, 9),
+            new(TokenType.RightSquareBracket, "]", 10, 10),
+            new(TokenType.Assign, "=", 10, 12),
+            new(TokenType.Minus, "-", 10, 14),
+            new(TokenType.LeftRoundBracket, "(", 10, 15),
+            new(TokenType.Identifier, "arr", 10, 16),
+            new(TokenType.LeftSquareBracket, "[", 10, 19),
+            new(TokenType.IntegerLiteral, "0", 10, 20),
+            new(TokenType.RightSquareBracket, "]", 10, 21),
+            new(TokenType.Multiply, "*", 10, 23),
+            new(TokenType.Identifier, "arr", 10, 25),
+            new(TokenType.LeftSquareBracket, "[", 10, 28),
+            new(TokenType.IntegerLiteral, "1", 10, 29),
+            new(TokenType.RightSquareBracket, "]", 10, 30),
+            new(TokenType.RightRoundBracket, ")", 10, 31),
+            new(TokenType.Semicolon, ";", 10, 32),
 
-            new (TokenType.Identifier, "arr", 11, 5),
-            new (TokenType.LeftSquareBracket, "[", 11, 8),
-            new (TokenType.IntegerLiteral, "4", 11, 9),
-            new (TokenType.RightSquareBracket, "]", 11, 10),
-            new (TokenType.Assign, "=", 11, 12),
-            new (TokenType.Identifier, "arr", 11, 14),
-            new (TokenType.LeftSquareBracket, "[", 11, 17),
-            new (TokenType.IntegerLiteral, "0", 11, 18),
-            new (TokenType.RightSquareBracket, "]", 11, 19),
-            new (TokenType.Multiply, "*", 11, 21),
-            new (TokenType.LeftRoundBracket, "(", 11, 23),
-            new (TokenType.Identifier, "arr", 11, 24),
-            new (TokenType.LeftSquareBracket, "[", 11, 27),
-            new (TokenType.IntegerLiteral,"1", 11, 28),
-            new (TokenType.RightSquareBracket, "]", 11, 29),
-            new (TokenType.Plus, "+", 11, 31),
-            new (TokenType.Identifier, "arr", 11, 33),
-            new (TokenType.LeftSquareBracket, "[", 11, 36),
-            new (TokenType.IntegerLiteral,"2", 11, 37),
-            new (TokenType.RightSquareBracket, "]", 11, 38),
-            new (TokenType.RightRoundBracket, ")", 11, 39),
-            new (TokenType.Plus, "+", 11, 41),
-            new (TokenType.Identifier, "arr", 11, 43),
-            new (TokenType.LeftSquareBracket, "[", 11, 46),
-            new (TokenType.IntegerLiteral,"3", 11, 47),
-            new (TokenType.RightSquareBracket, "]", 11, 48),
-            new (TokenType.Semicolon, ";", 11, 49),
+            new(TokenType.Identifier, "arr", 11, 5),
+            new(TokenType.LeftSquareBracket, "[", 11, 8),
+            new(TokenType.IntegerLiteral, "4", 11, 9),
+            new(TokenType.RightSquareBracket, "]", 11, 10),
+            new(TokenType.Assign, "=", 11, 12),
+            new(TokenType.Identifier, "arr", 11, 14),
+            new(TokenType.LeftSquareBracket, "[", 11, 17),
+            new(TokenType.IntegerLiteral, "0", 11, 18),
+            new(TokenType.RightSquareBracket, "]", 11, 19),
+            new(TokenType.Multiply, "*", 11, 21),
+            new(TokenType.LeftRoundBracket, "(", 11, 23),
+            new(TokenType.Identifier, "arr", 11, 24),
+            new(TokenType.LeftSquareBracket, "[", 11, 27),
+            new(TokenType.IntegerLiteral, "1", 11, 28),
+            new(TokenType.RightSquareBracket, "]", 11, 29),
+            new(TokenType.Plus, "+", 11, 31),
+            new(TokenType.Identifier, "arr", 11, 33),
+            new(TokenType.LeftSquareBracket, "[", 11, 36),
+            new(TokenType.IntegerLiteral, "2", 11, 37),
+            new(TokenType.RightSquareBracket, "]", 11, 38),
+            new(TokenType.RightRoundBracket, ")", 11, 39),
+            new(TokenType.Plus, "+", 11, 41),
+            new(TokenType.Identifier, "arr", 11, 43),
+            new(TokenType.LeftSquareBracket, "[", 11, 46),
+            new(TokenType.IntegerLiteral, "3", 11, 47),
+            new(TokenType.RightSquareBracket, "]", 11, 48),
+            new(TokenType.Semicolon, ";", 11, 49),
 
-            new (TokenType.Print, "print", 13, 5),
-            new (TokenType.Identifier, "arr", 13, 11),
-            new (TokenType.LeftSquareBracket, "[", 13, 14),
-            new (TokenType.IntegerLiteral,"0", 13, 15),
-            new (TokenType.RightSquareBracket, "]", 13, 16),
-            new (TokenType.Semicolon, ";", 13, 17),
+            new(TokenType.Print, "print", 13, 5),
+            new(TokenType.Identifier, "arr", 13, 11),
+            new(TokenType.LeftSquareBracket, "[", 13, 14),
+            new(TokenType.IntegerLiteral, "0", 13, 15),
+            new(TokenType.RightSquareBracket, "]", 13, 16),
+            new(TokenType.Semicolon, ";", 13, 17),
 
-            new (TokenType.Print, "print", 14, 5),
-            new (TokenType.Identifier, "arr", 14, 11),
-            new (TokenType.LeftSquareBracket, "[", 14, 14),
-            new (TokenType.IntegerLiteral,"1", 14, 15),
-            new (TokenType.RightSquareBracket, "]", 14, 16),
-            new (TokenType.Semicolon, ";", 14, 17),
+            new(TokenType.Print, "print", 14, 5),
+            new(TokenType.Identifier, "arr", 14, 11),
+            new(TokenType.LeftSquareBracket, "[", 14, 14),
+            new(TokenType.IntegerLiteral, "1", 14, 15),
+            new(TokenType.RightSquareBracket, "]", 14, 16),
+            new(TokenType.Semicolon, ";", 14, 17),
 
-            new (TokenType.Print, "print", 15, 5),
-            new (TokenType.Identifier, "arr", 15, 11),
-            new (TokenType.LeftSquareBracket, "[", 15, 14),
-            new (TokenType.IntegerLiteral,"2", 15, 15),
-            new (TokenType.RightSquareBracket, "]", 15, 16),
-            new (TokenType.Semicolon, ";", 15, 17),
+            new(TokenType.Print, "print", 15, 5),
+            new(TokenType.Identifier, "arr", 15, 11),
+            new(TokenType.LeftSquareBracket, "[", 15, 14),
+            new(TokenType.IntegerLiteral, "2", 15, 15),
+            new(TokenType.RightSquareBracket, "]", 15, 16),
+            new(TokenType.Semicolon, ";", 15, 17),
 
-            new (TokenType.Print, "print", 16, 5),
-            new (TokenType.Identifier, "arr", 16, 11),
-            new (TokenType.LeftSquareBracket, "[", 16, 14),
-            new (TokenType.IntegerLiteral,"3", 16, 15),
-            new (TokenType.RightSquareBracket, "]", 16, 16),
-            new (TokenType.Semicolon, ";", 16, 17),
+            new(TokenType.Print, "print", 16, 5),
+            new(TokenType.Identifier, "arr", 16, 11),
+            new(TokenType.LeftSquareBracket, "[", 16, 14),
+            new(TokenType.IntegerLiteral, "3", 16, 15),
+            new(TokenType.RightSquareBracket, "]", 16, 16),
+            new(TokenType.Semicolon, ";", 16, 17),
 
-            new (TokenType.Print, "print", 17, 5),
-            new (TokenType.Identifier, "arr", 17, 11),
-            new (TokenType.LeftSquareBracket, "[", 17, 14),
-            new (TokenType.IntegerLiteral,"4", 17, 15),
-            new (TokenType.RightSquareBracket, "]", 17, 16),
-            new (TokenType.Semicolon, ";", 17, 17),
+            new(TokenType.Print, "print", 17, 5),
+            new(TokenType.Identifier, "arr", 17, 11),
+            new(TokenType.LeftSquareBracket, "[", 17, 14),
+            new(TokenType.IntegerLiteral, "4", 17, 15),
+            new(TokenType.RightSquareBracket, "]", 17, 16),
+            new(TokenType.Semicolon, ";", 17, 17),
 
-            new (TokenType.Return, "return", 19, 5),
-            new (TokenType.Semicolon, ";", 19, 11),
+            new(TokenType.Return, "return", 19, 5),
+            new(TokenType.Semicolon, ";", 19, 11),
 
-            new (TokenType.RightCurlyBracket, "}", 20, 1),
+            new(TokenType.RightCurlyBracket, "}", 20, 1),
 
-            new (TokenType.Eof, "\0", 21, 1),
+            new(TokenType.Eof, "\0", 21, 1),
         };
         var lexer = new CompilerLexer(source);
         var tokens = lexer.GetTokens().ToList();
+
+        Assert.Equal(expected.Count, tokens.Count);
+        Assert.Equal(expected, tokens);
+    }
+
+    [Fact]
+    public void BoolAndDivTest()
+    {
+        string source = """
+                        func void Main() {
+                            var bool flag = false;
+                            var bool flag2 = true;
+                            var bool flag3 = !flag && (flag || flag2);
+                            var int a = 10 / 2;
+                            var int b = 10 % 2;
+                            return;
+                        }
+                        """;
+        var expected = new List<Token>()
+        {
+            new(TokenType.Func, "func", 1, 1),
+            new(TokenType.Void, "void", 1, 6),
+            new(TokenType.Identifier, "Main", 1, 11),
+            new(TokenType.LeftRoundBracket, "(", 1, 15),
+            new(TokenType.RightRoundBracket, ")", 1, 16),
+            new(TokenType.LeftCurlyBracket, "{", 1, 18),
+            
+            new (TokenType.Var, "var", 2, 5),
+            new (TokenType.Bool, "bool", 2, 9),
+            new (TokenType.Identifier, "flag", 2, 14),
+            new (TokenType.Assign, "=", 2, 19),
+            new (TokenType.BoolLiteral, "false", 2, 21),
+            new (TokenType.Semicolon, ";", 2, 26),
+            
+            new (TokenType.Var, "var", 3, 5),
+            new (TokenType.Bool, "bool", 3, 9),
+            new (TokenType.Identifier, "flag2", 3, 14),
+            new (TokenType.Assign, "=", 3, 20),
+            new (TokenType.BoolLiteral, "true", 3, 22),
+            new (TokenType.Semicolon, ";", 3, 26),
+
+            //    var bool flag3 = !flag && (flag || flag2);
+            new (TokenType.Var, "var", 4, 5),
+            new (TokenType.Bool, "bool", 4, 9),
+            new (TokenType.Identifier, "flag3", 4, 14),
+            new (TokenType.Assign, "=", 4, 20),
+            new (TokenType.LogicalNegation, "!", 4, 22),
+            new (TokenType.Identifier, "flag", 4, 23),
+            new (TokenType.LogicalAnd, "&&", 4, 28),
+            new (TokenType.LeftRoundBracket, "(", 4, 31),
+            new (TokenType.Identifier, "flag", 4, 32),
+            new (TokenType.LogicalOr, "||", 4, 37),
+            new (TokenType.Identifier, "flag2", 4, 40),
+            new (TokenType.RightRoundBracket, ")", 4, 45),
+            new (TokenType.Semicolon, ";", 4, 46),
+            
+            // var int a = 10 / 2;
+            new (TokenType.Var, "var", 5, 5),
+            new (TokenType.Integer, "int", 5, 9),
+            new (TokenType.Identifier, "a", 5, 13),
+            new (TokenType.Assign, "=", 5, 15),
+            new (TokenType.IntegerLiteral, "10", 5, 17),
+            new (TokenType.Divide, "/", 5, 20),
+            new (TokenType.IntegerLiteral, "2", 5, 22),
+            new (TokenType.Semicolon, ";", 5, 23),
+            
+            new (TokenType.Var, "var", 6, 5),
+            new (TokenType.Integer, "int", 6, 9),
+            new (TokenType.Identifier, "b", 6, 13),
+            new (TokenType.Assign, "=", 6, 15),
+            new (TokenType.IntegerLiteral, "10", 6, 17),
+            new (TokenType.Modulo, "%", 6, 20),
+            new (TokenType.IntegerLiteral, "2", 6, 22),
+            new (TokenType.Semicolon, ";", 6, 23),
+            
+            new(TokenType.Return, "return", 7, 5),
+            new(TokenType.Semicolon, ";", 7, 11),
+            
+            new(TokenType.RightCurlyBracket, "}", 8, 1),
+            
+            new(TokenType.Eof, "\0", 9, 1),
+        };
         
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+
         Assert.Equal(expected.Count, tokens.Count);
         Assert.Equal(expected, tokens);
     }
