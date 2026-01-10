@@ -22,6 +22,8 @@ public static class AstStore
                 return GetArrayDeclarationAndIndexingAst();
             case "SecondExample":
                 return GetSecondExampleAst();
+            case "ThirdExample":
+                return GetThirdExampleAst();
             default:
                 throw new Exception($"Unknown ast name '{name}'");
         }
@@ -246,6 +248,55 @@ public static class AstStore
 
                             new ReturnStatementNode(null),
                         })
+                )
+            }));
+    }
+
+    private static AstTree GetThirdExampleAst()
+    {
+        return new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>
+            {
+                new FunctionDeclarationNode(
+                    new SimpleTypeNode("int"), 
+                    "Sum",
+                    new FunctionParametersNode(new List<FunctionParametersNode.Variable>()
+                    {
+                        new FunctionParametersNode.Variable("a", new SimpleTypeNode("int")),
+                        new FunctionParametersNode.Variable("b", new SimpleTypeNode("int"))
+                    }),
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new ReturnStatementNode(new BinaryExpressionNode(
+                            new IdentifierExpressionNode("a"),
+                            new IdentifierExpressionNode("b"),
+                            BinaryOperatorType.Addition)),
+                    })
+                ),
+                new FunctionDeclarationNode(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode(),
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "x",
+                            new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "y",
+                            new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "z",
+                            new FunctionCallExpressionNode("Sum", new List<ExpressionNode>(){
+                                new IdentifierExpressionNode("x"),
+                                new IdentifierExpressionNode("y")
+                            })),
+                        new PrintStatementNode(new IdentifierExpressionNode("z")),
+                        new ReturnStatementNode(null),
+                    })
                 )
             }));
     }

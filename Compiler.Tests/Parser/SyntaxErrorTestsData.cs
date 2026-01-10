@@ -45,7 +45,7 @@ public class SyntaxErrorTestsData : IEnumerable<object[]>
             """
             func void Main( {}
             """,
-            "Ожидался RightRoundBracket, но получен LeftCurlyBracket at line 1, column 17"
+            "Type expected at line 1, column 17"
         };
         
         yield return new object[]
@@ -240,6 +240,74 @@ public class SyntaxErrorTestsData : IEnumerable<object[]>
             """,
             "Ожидался expression at line 2, column 34"
         };
+        
+         yield return new object[]
+         {
+             """
+             func void foo(int a) {
+                 print a;
+                 return;
+             }
+             
+             func void Main() {
+                 var int a = 5;
+                 foo(a,);
+                 return;
+             }
+             """,
+             "Ожидался expression at line 8, column 11"
+         };
+
+          yield return new object[]
+          {
+              """
+              func void foo(int a,) {
+                  print a;
+                  return;
+              }
+
+              func void Main() {
+                  var int a = 5;
+                  foo(a);
+                  return;
+              }
+              """,
+              "Type expected at line 1, column 21"
+          };
+          
+          yield return new object[]
+          {
+              """
+              func void foo(int) {
+                  print a;
+                  return;
+              }
+
+              func void Main() {
+                  var int a = 5;
+                  foo(a);
+                  return;
+              }
+              """,
+              "Ожидался Identifier, но получен RightRoundBracket at line 1, column 18"
+          };
+          
+          yield return new object[]
+          {
+              """
+              func void foo(a) {
+                  print a;
+                  return;
+              }
+
+              func void Main() {
+                  var int a = 5;
+                  foo(a);
+                  return;
+              }
+              """,
+              "Type expected at line 1, column 15"
+          };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

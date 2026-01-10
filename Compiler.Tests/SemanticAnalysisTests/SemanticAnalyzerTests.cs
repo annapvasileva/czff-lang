@@ -59,10 +59,22 @@ public class SemanticAnalyzerTests
         Assert.Null(exception);
     }
 
-     [Fact]
+    [Fact]
     public void SecondExampleTest()
     {
         var ast = AstStore.GetAst("SecondExample");
+        var symbolTableBuilder = new SymbolTableBuilder();
+        ast.Root.Accept(symbolTableBuilder);
+        var semanticAnalyzer = new SemanticAnalyzer(symbolTableBuilder.SymbolTable);
+
+        var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
+        Assert.Null(exception);
+    }
+    
+    [Fact]
+    public void ThirdExampleTest()
+    {
+        var ast = AstStore.GetAst("ThirdExample");
         var symbolTableBuilder = new SymbolTableBuilder();
         ast.Root.Accept(symbolTableBuilder);
         var semanticAnalyzer = new SemanticAnalyzer(symbolTableBuilder.SymbolTable);

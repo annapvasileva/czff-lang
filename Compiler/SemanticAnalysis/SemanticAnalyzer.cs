@@ -54,7 +54,26 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
     {
-        throw new NotImplementedException();
+        var symb =  _scope.Lookup(functionCallExpressionNode.Name);
+        if (!(symb is FunctionSymbol))
+            throw new SemanticException($"{functionCallExpressionNode.Name} is not function. You can call only function");
+
+        var funcSymb = (FunctionSymbol)symb;
+        if (funcSymb.Parameters.Count != functionCallExpressionNode.Arguments.Count)
+        {
+            throw new SemanticException($"Function {functionCallExpressionNode.Name} must have the same number of parameters - {funcSymb.Parameters.Count}");
+        }
+        
+        var paramsCount = funcSymb.Parameters.Count;
+        for (int i = 0; i < paramsCount; i++)
+        {
+            var paramType = funcSymb.Parameters[i].Type;
+            var argType = GetExpressionType(functionCallExpressionNode.Arguments[i]);
+            if (argType != paramType)
+            {
+                throw new SemanticException($"Invalid argument '{funcSymb.Parameters[i].Name}' type. Expected '{paramType}' but found '{argType}'");
+            }
+        }
     }
 
     public void Visit(VariableDeclarationNode variableDeclarationNode)
@@ -88,6 +107,9 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(FunctionDeclarationNode functionDeclarationNode)
     {
+        _scope = functionDeclarationNode.Body.Scope;
+        EnterScope();
+        functionDeclarationNode.Parameters.Accept(this);
         functionDeclarationNode.Body.Accept(this);
         var expectedReturnType = functionDeclarationNode.ReturnType.GetName;
         var returnType =
@@ -96,6 +118,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         {
             throw new SemanticException($"Function {functionDeclarationNode.Name} expected return type is {expectedReturnType} but got {returnType}");
         }
+        ExitScope();
+        _scope = _scope.Parent!;
     }
 
     public void Visit(ClassDeclarationNode classDeclarationNode)
@@ -105,12 +129,24 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(FunctionParametersNode functionParametersNode)
     {
-        throw new NotImplementedException();
+        foreach (var param in functionParametersNode.Parameters)
+        {
+            param.Type.Accept(this);
+            var symbol = _scope.Lookup(param.Name);
+            if (symbol is VariableSymbol variableSymbol)
+            {
+                _initStack.Peek().Add(variableSymbol);
+            }
+            else
+            {
+                throw new SemanticException($"Variable {param.Name} not found");
+            }
+        }
     }
 
     public void Visit(ExpressionStatementNode expressionStatementNode)
     {
-        expressionStatementNode.Accept(this);
+        expressionStatementNode.Expression.Accept(this);
     }
 
     public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
@@ -149,16 +185,10 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(BlockNode blockNode)
     {
-        EnterScope();
-        _scope = blockNode.Scope;
-        
         foreach (var statement in blockNode.Statements)
         {
             statement.Accept(this);
         }
-
-        ExitScope();
-        _scope = _scope.Parent!;
     }
 
     public void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode)
@@ -303,6 +333,11 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
             return GetUnaryExpressionType(unaryExpression);
         }
 
+        if (expressionNode is FunctionCallExpressionNode functionCallExpression)
+        {
+            return GetFunctionCallExpressionType(functionCallExpression);
+        }
+
         throw new SemanticException("Unknown expression type");
     }
 
@@ -369,6 +404,17 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
             return expressionType;
 
         throw new SemanticException($"Unsupported unary operation for operator {unaryExpression.UnaryOperatorType} and type {expressionType}");
+    }
+
+    private string GetFunctionCallExpressionType(FunctionCallExpressionNode functionCallExpression)
+    {
+        var symbol = _scope.Lookup(functionCallExpression.Name);
+        if (symbol is FunctionSymbol functionSymbol)
+        {
+            return functionSymbol.ReturnType;
+        }
+        
+        throw new SemanticException($"Unknown function {functionCallExpression.Name}");
     }
 
     private string GetArithmeticOperationType(string left, string right)

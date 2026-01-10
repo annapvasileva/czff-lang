@@ -76,7 +76,7 @@ public class SymbolTableBuilderTests
         mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I;", 1));
         mainBodyTable.Symbols.Add("res", new VariableSymbol("res", "I;", 2));
 
-        expectedTable.Symbols.Add("foo", new FunctionSymbol("foo", "void;") { LocalsLength = 2 });
+        expectedTable.Symbols.Add("foo", new FunctionSymbol("foo", "void;") { LocalsLength = 2, Index = 1});
         var fooBodyTable = new SymbolTable(expectedTable);
         fooBodyTable.Symbols.Add("a", new VariableSymbol("a", "I;", 0));
         fooBodyTable.Symbols.Add("b", new VariableSymbol("b", "I;", 1));
@@ -131,6 +131,39 @@ public class SymbolTableBuilderTests
         mainBodyTable.Symbols.Add("arr", new VariableSymbol("arr", "[I;", 1));
         
         var ast = AstStore.GetAst("SecondExample");
+        var symbolTableBuilder = new SymbolTableBuilder();
+        ast.Root.Accept(symbolTableBuilder);
+        var table = symbolTableBuilder.SymbolTable;
+        
+        var json1 = JsonSerializer.Serialize(expectedTable, 
+            new JsonSerializerOptions { WriteIndented = true });
+        var json2 = JsonSerializer.Serialize(table, 
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+        _output.WriteLine(json2);
+
+        Assert.Equal(json1, json2);
+    }
+    
+    [Fact]
+    public void ThirdExampleTest()
+    {
+        var expectedTable = new SymbolTable(null);
+        var paramA = new VariableSymbol("a", "I;", 0);
+        var paramB = new VariableSymbol("b", "I;", 1);
+        var sumParams = new List<VariableSymbol>() { paramA, paramB };
+        expectedTable.Symbols.Add("Sum", new FunctionSymbol("Sum", "I;") { LocalsLength = 2, Index = 0, Parameters = sumParams });
+        var fooBodyTable = new SymbolTable(expectedTable);
+        fooBodyTable.Symbols.Add("a", paramA);
+        fooBodyTable.Symbols.Add("b", paramB);
+        
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 3, Index = 1 });
+        var mainBodyTable = new SymbolTable(expectedTable);
+        mainBodyTable.Symbols.Add("x", new VariableSymbol("x", "I;", 0));
+        mainBodyTable.Symbols.Add("y", new VariableSymbol("y", "I;", 1));
+        mainBodyTable.Symbols.Add("z", new VariableSymbol("z", "I;", 2));
+        
+        var ast = AstStore.GetAst("ThirdExample");
         var symbolTableBuilder = new SymbolTableBuilder();
         ast.Root.Accept(symbolTableBuilder);
         var table = symbolTableBuilder.SymbolTable;

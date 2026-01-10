@@ -2,12 +2,7 @@ namespace Compiler.Parser.AST.Nodes.Core;
 
 public class FunctionParametersNode : AstNode
 {
-    public record Variable
-    {
-        public string Name { get; }
-        
-        public TypeAnnotationNode Type { get; }
-    }
+    public record Variable(string Name, TypeAnnotationNode Type);
 
     public List<Variable> Parameters;
     

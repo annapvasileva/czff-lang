@@ -4,7 +4,7 @@ public class FunctionSymbol : Symbol
 {
     public string ReturnType { get; }
 
-    public List<VariableSymbol> Parameters { get; }
+    public List<VariableSymbol> Parameters { get; set;  }
     
     public int LocalsLength { get; set; } = 0;
 
@@ -14,5 +14,6 @@ public class FunctionSymbol : Symbol
         : base(name, SymbolKind.Function)
     {
         ReturnType = returnType;
+        Parameters = new List<VariableSymbol>();
     }
 }
