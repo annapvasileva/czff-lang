@@ -103,7 +103,18 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
     {
-        throw new NotImplementedException();
+        foreach (var arg in functionCallExpressionNode.Arguments)
+        {
+            arg.Accept(this);
+        }
+
+        Symbol symbol = _scope.Lookup(functionCallExpressionNode.Name);
+        if (symbol is not FunctionSymbol function)
+        {
+            throw new GeneratorException($"Symbol {functionCallExpressionNode.Name} is not a function.");
+        }
+        
+        _currentFunction!.Operations.Add(new Call(function.Index));
     }
 
     public void Visit(VariableDeclarationNode variableDeclarationNode)
@@ -135,31 +146,29 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         {
             throw new GeneratorException($"Symbol {functionDeclarationNode.Name} is not a function.");
         }
-        else
-        {
-            // Name
-            ConstantItem item =  new StringConstant(functionSymbol.Name);
-            int idx = _target.ConstantPool.GetIndexOrAddConstant(item);
         
-            _currentFunction.NameIndex = idx;
-        
-            // Parameters
-            functionDeclarationNode.Parameters.Accept(this);
+        // Name
+        ConstantItem item =  new StringConstant(functionSymbol.Name);
+        int idx = _target.ConstantPool.GetIndexOrAddConstant(item);
+    
+        _currentFunction.NameIndex = idx;
+    
+        // Parameters
+        functionDeclarationNode.Parameters.Accept(this);
 
-            // Return Type
-            string returnDescriptor = functionSymbol.ReturnType;
-        
-            item =  new StringConstant(returnDescriptor);
-            idx = _target.ConstantPool.GetIndexOrAddConstant(item);
-            _currentFunction.ReturnTypeIndex = idx;
-        
-            // Body
-            functionDeclarationNode.Body.Accept(this);
+        // Return Type
+        string returnDescriptor = functionSymbol.ReturnType;
+    
+        item =  new StringConstant(returnDescriptor);
+        idx = _target.ConstantPool.GetIndexOrAddConstant(item);
+        _currentFunction.ReturnTypeIndex = idx;
+    
+        // Body
+        functionDeclarationNode.Body.Accept(this);
 
-            _currentFunction.MaxStackUsed = 0;
-            _currentFunction.LocalsLength = functionSymbol.LocalsLength;
-            _currentFunction.MaxStackUsed = 0;
-        }
+        _currentFunction.MaxStackUsed = 0;
+        _currentFunction.LocalsLength = functionSymbol.LocalsLength;
+        _currentFunction.MaxStackUsed = 0;
         
         _target.FunctionPool.AddFunction(_currentFunction);
         _currentFunction = null;
@@ -176,7 +185,14 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         
         foreach (var parameter in functionParametersNode.Parameters)
         {
-            descriptor += parameter.Type.GetName + ";";
+            descriptor += parameter.Type.GetName;
+            Symbol symbol = _scope.Lookup(parameter.Name);
+            if (symbol is not VariableSymbol variableSymbol)
+            {
+                throw new GeneratorException($"Symbol {parameter.Name} is not a variable.");
+            }
+            
+            _currentFunction!.Operations.Add(new Ldv(variableSymbol.Index));
         }
         
         int idx = _target.ConstantPool.GetIndexOrAddConstant(new StringConstant(descriptor));

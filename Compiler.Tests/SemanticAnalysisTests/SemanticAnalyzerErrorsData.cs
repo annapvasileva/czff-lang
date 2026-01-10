@@ -15,7 +15,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
                 return;
             }
             """,
-            "Variable a: type - I does not match void"
+            "Variable a: type - I; does not match void;"
         };
 
         yield return new object[]
@@ -27,7 +27,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
                 return;
             }
             """,
-            "Variable a: type - I does not match [void"
+            "Variable a: type - I; does not match [void;"
         };
 
         yield return new object[]
@@ -39,7 +39,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
                 return;
             }
             """,
-            "Variable a: type - I does not match [I"
+            "Variable a: type - I; does not match [I;"
         };
 
         yield return new object[]
@@ -63,7 +63,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
                 return;
             }
             """,
-            "Variable a: type - [I does not match I"
+            "Variable a: type - [I; does not match I;"
         };
         
         yield return new object[]
@@ -126,7 +126,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Variable a: type - [I does not match I"
+            "Variable a: type - [I; does not match I;"
         };
         
         yield return new object[]
@@ -137,7 +137,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Function Main expected return type is void but got I"
+            "Function Main expected return type is void; but got I;"
         };
         
         yield return new object[]
@@ -152,7 +152,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Function foo expected return type is I but got void"
+            "Function foo expected return type is I; but got void;"
         };
         
         yield return new object[]
@@ -166,7 +166,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Assigment: identifier have type: I but got type: [I"
+            "Assigment: identifier have type: I; but got type: [I;"
         };
         
         yield return new object[]
@@ -180,7 +180,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Assigment: array have type: I but got type: [I"
+            "Assigment: array have type: I; but got type: [I;"
         };
 
         yield return new object[]
@@ -193,7 +193,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Array creation: size type is [I but must be I"
+            "Array creation: size type is [I; but must be I;"
         };
         
          yield return new object[]
@@ -222,7 +222,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Array creation: size type is [I but must be I"
+            "Array creation: size type is [I; but must be I;"
         };
         
         yield return new object[]
@@ -236,7 +236,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Array index: index type is [I but must be I"
+            "Array index: index type is [I; but must be I;"
         };
         
         yield return new object[]
@@ -267,7 +267,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Now arithmetic operations only for int. Got: I and [I"
+            "Now arithmetic operations only for int. Got: I; and [I;"
         };
         
         yield return new object[]
@@ -282,7 +282,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Now arithmetic operations only for int. Got: I and [I"
+            "Now arithmetic operations only for int. Got: I; and [I;"
         };
         
         yield return new object[]
@@ -297,7 +297,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            $"Assigment: identifier have type: [I but got type: I"
+            $"Assigment: identifier have type: [I; but got type: I;"
         };
         
         yield return new object[]
@@ -311,7 +311,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
             }
 
             """,
-            "Unsupported unary operation for operator Minus and type [I"
+            "Unsupported unary operation for operator Minus and type [I;"
         };
         
         yield return new object[]

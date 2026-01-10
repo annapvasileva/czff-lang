@@ -22,5 +22,5 @@ public class SimpleTypeNode : TypeAnnotationNode
         visitor.Visit(this);
     }
 
-    public override string GetName => Name;
+    public override string GetName => Name + ";";
 }

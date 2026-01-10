@@ -25,7 +25,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(SimpleTypeNode simpleTypeNode)
     {
-        if (simpleTypeNode.Name == "I" || simpleTypeNode.Name == "bool" || simpleTypeNode.Name == "void")
+        if (simpleTypeNode.GetName == "I;" || simpleTypeNode.GetName == "B;" || simpleTypeNode.GetName == "void;")
         {
             return;
         }
@@ -167,8 +167,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         arrayCreationExpressionNode.Size.Accept(this);
         
         var sizeType = GetExpressionType(arrayCreationExpressionNode.Size);
-        if (sizeType != "I")
-            throw new SemanticException($"Array creation: size type is {sizeType} but must be I");
+        if (sizeType != "I;")
+            throw new SemanticException($"Array creation: size type is {sizeType} but must be I;");
     }
 
     public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
@@ -177,8 +177,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         arrayIndexExpressionNode.Index.Accept(this);
         
         var indexType = GetExpressionType(arrayIndexExpressionNode.Index);
-        if (indexType != "I")
-            throw new SemanticException($"Array index: index type is {indexType} but must be I");
+        if (indexType != "I;")
+            throw new SemanticException($"Array index: index type is {indexType} but must be I;");
     }
 
     public void Visit(MemberAccessNode memberAccessNode)
@@ -271,7 +271,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
     {
         if (expressionNode is null)
         {
-            return "void";
+            return "void;";
         }
         if (expressionNode is ArrayCreationExpressionNode arrayCreationExpression)
         {
@@ -352,11 +352,11 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         switch (expressionNode.Type)
         {
             case LiteralType.IntegerLiteral:
-                return "I";
+                return "I;";
             case LiteralType.BooleanLiteral:
-                return "bool";
+                return "B;";
             case LiteralType.StringLiteral:
-                return "string";
+                return "string;";
             default:
                 throw new  SemanticException($"Unknown literal type {expressionNode.Type}");
         }
@@ -365,7 +365,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
     private string GetUnaryExpressionType(UnaryExpressionNode unaryExpression)
     {
         var expressionType = GetExpressionType(unaryExpression.Expression);
-        if (unaryExpression.UnaryOperatorType == UnaryOperatorType.Minus && expressionType == "I")
+        if (unaryExpression.UnaryOperatorType == UnaryOperatorType.Minus && expressionType == "I;")
             return expressionType;
 
         throw new SemanticException($"Unsupported unary operation for operator {unaryExpression.UnaryOperatorType} and type {expressionType}");
@@ -373,7 +373,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     private string GetArithmeticOperationType(string left, string right)
     {
-        if (left != "I" || right != "I")
+        if (left != "I;" || right != "I;")
         {
             throw new SemanticException($"Now arithmetic operations only for int. Got: {left} and {right}");
         }

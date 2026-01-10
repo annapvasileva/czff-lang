@@ -121,4 +121,14 @@ public class SerializingVisitor(IList<byte> buffer) : IOperationVisitor
         Buffer.Add(0);
         Buffer.Add(16);
     }
+
+    public void Visit(Call operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(17);
+        
+        byte[] idx = ByteConverter.IntToU2(operation.FunctionIndex);
+        Buffer.Add(idx[0]);
+        Buffer.Add(idx[1]);
+    }
 }

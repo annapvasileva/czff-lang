@@ -18,4 +18,5 @@ public interface IOperationVisitor
     public void Visit(Min operation);
     public void Visit(Sub operation);
     public void Visit(Div operation);
+    public void Visit(Call operation);
 }

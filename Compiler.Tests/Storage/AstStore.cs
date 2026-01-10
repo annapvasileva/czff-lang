@@ -4,7 +4,7 @@ using Compiler.Parser.AST.Nodes.Core;
 using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
 
-namespace Compiler.Tests.SemanticAnalysisTests;
+namespace Compiler.Tests.Storage;
 
 public static class AstStore
 {
