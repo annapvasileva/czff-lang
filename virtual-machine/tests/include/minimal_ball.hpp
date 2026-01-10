@@ -220,9 +220,9 @@ inline std::vector<uint8_t> MakeArrayProgramBall() {
     // 3 int 5
     w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(5);
 
-    // 4 type "[I;"
+    // 4 type "I;"
     w.u1((uint8_t)czffvm::ConstantTag::STRING);
-    w.string("[I;");
+    w.string("I;");
 
     // values
     w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(0); // 5
@@ -488,4 +488,122 @@ inline std::vector<uint8_t> MakeCallProgramBall() {
 
     return w.b;
 }
+
+inline std::vector<uint8_t> MakeArrayMutationCallBall() {
+    using namespace ball;
+    Builder w;
+
+    // ----- Header -----
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0);
+    w.u1(0);
+
+    // ----- Constant pool -----
+    w.u2(9);
+
+    // 0 "SetFirst"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("SetFirst");
+
+    // 1 "[I;"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("[I;");
+
+    // 2 return "void"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("void;");
+
+    // 3 "Main"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("Main");
+
+    // 4 ""
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("");
+
+    // 5 int 0
+    w.u1((uint8_t)czffvm::ConstantTag::I4);
+    w.u4(0);
+
+    // 6 int 1
+    w.u1((uint8_t)czffvm::ConstantTag::I4);
+    w.u4(1);
+
+    // 7 int 42
+    w.u1((uint8_t)czffvm::ConstantTag::I4);
+    w.u4(42);
+
+    // 8 "I;"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("I;");
+
+    // ----- Functions -----
+    w.u2(2);
+
+    auto op  = [&](auto c){ w.u2((uint16_t)c); };
+    auto op2 = [&](auto c,uint16_t a){
+        w.u2((uint16_t)c);
+        w.u1(a>>8); w.u1(a&0xFF);
+    };
+
+    /* ---------- SetFirst ---------- */
+    w.u2(0); // name
+    w.u2(1); // params "[I;"
+    w.u2(2); // void;
+
+    w.u2(3); // max stack
+    w.u2(1); // locals (a)
+
+    w.u2(6);
+
+    // store param
+    op2(czffvm::OperationCode::STORE,0);
+
+    // a[0] = 42
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDC,5); // index 0
+    op2(czffvm::OperationCode::LDC,7); // 42
+    op (czffvm::OperationCode::STELEM);
+
+    op(czffvm::OperationCode::RET);
+
+    /* ---------- Main ---------- */
+    w.u2(3); // Main
+    w.u2(4); // ""
+    w.u2(2); // void;
+
+    w.u2(4); // max stack
+    w.u2(1); // locals arr
+
+    w.u2(14);
+
+    // arr = new int[1]
+    op2(czffvm::OperationCode::LDC,6);
+    op2(czffvm::OperationCode::NEWARR,8);
+    op2(czffvm::OperationCode::STORE,0);
+
+    // arr[0] = 1
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDC,5);
+    op2(czffvm::OperationCode::LDC,6);
+    op (czffvm::OperationCode::STELEM);
+
+    // SetFirst(arr)
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::CALL,0);
+
+    // print arr[0]
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDC,5);
+    op (czffvm::OperationCode::LDELEM);
+    op (czffvm::OperationCode::PRINT);
+
+    op(czffvm::OperationCode::RET);
+
+    // ----- Classes -----
+    w.u2(0);
+
+    return w.b;
+}
+
 

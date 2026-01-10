@@ -140,3 +140,24 @@ TEST(InterpreterIntegrationTestSuite, ExecutesCallProgram) {
     EXPECT_TRUE(rda.GetStack().Empty());
 }
 
+TEST(InterpreterIntegrationTestSuite, ArrayIsMutatedInsideFunction) {
+    RuntimeDataArea rda;
+    ClassLoader loader(rda);
+    Interpreter interpreter(rda);
+
+    auto data = MakeArrayMutationCallBall();
+    TempFile tmp("array_mut.ball");
+    WriteFile(tmp.path,data);
+
+    loader.LoadProgram(tmp.path);
+
+    std::ostringstream out;
+    auto* old = std::cout.rdbuf(out.rdbuf());
+
+    interpreter.Execute(loader.EntryPoint());
+
+    std::cout.rdbuf(old);
+
+    EXPECT_EQ(out.str(),"42");
+    EXPECT_TRUE(rda.GetStack().Empty());
+}

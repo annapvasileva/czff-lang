@@ -11,21 +11,77 @@ namespace czffvm {
 Interpreter::Interpreter(RuntimeDataArea& rda)
     : rda_(rda) {}
 
-static bool CheckReturnType(const std::string& expected, const Value& v) {
-    return std::visit([&](auto&& x) {
+struct TypeDesc {
+    enum Kind {
+        INT,
+        BOOL,
+        ARRAY,
+        VOID
+    } kind;
+
+    std::unique_ptr<TypeDesc> element = nullptr;
+    std::string class_name = "";
+};
+
+static TypeDesc ParseType(const std::string& s, size_t& i) {
+
+    if (s[i] == 'I') {
+        i+=2;
+        return {TypeDesc::INT, nullptr, ""};
+    }
+
+    if (s[i] == 'B') {
+        i+=2;
+        return {TypeDesc::BOOL, nullptr, ""};
+    }
+
+    if (s[i] == '[') {
+        i++;
+        TypeDesc inner = ParseType(s,i);
+        return {
+            TypeDesc::ARRAY,
+            std::make_unique<TypeDesc>(std::move(inner)),
+            ""
+        };
+    }
+
+    if (s.compare(i,5,"void;")==0) {
+        i+=5;
+        return {TypeDesc::VOID,nullptr,""};
+    }
+
+    throw std::runtime_error("Bad type descriptor");
+}
+
+static bool Match(const TypeDesc& t, const Value& v) {
+    return std::visit([&](auto&& x)->bool{
         using T = std::decay_t<decltype(x)>;
 
-        if (expected == "I;")   return std::is_same_v<T, int32_t>;
-        if (expected == "B;")   return std::is_same_v<T, bool>;
+        switch(t.kind) {
+            case TypeDesc::INT:
+                return std::is_same_v<T,int32_t>;
 
-        if (!expected.empty() && expected[0] == '[')
-            return std::is_same_v<T, HeapRef>;
+            case TypeDesc::BOOL:
+                return std::is_same_v<T,bool>;
 
-        if (expected == "void;")
-            return true;
+            case TypeDesc::ARRAY:
+                return std::is_same_v<T,HeapRef>;
 
+            case TypeDesc::VOID:
+                return false;
+        }
         return false;
-    }, v);
+    },v);
+}
+
+static bool CheckReturnType(const std::string& expected, const Value& v) {
+    size_t i=0;
+    TypeDesc t = ParseType(expected,i);
+
+    if (t.kind == TypeDesc::VOID)
+        return false;
+
+    return Match(t,v);
 }
 
 static size_t CountParams(const std::string& s) {
@@ -245,11 +301,12 @@ void Interpreter::Execute(RuntimeFunction* entry) {
 
                 uint16_t type_idx = (op.arguments[0] << 8) | op.arguments[1];
                 const Constant& type_c = rda_.GetMethodArea().GetConstant(type_idx);
-                std::string type_str(type_c.data.begin(), type_c.data.end()); // пример: I; или [I;
+                std::string elem_type(type_c.data.begin(), type_c.data.end()); // пример: I; или [I;
+                std::string array_type = "[" + elem_type;
 
                 std::vector<Value> elements(arr_size);
 
-                HeapRef ref = rda_.GetHeap().Allocate(type_str, std::move(elements));
+                HeapRef ref = rda_.GetHeap().Allocate(array_type, std::move(elements));
 
                 f.operand_stack.push_back(ref);
                 break;
