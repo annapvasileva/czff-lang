@@ -19,4 +19,11 @@ public interface IOperationVisitor
     public void Visit(Sub operation);
     public void Visit(Div operation);
     public void Visit(Call operation);
+    public void Visit(Eq operation);
+    public void Visit(Lt operation);
+    public void Visit(Leq operation);
+    public void Visit(Jmp operation);
+    public void Visit(Jz operation);
+    public void Visit(Jnz operation);
+    public void Visit(Neg operation);
 }

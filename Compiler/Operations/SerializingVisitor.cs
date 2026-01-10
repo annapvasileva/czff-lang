@@ -131,4 +131,58 @@ public class SerializingVisitor(IList<byte> buffer) : IOperationVisitor
         Buffer.Add(idx[0]);
         Buffer.Add(idx[1]);
     }
+
+    public void Visit(Eq operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(18);
+    }
+
+    public void Visit(Lt operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(19);
+    }
+
+    public void Visit(Leq operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(20);
+    }
+
+    public void Visit(Jmp operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(21);
+        
+        byte[] idx = ByteConverter.IntToU2(operation.JumpIndex);
+        Buffer.Add(idx[0]);
+        Buffer.Add(idx[1]);
+    }
+    
+    public void Visit(Jz operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(22);
+        
+        byte[] idx = ByteConverter.IntToU2(operation.JumpIndex);
+        Buffer.Add(idx[0]);
+        Buffer.Add(idx[1]);
+    }
+
+    public void Visit(Jnz operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(23);
+        
+        byte[] idx = ByteConverter.IntToU2(operation.JumpIndex);
+        Buffer.Add(idx[0]);
+        Buffer.Add(idx[1]);
+    }
+    
+    public void Visit(Neg operation)
+    {
+        Buffer.Add(0);
+        Buffer.Add(24);
+    }
 }
