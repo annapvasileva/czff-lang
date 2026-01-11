@@ -831,3 +831,73 @@ inline std::vector<uint8_t> MakeFactorialProgramBall() {
 
     return w.b;
 }
+
+inline std::vector<uint8_t> MakeConditionalProgramBall() {
+    using namespace ball;
+    Builder w;
+
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0); w.u1(0);
+
+    w.u2(8);
+
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("Main");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("void;");
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(0);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(5);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(1);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(10);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(2);
+
+
+    w.u2(1); // one function
+
+    auto op = [&](auto c){ w.u2((uint16_t)c); };
+    auto op2=[&](auto c,uint16_t a){
+        w.u2((uint16_t)c);
+        w.u1(a>>8); w.u1(a&0xFF);
+    };
+
+    // --------- Main ---------
+    w.u2(0); // name
+    w.u2(1); // params
+    w.u2(2); // return type
+    w.u2(2); // max_stack_used
+    w.u2(2); // locals count
+    w.u2(28); // code len
+
+    op2(czffvm::OperationCode::LDC,3); // 0
+    op2(czffvm::OperationCode::STORE,0);
+    op2(czffvm::OperationCode::LDC,3); // 0
+    op2(czffvm::OperationCode::STORE,1);
+    op2(czffvm::OperationCode::LDV,1); // i
+    op2(czffvm::OperationCode::LDC,4); // 5
+    op(czffvm::OperationCode::LT);
+    op2(czffvm::OperationCode::JZ,17);
+    op2(czffvm::OperationCode::LDV,0); // x
+    op2(czffvm::OperationCode::LDV,1); // i
+    op(czffvm::OperationCode::ADD);
+    op2(czffvm::OperationCode::STORE,0);
+    op2(czffvm::OperationCode::LDV,1); // i
+    op2(czffvm::OperationCode::LDC,5);  // 1
+    op(czffvm::OperationCode::ADD);
+    op2(czffvm::OperationCode::STORE,1);
+    op2(czffvm::OperationCode::JMP,4);
+    op2(czffvm::OperationCode::LDV,0); // x
+    op(czffvm::OperationCode::PRINT);
+    op2(czffvm::OperationCode::LDV,0); // x
+    op2(czffvm::OperationCode::LDC,6); // 10
+    op(czffvm::OperationCode::LT);
+    op2(czffvm::OperationCode::JZ,25);
+    op2(czffvm::OperationCode::LDC,5); // 1
+    op(czffvm::OperationCode::PRINT);
+    op2(czffvm::OperationCode::LDC,7); // 2
+    op(czffvm::OperationCode::PRINT);
+    op(czffvm::OperationCode::RET);
+
+    // ---------- Classes ----------
+    w.u2(0);
+
+    return w.b;
+}

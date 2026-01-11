@@ -243,3 +243,25 @@ TEST(InterpreterIntegrationTestSuite, ExecutesFactorialProgram) {
     EXPECT_EQ(out.str(), "720");
     EXPECT_TRUE(rda.GetStack().Empty());
 }
+
+TEST(InterpreterIntegrationTestSuite, ExecutesConditionalProgram) {
+    RuntimeDataArea rda;
+    ClassLoader loader(rda);
+    Interpreter interpreter(rda);
+
+    auto data = MakeConditionalProgramBall();
+    TempFile tmp("conditional.ball");
+    WriteFile(tmp.path,data);
+
+    loader.LoadProgram(tmp.path);
+
+    std::ostringstream out;
+    auto* old = std::cout.rdbuf(out.rdbuf());
+
+    interpreter.Execute(loader.EntryPoint());
+
+    std::cout.rdbuf(old);
+
+    EXPECT_EQ(out.str(), "102");
+    EXPECT_TRUE(rda.GetStack().Empty());
+}
