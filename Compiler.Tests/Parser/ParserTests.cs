@@ -1045,7 +1045,7 @@ public class ParserTests
                                 x = x + i;
                             }
                         
-                            if (i < 10) {
+                            if (x < 10) {
                                 print 1;
                             } else {
                                 print 2;

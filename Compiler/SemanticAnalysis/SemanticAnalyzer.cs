@@ -164,7 +164,10 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
             }
             expressionStatementNode.Expression.Accept(this);
         }
-        throw new SemanticException("Result of expression must be used");
+        else
+        {
+            throw new SemanticException("Result of expression must be used");
+        }
     }
 
     public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
@@ -254,11 +257,19 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(IfStatementNode ifStatementNode)
     {
+        _scope = ifStatementNode.IfBlock.Scope;
+        EnterScope();
         ifStatementNode.Condition.Accept(this);
         ifStatementNode.IfBlock.Accept(this);
+        ExitScope();
+        _scope = _scope.Parent!;
         if (ifStatementNode.ElseBlock != null)
         {
+            _scope = ifStatementNode.ElseBlock.Scope;
+            EnterScope();
             ifStatementNode.ElseBlock.Accept(this);
+            ExitScope();
+            _scope = _scope.Parent!;
         }
     }
 
@@ -269,16 +280,24 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(WhileStatementNode whileStatementNode)
     {
+        _scope = whileStatementNode.Body.Scope;
+        EnterScope();
         whileStatementNode.Condition.Accept(this);
         whileStatementNode.Body.Accept(this);
+        ExitScope();
+        _scope = _scope.Parent!;
     }
 
     public void Visit(ForStatementNode forStatementNode)
     {
+        _scope = forStatementNode.Body.Scope;
+        EnterScope();
         forStatementNode.Init.Accept(this);
         forStatementNode.Condition.Accept(this);
         forStatementNode.Post.Accept(this);
         forStatementNode.Body.Accept(this);
+        ExitScope();
+        _scope = _scope.Parent!;
     }
 
     public void Visit(PrintStatementNode printStatementNode)
@@ -305,7 +324,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
     {
         foreach (var symbol in _scope.Symbols)
         {
-            if (symbol.Value is VariableSymbol variableSymbol && !_initStack.Last().Contains(variableSymbol))
+            if (symbol.Value is VariableSymbol variableSymbol && !_initStack.First().Contains(variableSymbol))
             {
                 throw new SemanticException($"Variable {variableSymbol.Name} is not initialized");
             }

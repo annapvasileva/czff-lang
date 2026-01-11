@@ -153,11 +153,15 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(IfStatementNode ifStatementNode)
     {
+        SymbolTableManager.EnterScope(false);
         ifStatementNode.Condition.Accept(this);
         ifStatementNode.IfBlock.Accept(this);
+        SymbolTableManager.ExitScope();
         if (ifStatementNode.ElseBlock != null)
         {
+            SymbolTableManager.EnterScope(false);
             ifStatementNode.ElseBlock.Accept(this);
+            SymbolTableManager.ExitScope();
         }
     }
 
@@ -168,16 +172,20 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(WhileStatementNode whileStatementNode)
     {
+        SymbolTableManager.EnterScope(false);
         whileStatementNode.Condition.Accept(this);
         whileStatementNode.Body.Accept(this);
+        SymbolTableManager.ExitScope();
     }
 
     public void Visit(ForStatementNode forStatementNode)
     {
+        SymbolTableManager.EnterScope(false);
         forStatementNode.Init.Accept(this);
         forStatementNode.Condition.Accept(this);
         forStatementNode.Post.Accept(this);
         forStatementNode.Body.Accept(this);
+        SymbolTableManager.ExitScope();
     }
 
     public void Visit(PrintStatementNode printStatementNode)
