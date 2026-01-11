@@ -8,6 +8,8 @@
 #include <variant>
 
 namespace czffvm {
+const uint32_t DEFAULT_MAX_HEAP_SIZE = 50;
+
 enum class OperationCode : uint16_t {
     LDC = 0x0001,
     DUP = 0x0002,
