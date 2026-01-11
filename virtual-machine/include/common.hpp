@@ -28,6 +28,12 @@ enum class OperationCode : uint16_t {
     SUB = 0x000F,
     DIV = 0x0010,
     CALL = 0x0011,
+    EQ = 0x0012,
+    LT = 0x0013,
+    LEQ = 0x0014,
+    JMP = 0x0015,
+    JZ = 0x0016,
+    JNZ = 0x0017,
 };
 
 struct Operation {
