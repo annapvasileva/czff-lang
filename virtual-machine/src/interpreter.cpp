@@ -529,6 +529,185 @@ void Interpreter::Execute(RuntimeFunction* entry) {
 
                 break;
             }
+            case OperationCode::EQ: {
+                CallFrame& f = rda_.GetStack().CurrentFrame();
+
+                if (f.operand_stack.empty())
+                    throw std::runtime_error("EQ: Operand stack underflow");
+
+                Value b = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                if (f.operand_stack.empty())
+                    throw std::runtime_error("EQ: Operand stack underflow");
+
+                Value a = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto&& x, auto&& y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y>) {
+                            return x == y;
+                        } else {
+                            throw std::runtime_error("EQ: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::LT: {
+                CallFrame& f = rda_.GetStack().CurrentFrame();
+
+                if (f.operand_stack.empty())
+                    throw std::runtime_error("EQ: Operand stack underflow");
+
+                Value b = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                if (f.operand_stack.empty())
+                    throw std::runtime_error("EQ: Operand stack underflow");
+
+                Value a = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto&& x, auto&& y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y>
+                                    && std::is_integral_v<X>) {
+                            return x < y;
+                        } else {
+                            throw std::runtime_error("EQ: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::LEQ: {
+                CallFrame& f = rda_.GetStack().CurrentFrame();
+
+                if (f.operand_stack.empty())
+                    throw std::runtime_error("EQ: Operand stack underflow");
+
+                Value b = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                if (f.operand_stack.empty())
+                    throw std::runtime_error("EQ: Operand stack underflow");
+
+                Value a = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto&& x, auto&& y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y>
+                                    && std::is_integral_v<X>) {
+                            return x <= y;
+                        } else {
+                            throw std::runtime_error("EQ: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::JMP: {
+                CallFrame& f = rda_.GetStack().CurrentFrame();
+
+                uint16_t target =
+                    (op.arguments[0] << 8) | op.arguments[1];
+
+                if (target >= f.function->code.size()) {
+                    throw std::runtime_error("JMP: target out of bounds");
+                }
+
+                f.pc = target;
+                break;
+            }
+            case OperationCode::JZ: {
+                CallFrame& f = rda_.GetStack().CurrentFrame();
+
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("JZ: Operand stack underflow");
+                }
+
+                Value v = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                bool cond = std::visit([](auto&& x) -> bool {
+                    using T = std::decay_t<decltype(x)>;
+
+                    if constexpr (std::is_integral_v<T>)
+                        return x == 0;
+                    else if constexpr (std::is_same_v<T,bool>)
+                        return x == false;
+                    else {
+                        throw std::runtime_error("JZ: invalid type");
+                    }
+                }, v);
+
+                if (cond) {
+                    uint16_t target =
+                        (op.arguments[0] << 8) | op.arguments[1];
+
+                    if (target >= f.function->code.size())
+                        throw std::runtime_error("JZ: target out of bounds");
+
+                    f.pc = target;
+                }
+
+                break;
+            }
+            case OperationCode::JNZ: {
+                CallFrame& f = rda_.GetStack().CurrentFrame();
+
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("JNZ: Operand stack underflow");
+                }
+
+                Value v = f.operand_stack.back();
+                f.operand_stack.pop_back();
+
+                bool cond = std::visit([](auto&& x) -> bool {
+                    using T = std::decay_t<decltype(x)>;
+
+                    if constexpr (std::is_integral_v<T>)
+                        return x != 0;
+                    else if constexpr (std::is_same_v<T,bool>)
+                        return x == true;
+                    else {
+                        throw std::runtime_error("JNZ: invalid type");
+                    }
+                }, v);
+
+                if (cond) {
+                    uint16_t target =
+                        (op.arguments[0] << 8) | op.arguments[1];
+
+                    if (target >= f.function->code.size())
+                        throw std::runtime_error("JNZ: target out of bounds");
+
+                    f.pc = target;
+                }
+
+                break;
+            }
             default:
                 throw std::runtime_error("Unknown opcode");
         }
