@@ -237,15 +237,9 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         throw new NotImplementedException();
     }
 
-    public void Visit(BreakStatementNode breakStatementNode)
-    {
-        throw new NotImplementedException();
-    }
+    public void Visit(BreakStatementNode breakStatementNode) { }
 
-    public void Visit(ContinueStatementNode continueStatementNode)
-    {
-        throw new NotImplementedException();
-    }
+    public void Visit(ContinueStatementNode continueStatementNode) { }
 
     public void Visit(ReturnStatementNode returnStatementNode)
     {

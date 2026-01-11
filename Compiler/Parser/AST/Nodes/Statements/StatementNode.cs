@@ -11,4 +11,6 @@ namespace Compiler.Parser.AST.Nodes.Statements;
 [JsonDerivedType(typeof(IfStatementNode), typeDiscriminator: "if")]
 [JsonDerivedType(typeof(ForStatementNode), typeDiscriminator: "for")]
 [JsonDerivedType(typeof(WhileStatementNode), typeDiscriminator: "while")]
+[JsonDerivedType(typeof(BreakStatementNode), typeDiscriminator: "break")]
+[JsonDerivedType(typeof(ContinueStatementNode), typeDiscriminator: "continue")]
 public abstract class StatementNode : AstNode { }

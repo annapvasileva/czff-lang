@@ -1071,4 +1071,91 @@ public class ParserTests
 
         Assert.Equal(json1, json2);
     }
+    
+    [Fact]
+    public void BreakContinueTest()
+    {
+        string source = """
+                        func void Main() {
+                            var int n = 5;
+                            while (true) {
+                                n = n - 1;
+                                if (n > 2) {
+                                    print n;
+                                    continue;
+                                }
+                                if (n < 0) {
+                                    break;
+                                }
+                            }
+                            return;
+                        }
+                        """;
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "n",
+                            new LiteralExpressionNode("5", LiteralType.IntegerLiteral)),
+                        new WhileStatementNode(
+                            new LiteralExpressionNode("true", LiteralType.BooleanLiteral),
+                            new BlockNode(new List<StatementNode>()
+                            {
+                                new IdentifierAssignmentStatementNode(
+                                    new  IdentifierExpressionNode("n"),
+                                    new BinaryExpressionNode(
+                                        new IdentifierExpressionNode("n"),
+                                        new  LiteralExpressionNode("1", LiteralType.IntegerLiteral),
+                                        BinaryOperatorType.Subtraction)),
+                                new IfStatementNode(
+                                    new BinaryExpressionNode(
+                                        new IdentifierExpressionNode("n"),
+                                        new  LiteralExpressionNode("2", LiteralType.IntegerLiteral),
+                                        BinaryOperatorType.Greater),
+                                    new  BlockNode(new List<StatementNode>()
+                                    {
+                                        new PrintStatementNode(new IdentifierExpressionNode("n")),
+                                        new ContinueStatementNode(),
+                                    }),
+                                    new List<ElifStatementNode>(),
+                                    null),
+                                new IfStatementNode(
+                                    new BinaryExpressionNode(
+                                        new IdentifierExpressionNode("n"),
+                                        new  LiteralExpressionNode("0", LiteralType.IntegerLiteral),
+                                        BinaryOperatorType.Less),
+                                    new  BlockNode(new List<StatementNode>()
+                                    {
+                                        new BreakStatementNode(),
+                                    }),
+                                    new List<ElifStatementNode>(),
+                                    null),
+                            })),
+                        new ReturnStatementNode(null)
+                    })
+                )
+            }));
+        
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
 }
