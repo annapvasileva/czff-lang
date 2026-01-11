@@ -482,6 +482,65 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
              """,
              $"Unsupported unary operation for operator Negation and type I;"
          };
+         
+         yield return new object[]
+         {
+             """
+             func void Main() {
+                 if (1) {
+                    print 1;
+                 }
+                 return;
+             }
+
+             """,
+             "If statement: condition type is I;. Expected: B;"
+         };
+         
+          yield return new object[]
+          {
+              """
+              func void foo() {
+                return;
+              }
+              func void Main() {
+                  while (foo()) {
+                     print 1;
+                  }
+                  return;
+              }
+
+              """,
+              "While statement: condition type is void;. Expected: B;"
+          };
+          
+          yield return new object[]
+          {
+              """
+              func void Main() {
+                  for (var int i; i < 5; i = i + 1) {
+                     print i;
+                  }
+                  return;
+              }
+
+              """,
+              "For statement: you must init variable"
+          };
+          
+          yield return new object[]
+          {
+              """
+              func void Main() {
+                  for (var int i = 0; i + 5; i = i + 1) {
+                     print i;
+                  }
+                  return;
+              }
+
+              """,
+              $"For statement: condition type is I;. Expected: B;"
+          };
     }
 
     IEnumerator IEnumerable.GetEnumerator () => GetEnumerator();

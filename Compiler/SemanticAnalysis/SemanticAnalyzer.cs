@@ -259,6 +259,11 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
     {
         _scope = ifStatementNode.IfBlock.Scope;
         EnterScope();
+        var conditionType = GetExpressionType(ifStatementNode.Condition);
+        if (conditionType != "B;")
+        {
+            throw new SemanticException($"If statement: condition type is {conditionType}. Expected: B;");
+        }
         ifStatementNode.Condition.Accept(this);
         ifStatementNode.IfBlock.Accept(this);
         ExitScope();
@@ -282,6 +287,11 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
     {
         _scope = whileStatementNode.Body.Scope;
         EnterScope();
+        var conditionType = GetExpressionType(whileStatementNode.Condition);
+        if (conditionType != "B;")
+        {
+            throw new SemanticException($"While statement: condition type is {conditionType}. Expected: B;");
+        }
         whileStatementNode.Condition.Accept(this);
         whileStatementNode.Body.Accept(this);
         ExitScope();
@@ -292,6 +302,16 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
     {
         _scope = forStatementNode.Body.Scope;
         EnterScope();
+        if (forStatementNode.Init.Expression == null)
+        {
+            throw new SemanticException("For statement: you must init variable");
+        }
+
+        var conditionType = GetExpressionType(forStatementNode.Condition);
+        if (conditionType != "B;")
+        {
+            throw new SemanticException($"For statement: condition type is {conditionType}. Expected: B;");
+        }
         forStatementNode.Init.Accept(this);
         forStatementNode.Condition.Accept(this);
         forStatementNode.Post.Accept(this);
