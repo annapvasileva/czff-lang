@@ -164,7 +164,7 @@ General comments start with the character sequence =/ and stop with the first su
 
         break   class  continue else    
         for     func    if      new     
-        return  while
+        return  var     while
 
 * Operators
 
@@ -375,8 +375,6 @@ Step 3. Semantic Analysis
 * Flow control check 
     Check that statements like "return" or "break" are used correctly.
 
-Also we may do some optimizations like Constant Folding and detecting unreachable code (for example, after "return" statement)
-
 ### Bytecode Compiler
 - [Bytecode specification](./docs/bytecode/bytecode.md)
 - [Compiler specification](./docs/bytecode/compiler.md)
@@ -424,17 +422,17 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
         =/
         Factorial calculation
         /=
-        func int Calculate(int n) {
+        func int Factorial(int n) {
             if (n <= 1) {
-                retrun 1;
+                return 1;
             }
 
-            return n * Calculate(n - 1);
+            return n * Factorial(n - 1);
         }
 
         func void Main(array<string> args) {
             var int n = 10;
-            print(Calculate(n));
+            print(Factorial(n));
         }
 
 * Array Sorting
@@ -445,15 +443,17 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
         func void Merge(array<int> arr, int left, int mid, int right) {
             var int it1 = 0;
             var int it2 = 0;
-            var array<int> result = new(right - left)[]; // create array with size right - left
+            var array<int> result = new int(right - left)[]; // create array with size right - left
 
-            while (left + it1 < mid && mid + it2 < right) {
-                if (arr[left + it1] <= arr[mid + it2]) {
-                    result[it1 + it2] = arr[left + it1];
-                    it1 = it1 + 1;
-                } else {
-                    result[it1 + it2] = arr[mid + it2];
-                    it2 = it2 + 1;
+            while (left + it1 < mid) {
+                if (mid + it2 < right) {
+                    if (arr[left + it1] <= arr[mid + it2]) {
+                        result[it1 + it2] = arr[left + it1];
+                        it1 = it1 + 1;
+                    } else {
+                        result[it1 + it2] = arr[mid + it2];
+                        it2 = it2 + 1;
+                    }
                 }
             }
 
@@ -468,8 +468,9 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
             }
 
             for (var int i = 0; i < it1 + it2; i = i + 1) {
-                arr[left + i] = resilt[i];
+                arr[left + i] = result[i];
             }
+            return;
         }
 
         func void MergeSort(array<int> arr, int left, int right) {
@@ -481,19 +482,20 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
             MergeSort(arr, left, mid);
             MergeSort(arr, mid, right);
             Merge(arr, left, mid, right);
+            return;
         }
 
-        func void Main(array<string> args) {
-            var int n;
-            read(n);
-            var array<int> arr = new(n)[]; // create array with size n
+        func void Main() {
+            var int n = 5;
+            var array<int> arr = new int(n)[]; // create array with size n
             for (var int i = 0; i < n; i = i + 1) {
-                read arr[i];
+                arr[i] = n - i;
             }
             MergeSort(arr, 0, n);
             for (var int i = 0; i < n; i = i + 1) {
                 print arr[i];
             }
+            return;
         }
 
 * Prime Number Generation
