@@ -333,4 +333,118 @@ public class MVPSerializerTests
         // Assert
         Assert.Equal(expected.ToArray(), result);
     }
+    
+    [Fact]
+    public void Serialize_Sum_And_Main_Ball_Success()
+    {
+        // Arrange
+        var ball = BallStore.ReturnBall("FuncBall");        
+    
+        var serializer = new Serializer();
+    
+        // Act
+        byte[] result = serializer.SerializeToArray(ball);
+    
+        var expected = new List<byte>();
+    
+        // "ball"
+        expected.AddRange(new byte[] { 0x62, 0x61, 0x6c, 0x6c });
+    
+        // Version
+        expected.AddRange(new byte[] { 0, 0, 0 });
+    
+        // Flags
+        expected.Add(0);
+    
+        // Constant pool length = 8
+        expected.AddRange(ByteConverter.IntToU2(8));
+    
+        // Constants:
+        // "Sum", "Main", "II;", "I;", "", "void;", 1, 2
+        expected.AddRange([0x5, 0x0, 0x3]); expected.AddRange(Encoding.UTF8.GetBytes("Sum"));
+        expected.AddRange([0x5, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("I;I;"));
+        expected.AddRange([0x5, 0x0, 0x2]); expected.AddRange(Encoding.UTF8.GetBytes("I;"));
+        expected.AddRange([0x5, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("Main"));
+        expected.AddRange([0x5, 0x0, 0x0]); expected.AddRange(Encoding.UTF8.GetBytes(""));
+        expected.AddRange([0x5, 0x0, 0x5]); expected.AddRange(Encoding.UTF8.GetBytes("void;"));
+        expected.Add(0x4); expected.AddRange([0,0,0,1]);
+        expected.Add(0x4); expected.AddRange([0,0,0,2]);
+    
+        // Functions count = 2
+        expected.AddRange(ByteConverter.IntToU2(2));
+    
+        // ---------- Function Sum ----------
+        expected.AddRange(ByteConverter.IntToU2(0)); // "Sum"
+        expected.AddRange(ByteConverter.IntToU2(1)); // "I;I;"
+        expected.AddRange(ByteConverter.IntToU2(2)); // "I;"
+        expected.AddRange(ByteConverter.IntToU2(0)); // maxStack
+        expected.AddRange(ByteConverter.IntToU2(2)); // locals
+    
+        List<IOperation> sumOps =
+        [
+            new Store(0),   // a
+            new Store(1),   // b
+                
+            new Ldv(0), // a
+            new Ldv(1), // b
+            new Add(),
+            new Ret()
+        ];
+    
+        expected.AddRange(ByteConverter.IntToU2(sumOps.Count));
+    
+        var buff = new List<byte>();
+        var visitor = new SerializingVisitor(buff);
+    
+        foreach (var op in sumOps)
+            op.Accept(visitor);
+    
+        expected.AddRange(buff);
+    
+        // ---------- Function Main ----------
+        expected.AddRange(ByteConverter.IntToU2(3)); // "Main"
+        expected.AddRange(ByteConverter.IntToU2(4)); // ""
+        expected.AddRange(ByteConverter.IntToU2(5)); // "void;"
+        expected.AddRange(ByteConverter.IntToU2(0)); // maxStack
+        expected.AddRange(ByteConverter.IntToU2(3)); // locals
+    
+        List<IOperation> mainOps =
+        [
+            // var int x = 1;
+            new Ldc(6),
+            new Store(0),
+
+            // var int y = 2;
+            new Ldc(7),
+            new Store(1),
+
+            // var int z = Sum(x, y);
+            new Ldv(0),
+            new Ldv(1),
+            new Call(0), // Sum
+            new Store(2),
+
+            // print z;
+            new Ldv(2),
+            new Print(),
+
+            new Ret()
+        ];
+    
+        expected.AddRange(ByteConverter.IntToU2(mainOps.Count));
+    
+        buff.Clear();
+    
+        foreach (var op in mainOps)
+            op.Accept(visitor);
+    
+        expected.AddRange(buff);
+    
+        // Classes = 0
+        expected.AddRange(ByteConverter.IntToU2(0));
+    
+        // Assert
+        Assert.Equal(expected.ToArray(), result);
+    }
+
 }

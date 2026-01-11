@@ -83,6 +83,27 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             case BinaryOperatorType.Division:
                 _currentFunction!.Operations.Add(new Div());
                 break;
+            case BinaryOperatorType.Less:
+                _currentFunction!.Operations.Add(new Lt());
+                break;
+            case BinaryOperatorType.LessOrEqual:
+                _currentFunction!.Operations.Add(new Leq());
+                break;
+            case BinaryOperatorType.Equal:
+                _currentFunction!.Operations.Add(new Eq());
+                break;
+            case BinaryOperatorType.Greater:
+                _currentFunction!.Operations.Add(new Swap());
+                _currentFunction!.Operations.Add(new Lt());
+                break;
+            case BinaryOperatorType.GreaterOrEqual:
+                _currentFunction!.Operations.Add(new Swap());
+                _currentFunction!.Operations.Add(new Leq());
+                break;
+            case BinaryOperatorType.NotEqual:
+                _currentFunction!.Operations.Add(new Eq());
+                _currentFunction!.Operations.Add(new Neg());
+                break;
             default:
                 throw new NotImplementedException();
         }
@@ -97,8 +118,11 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             case UnaryOperatorType.Minus:
                 _currentFunction!.Operations.Add(new Min());
                 break;
+            case UnaryOperatorType.Negation:
+                _currentFunction!.Operations.Add(new Neg());
+                break;
             default:
-                throw new NotImplementedException();
+                throw new GeneratorException("Unary operator not supported.");
         }
     }
 
@@ -147,13 +171,14 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         {
             throw new GeneratorException($"Symbol {functionDeclarationNode.Name} is not a function.");
         }
+        _scope = functionDeclarationNode.Body.Scope;
         
         // Name
         ConstantItem item =  new StringConstant(functionSymbol.Name);
         int idx = _target.ConstantPool.GetIndexOrAddConstant(item);
     
         _currentFunction.NameIndex = idx;
-    
+        
         // Parameters
         functionDeclarationNode.Parameters.Accept(this);
 
@@ -172,6 +197,8 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         _currentFunction.MaxStackUsed = 0;
         
         _target.FunctionPool.AddFunction(_currentFunction);
+        
+        _scope = functionDeclarationNode.Body.Scope.Parent!;
         _currentFunction = null;
     }
 
@@ -203,7 +230,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(ExpressionStatementNode expressionStatementNode)
     {
-        throw new NotImplementedException();
+        expressionStatementNode.Expression.Accept(this);
     }
 
     public void Visit(ArrayAssignmentStatementNode arrayAssigmentStatementNode)
@@ -238,14 +265,11 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
     public void Visit(BlockNode blockNode)
     {
         IList<StatementNode> statements = blockNode.Statements;
-        _scope = blockNode.Scope;
         
         foreach (var statement in statements)
         {
             statement.Accept(this);
         }
-
-        _scope = _scope.Parent!;
     }
 
     public void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode)
@@ -273,12 +297,12 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(BreakStatementNode breakStatementNode)
     {
-        throw new NotImplementedException();
+        _currentFunction!.Operations.Add(new Jmp(-1));
     }
 
     public void Visit(ContinueStatementNode continueStatementNode)
     {
-        throw new NotImplementedException();
+        _currentFunction!.Operations.Add(new Jmp(-2));
     }
 
     public void Visit(ReturnStatementNode returnStatementNode)
@@ -288,19 +312,27 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(IfStatementNode ifStatementNode)
     {
+        _scope = ifStatementNode.IfBlock.Scope;
         ifStatementNode.Condition.Accept(this);
         
         var buff = _currentFunction!;
         _currentFunction = new Function();
         
         ifStatementNode.IfBlock.Accept(this);
-        int jzIdx = buff.Operations.Count + _currentFunction.Operations.Count + 1;
+        (buff, _currentFunction) = (_currentFunction, buff);
         
-        _currentFunction = buff;
-        _currentFunction.Operations.Add(new Jz(jzIdx));
+        int endIndex = buff.Operations.Count + _currentFunction.Operations.Count + 1;
+        
+        _currentFunction.Operations.Add(new Jz(endIndex));
         _currentFunction.Operations.AddRange(buff.Operations);
-        
-        ifStatementNode.ElseBlock?.Accept(this);
+        _scope = ifStatementNode.IfBlock.Scope.Parent!;
+
+        if (ifStatementNode.ElseBlock != null)
+        {
+            _scope = ifStatementNode.ElseBlock.Scope;
+            ifStatementNode.ElseBlock.Accept(this);
+            _scope = _scope.Parent!;
+        }
     }
 
     public void Visit(ElifStatementNode elifStatementNode)
@@ -310,12 +342,78 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(WhileStatementNode whileStatementNode)
     {
-        throw new NotImplementedException();
+        _scope = whileStatementNode.Body.Scope;
+        int startIndex = _currentFunction!.Operations.Count - 1;
+        whileStatementNode.Condition.Accept(this);
+        
+        var buff = _currentFunction!;
+        
+        _currentFunction = new Function();
+        whileStatementNode.Body.Accept(this);
+        (buff, _currentFunction) = (_currentFunction, buff);
+        
+        int endIndex = buff.Operations.Count + _currentFunction.Operations.Count + 2;
+        
+        _currentFunction.Operations.Add(new Jz(endIndex));
+        
+        foreach (var op in buff.Operations)
+        {
+            if (op is Jmp jmp)
+            {
+                if (jmp.JumpIndex == -1)
+                {
+                    jmp.JumpIndex = endIndex;
+                }
+
+                if (jmp.JumpIndex == -2)
+                {
+                    jmp.JumpIndex = startIndex;
+                }
+            }
+        }
+        _currentFunction.Operations.AddRange(buff.Operations);
+        _currentFunction.Operations.Add(new Jmp(startIndex));
+        _scope = _scope.Parent!;
     }
 
     public void Visit(ForStatementNode forStatementNode)
     {
-        throw new NotImplementedException();
+        _scope = forStatementNode.Body.Scope;
+        forStatementNode.Init.Accept(this);
+        
+        int startIndex = _currentFunction!.Operations.Count - 1;
+        forStatementNode.Condition.Accept(this);
+        
+        var buff = _currentFunction!;
+        
+        _currentFunction = new Function();
+        forStatementNode.Body.Accept(this);
+        forStatementNode.Post.Accept(this);
+        (buff, _currentFunction) = (_currentFunction, buff);
+        
+        int endIndex = buff.Operations.Count + _currentFunction.Operations.Count + 2;
+        
+        _currentFunction.Operations.Add(new Jz(endIndex));
+        
+        foreach (var op in buff.Operations)
+        {
+            if (op is Jmp jmp)
+            {
+                if (jmp.JumpIndex == -1)
+                {
+                    jmp.JumpIndex = endIndex;
+                }
+
+                if (jmp.JumpIndex == -2)
+                {
+                    jmp.JumpIndex = startIndex;
+                }
+            }
+        }
+        _currentFunction.Operations.AddRange(buff.Operations);
+        
+        _currentFunction.Operations.Add(new Jmp(startIndex));
+        _scope = _scope.Parent!;
     }
 
     public void Visit(PrintStatementNode printStatementNode)
