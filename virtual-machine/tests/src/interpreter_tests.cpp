@@ -221,3 +221,25 @@ TEST(InterpreterJumpTests, JnzWorks) {
 
     EXPECT_EQ(out.str(),"3");
 }
+
+TEST(InterpreterIntegrationTestSuite, ExecutesFactorialProgram) {
+    RuntimeDataArea rda;
+    ClassLoader loader(rda);
+    Interpreter interpreter(rda);
+
+    auto data = MakeFactorialProgramBall();
+    TempFile tmp("factorial.ball");
+    WriteFile(tmp.path,data);
+
+    loader.LoadProgram(tmp.path);
+
+    std::ostringstream out;
+    auto* old = std::cout.rdbuf(out.rdbuf());
+
+    interpreter.Execute(loader.EntryPoint());
+
+    std::cout.rdbuf(old);
+
+    EXPECT_EQ(out.str(), "720");
+    EXPECT_TRUE(rda.GetStack().Empty());
+}
