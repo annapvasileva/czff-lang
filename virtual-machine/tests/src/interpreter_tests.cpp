@@ -161,3 +161,63 @@ TEST(InterpreterIntegrationTestSuite, ArrayIsMutatedInsideFunction) {
     EXPECT_EQ(out.str(),"42");
     EXPECT_TRUE(rda.GetStack().Empty());
 }
+
+TEST(InterpreterJumpTests, JmpSkipsCode) {
+    RuntimeDataArea rda;
+    ClassLoader loader(rda);
+    Interpreter i(rda);
+
+    auto data = MakeJmpProgramBall();
+    TempFile tmp("jmp.ball");
+    WriteFile(tmp.path,data);
+
+    loader.LoadProgram(tmp.path);
+
+    std::ostringstream out;
+    auto* old = std::cout.rdbuf(out.rdbuf());
+
+    i.Execute(loader.EntryPoint());
+    std::cout.rdbuf(old);
+
+    EXPECT_EQ(out.str(),"13");
+}
+
+TEST(InterpreterJumpTests, JzWorks) {
+    RuntimeDataArea rda;
+    ClassLoader loader(rda);
+    Interpreter i(rda);
+
+    auto data = MakeJzProgramBall();
+    TempFile tmp("jz.ball");
+    WriteFile(tmp.path,data);
+
+    loader.LoadProgram(tmp.path);
+
+    std::ostringstream out;
+    auto* old = std::cout.rdbuf(out.rdbuf());
+
+    i.Execute(loader.EntryPoint());
+    std::cout.rdbuf(old);
+
+    EXPECT_EQ(out.str(),"2");
+}
+
+TEST(InterpreterJumpTests, JnzWorks) {
+    RuntimeDataArea rda;
+    ClassLoader loader(rda);
+    Interpreter i(rda);
+
+    auto data = MakeJnzProgramBall();
+    TempFile tmp("jnz.ball");
+    WriteFile(tmp.path,data);
+
+    loader.LoadProgram(tmp.path);
+
+    std::ostringstream out;
+    auto* old = std::cout.rdbuf(out.rdbuf());
+
+    i.Execute(loader.EntryPoint());
+    std::cout.rdbuf(old);
+
+    EXPECT_EQ(out.str(),"3");
+}
