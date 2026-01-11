@@ -6,10 +6,10 @@ public class ForStatementNode : StatementNode
 {
     public VariableDeclarationNode Init { get; }
     public ExpressionNode Condition { get; }
-    public ExpressionNode Post { get; }
+    public StatementNode Post { get; }
     public BlockNode Body { get; }
 
-    public ForStatementNode(VariableDeclarationNode init, ExpressionNode condition, ExpressionNode post, BlockNode body)
+    public ForStatementNode(VariableDeclarationNode init, ExpressionNode condition, StatementNode post, BlockNode body)
     {
         Init = init;
         Condition = condition;

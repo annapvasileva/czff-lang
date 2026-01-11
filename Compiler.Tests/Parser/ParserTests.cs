@@ -898,4 +898,177 @@ public class ParserTests
 
         Assert.Equal(json1, json2);
     }
+    
+    [Fact]
+    public void LogicalOperationsTest()
+    {
+        // (((10 % 3) - 1) > (5 / 2)) || ((!flag) && (true != flag));
+        string source = """
+                        func void Main() {
+                            var bool flag = false;
+                            var bool flag2 = 10 % 3 - 1 > 5 / 2 || !flag && true != flag;
+                            return;
+                        }
+                        """;
+
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("bool"),
+                            "flag",
+                            new LiteralExpressionNode("false", LiteralType.BooleanLiteral)),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("bool"),
+                            "flag2",
+                            new BinaryExpressionNode(
+                                new BinaryExpressionNode(
+                                    new BinaryExpressionNode(
+                                        new BinaryExpressionNode(
+                                            new LiteralExpressionNode("10", LiteralType.IntegerLiteral),
+                                            new LiteralExpressionNode("3", LiteralType.IntegerLiteral),
+                                            BinaryOperatorType.Modulus),
+                                        new LiteralExpressionNode("1", LiteralType.IntegerLiteral),
+                                        BinaryOperatorType.Subtraction),
+                                    new BinaryExpressionNode(
+                                        new LiteralExpressionNode("5", LiteralType.IntegerLiteral),
+                                        new LiteralExpressionNode("2", LiteralType.IntegerLiteral),
+                                        BinaryOperatorType.Division),
+                                    BinaryOperatorType.Greater),
+                            new BinaryExpressionNode(
+                                new UnaryExpressionNode(
+                                    UnaryOperatorType.Negation,
+                                    new IdentifierExpressionNode("flag")),
+                                new BinaryExpressionNode(
+                                    new LiteralExpressionNode("true", LiteralType.BooleanLiteral),
+                                    new IdentifierExpressionNode("flag"),
+                                    BinaryOperatorType.NotEqual),
+                                BinaryOperatorType.LogicalAnd),
+                            BinaryOperatorType.LogicalOr)),
+                        new ReturnStatementNode(null)
+                    })
+                )
+            }));
+        
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
+
+    [Fact]
+    public void WhileTest()
+    {
+        string source = """
+                        func void Main() {
+                            var int n = 2;
+                            while (n > 0) {
+                                n = n - 1;
+                            }
+                            return;
+                        }
+                        """;
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "n",
+                            new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
+                        new WhileStatementNode(
+                            new BinaryExpressionNode(
+                                new IdentifierExpressionNode("n"),
+                                new LiteralExpressionNode("0", LiteralType.IntegerLiteral),
+                                BinaryOperatorType.Greater),
+                            new BlockNode(new List<StatementNode>()
+                            {
+                                new IdentifierAssignmentStatementNode(
+                                    new  IdentifierExpressionNode("n"),
+                                    new BinaryExpressionNode(
+                                        new IdentifierExpressionNode("n"),
+                                        new  LiteralExpressionNode("1", LiteralType.IntegerLiteral),
+                                        BinaryOperatorType.Subtraction))
+                            })),
+                        new ReturnStatementNode(null)
+                    })
+                )
+            }));
+        
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
+
+    [Fact]
+    public void FourthExampleTest()
+    {
+        string source = """
+                        =/
+                        Our fourth simple program on CZFF 
+                        /=
+                        func void Main() {
+                            var int x = 0;
+                            for (var int i = 0; i < 5; i = i + 1) {
+                                x = x + i;
+                            }
+                        
+                            if (i < 10) {
+                                print 1;
+                            } else {
+                                print 2;
+                            }
+                            return;
+                        }
+                        """;
+
+        var expectedAst = AstStore.GetAst("FourthExample");
+        
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
 }

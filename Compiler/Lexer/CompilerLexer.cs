@@ -37,22 +37,90 @@ public class CompilerLexer
             return CreateNewToken(TokenType.Multiply, "*", startLine, startColumn);
         }
 
+        if (_currentChar == '/')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.Divide, "/", startLine, startColumn);
+        }
+
+        if (_currentChar == '%')
+        {
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.Modulo, "%", startLine, startColumn);
+        }
+
         if (_currentChar == '<')
         {
             cursor.MoveNext();
+            SetCurrentChar();
+            if (_currentChar == '=')
+            {
+                cursor.MoveNext();
+                return CreateNewToken(TokenType.LessEqual, "<=", startLine, startColumn);
+            }
             return CreateNewToken(TokenType.Less, "<", startLine, startColumn);
         }
 
         if (_currentChar == '>')
         {
             cursor.MoveNext();
+            SetCurrentChar();
+            if (_currentChar == '=')
+            {
+                cursor.MoveNext();
+                return CreateNewToken(TokenType.GreaterEqual, ">=", startLine, startColumn);
+            }
             return CreateNewToken(TokenType.Greater, ">", startLine, startColumn);
         }
 
         if (_currentChar == '=')
         {
             cursor.MoveNext();
+            SetCurrentChar();
+            if (_currentChar == '=')
+            {
+                cursor.MoveNext();
+                return CreateNewToken(TokenType.Equal, "==", startLine, startColumn);
+            }
             return CreateNewToken(TokenType.Assign, "=", startLine, startColumn);
+        }
+
+        if (_currentChar == '!')
+        {
+            cursor.MoveNext();
+            SetCurrentChar();
+            if (_currentChar == '=')
+            {
+                cursor.MoveNext();
+                return CreateNewToken(TokenType.NotEqual, "!=", startLine, startColumn);
+            }
+            return CreateNewToken(TokenType.LogicalNegation, "!", startLine, startColumn);
+        }
+
+        if (_currentChar == '|')
+        {
+            cursor.MoveNext();
+            SetCurrentChar();
+            if (_currentChar != '|')
+            {
+                throw new LexerException($"Unexpected character: {_currentChar}", cursor.Line + 1, cursor.Column + 1);
+            }
+
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.LogicalOr, "||", startLine, startColumn);
+        }
+
+        if (_currentChar == '&')
+        {
+            cursor.MoveNext();
+            SetCurrentChar();
+            if (_currentChar != '&')
+            {
+                throw new LexerException($"Unexpected character: {_currentChar}", cursor.Line + 1, cursor.Column + 1);
+            }
+
+            cursor.MoveNext();
+            return CreateNewToken(TokenType.LogicalAnd, "&&", startLine, startColumn);
         }
 
         if (_currentChar == ',')
@@ -112,6 +180,15 @@ public class CompilerLexer
         if (char.IsLetter(_currentChar) || _currentChar == '_')
         {
             string word = ReadWord();
+            if (word == "true")
+            {
+                return CreateNewToken(TokenType.BoolLiteral, "true", startLine, startColumn);
+            }
+            if (word == "false")
+            {
+                return CreateNewToken(TokenType.BoolLiteral, "false", startLine, startColumn);
+            }
+
             TokenType? tokenType = GetKeywordType(word);
             if (!tokenType.HasValue)
             {
@@ -287,6 +364,8 @@ public class CompilerLexer
                 return TokenType.Print;
             case "int":
                 return TokenType.Integer;
+            case "bool":
+                return TokenType.Bool;
             case "void":
                 return TokenType.Void;
             case "array":
@@ -295,6 +374,14 @@ public class CompilerLexer
                 return TokenType.Return;
             case "new":
                 return TokenType.New;
+            case "if":
+                return TokenType.If;
+            case "else":
+                return TokenType.Else;
+            case "for":
+                return TokenType.For;
+            case "while":
+                return TokenType.While;
         }
 
         return null;

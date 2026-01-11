@@ -1,3 +1,4 @@
+using Compiler.Lexer;
 using Compiler.Parser;
 using Compiler.Parser.AST.Nodes;
 using Compiler.Parser.AST.Nodes.Core;
@@ -146,7 +147,24 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(ExpressionStatementNode expressionStatementNode)
     {
-        expressionStatementNode.Expression.Accept(this);
+        if (expressionStatementNode.Expression is FunctionCallExpressionNode functionCallExpressionNode)
+        {
+            var funcName = functionCallExpressionNode.Name;
+            var funcSymb = _scope.Lookup(funcName);
+            if (funcSymb is FunctionSymbol functionSymbol)
+            {
+                if (functionSymbol.ReturnType != "void;")
+                {
+                    throw new SemanticException("Result of expression must be used");
+                }
+            }
+            else
+            {
+                throw new SemanticException($"{funcName} is not function. You can call only function");
+            }
+            expressionStatementNode.Expression.Accept(this);
+        }
+        throw new SemanticException("Result of expression must be used");
     }
 
     public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
@@ -236,7 +254,12 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(IfStatementNode ifStatementNode)
     {
-        throw new NotImplementedException();
+        ifStatementNode.Condition.Accept(this);
+        ifStatementNode.IfBlock.Accept(this);
+        if (ifStatementNode.ElseBlock != null)
+        {
+            ifStatementNode.ElseBlock.Accept(this);
+        }
     }
 
     public void Visit(ElifStatementNode elifStatementNode)
@@ -246,12 +269,16 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(WhileStatementNode whileStatementNode)
     {
-        throw new NotImplementedException();
+        whileStatementNode.Condition.Accept(this);
+        whileStatementNode.Body.Accept(this);
     }
 
     public void Visit(ForStatementNode forStatementNode)
     {
-        throw new NotImplementedException();
+        forStatementNode.Init.Accept(this);
+        forStatementNode.Condition.Accept(this);
+        forStatementNode.Post.Accept(this);
+        forStatementNode.Body.Accept(this);
     }
 
     public void Visit(PrintStatementNode printStatementNode)
@@ -364,8 +391,16 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
                BinaryOperatorType.Division or 
                BinaryOperatorType.Modulus =>
                 GetArithmeticOperationType(leftType, rightType),
-            // Операции сравнения (bool)
-            // Логические операции (bool)
+           BinaryOperatorType.Less or 
+               BinaryOperatorType.Greater or 
+               BinaryOperatorType.LessOrEqual or
+               BinaryOperatorType.GreaterOrEqual or
+               BinaryOperatorType.Equal or
+               BinaryOperatorType.NotEqual =>
+                GetComparisonOperationType(leftType, rightType, binaryExpression.BinaryOperatorType),
+            BinaryOperatorType.LogicalOr or 
+                BinaryOperatorType.LogicalAnd =>
+                 GetLogicalOperationType(leftType, rightType),
             _ => throw new SemanticException($"Unsupported binary operator {binaryExpression.BinaryOperatorType}")
         };
     }
@@ -393,7 +428,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
             case LiteralType.StringLiteral:
                 return "string;";
             default:
-                throw new  SemanticException($"Unknown literal type {expressionNode.Type}");
+                throw new SemanticException($"Unknown literal type {expressionNode.Type}");
         }
     }
 
@@ -402,7 +437,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         var expressionType = GetExpressionType(unaryExpression.Expression);
         if (unaryExpression.UnaryOperatorType == UnaryOperatorType.Minus && expressionType == "I;")
             return expressionType;
-
+        if (unaryExpression.UnaryOperatorType == UnaryOperatorType.Negation && expressionType == "B;")
+            return expressionType;
         throw new SemanticException($"Unsupported unary operation for operator {unaryExpression.UnaryOperatorType} and type {expressionType}");
     }
 
@@ -427,6 +463,33 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         if (left == right)
             return left;
         throw new SemanticException($"Different types in arithmetic exception: {left} and {right}");
+    }
+
+    private string GetComparisonOperationType(string left, string right, BinaryOperatorType operatorType)
+    {
+        if (operatorType != BinaryOperatorType.Equal && operatorType != BinaryOperatorType.NotEqual)
+        {
+            if (left != "I;" || right != "I;")
+            {
+                throw new SemanticException($"Now comparison operations only for int. Got: {left} and {right}");
+            }
+
+            return "B;";
+        }
+
+        if (left == right)
+            return "B;";
+        throw new SemanticException($"Different types in comparison: {left} and {right}");
+    }
+    
+    private string GetLogicalOperationType(string left, string right)
+    {
+        if (left != "B;" || right != "B;")
+        {
+            throw new SemanticException($"Logical operations only for bool. Got: {left} and {right}");
+        }
+
+        return "B;";
     }
     
     private bool CheckVoidType(TypeAnnotationNode node)

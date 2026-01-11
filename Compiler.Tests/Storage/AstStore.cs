@@ -24,6 +24,8 @@ public static class AstStore
                 return GetSecondExampleAst();
             case "ThirdExample":
                 return GetThirdExampleAst();
+            case "FourthExample":
+                return GetFourthExampleAst();
             default:
                 throw new Exception($"Unknown ast name '{name}'");
         }
@@ -295,6 +297,67 @@ public static class AstStore
                                 new IdentifierExpressionNode("y")
                             })),
                         new PrintStatementNode(new IdentifierExpressionNode("z")),
+                        new ReturnStatementNode(null),
+                    })
+                )
+            }));
+    }
+
+    private static AstTree GetFourthExampleAst()
+    {
+        return new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>
+            {
+                new FunctionDeclarationNode(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode(),
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int"),
+                            "x",
+                            new LiteralExpressionNode("0", LiteralType.IntegerLiteral)),
+                        new ForStatementNode(
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("int"), 
+                                "i",
+                                new LiteralExpressionNode("0", LiteralType.IntegerLiteral)),
+                            new BinaryExpressionNode(
+                                new IdentifierExpressionNode("i"),
+                                new LiteralExpressionNode("5", LiteralType.IntegerLiteral),
+                                BinaryOperatorType.Less),
+                            new IdentifierAssignmentStatementNode(
+                                new IdentifierExpressionNode("i"),
+                                new BinaryExpressionNode(
+                                    new IdentifierExpressionNode("i"),
+                                    new LiteralExpressionNode("1", LiteralType.IntegerLiteral),
+                                    BinaryOperatorType.Addition)),
+                            new BlockNode(new List<StatementNode>()
+                            {
+                                new IdentifierAssignmentStatementNode(
+                                    new IdentifierExpressionNode("x"),
+                                    new BinaryExpressionNode(
+                                        new IdentifierExpressionNode("x"),
+                                        new IdentifierExpressionNode("i"),
+                                        BinaryOperatorType.Addition)),
+                            })),
+                        new IfStatementNode(
+                            new BinaryExpressionNode(
+                                new IdentifierExpressionNode("i"),
+                                new LiteralExpressionNode("10", LiteralType.IntegerLiteral),
+                                BinaryOperatorType.Less),
+                            new BlockNode(new List<StatementNode>()
+                            {
+                                new PrintStatementNode(
+                                    new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
+                            }),
+                            new List<ElifStatementNode>(),
+                            new BlockNode(new List<StatementNode>()
+                            {
+                                new PrintStatementNode(
+                                    new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
+                            })),
                         new ReturnStatementNode(null),
                     })
                 )

@@ -112,7 +112,6 @@ public class CompilerParser
         while (CurrentToken.Kind != TokenType.RightCurlyBracket && CurrentToken.Kind != TokenType.Eof)
         {
             statements.Add(ParseStatement());
-            Expect(TokenType.Semicolon);
         }
         Expect(TokenType.RightCurlyBracket);
         
@@ -121,14 +120,31 @@ public class CompilerParser
 
     private StatementNode ParseStatement()
     {
-        return CurrentToken.Kind switch
+        switch (CurrentToken.Kind)
         {
-            TokenType.Func => ParseFunctionDeclaration(),
-            TokenType.Var => ParseVariableDeclaration(),
-            TokenType.Print => ParsePrint(),
-            TokenType.Return => ParseReturn(),
-            _ => ParseAssignment()
-        };
+            case TokenType.Var:
+               var variableDeclarationNode = ParseVariableDeclaration();
+               Expect(TokenType.Semicolon);
+                return variableDeclarationNode;
+            case TokenType.Print:
+                var printStatementNode = ParsePrint();
+                Expect(TokenType.Semicolon);
+                return printStatementNode;
+            case TokenType.Return:
+                var returnStatementNode = ParseReturn();
+                Expect(TokenType.Semicolon);
+                return returnStatementNode;
+            case TokenType.If:
+                return ParseIf();
+            case TokenType.For:
+                return ParseFor();
+            case TokenType.While:
+                return ParseWhile();
+            default:
+                var assignmentNode = ParseAssignment();
+                Expect(TokenType.Semicolon);
+                return assignmentNode;
+        }
     }
 
     private VariableDeclarationNode ParseVariableDeclaration()
@@ -166,6 +182,49 @@ public class CompilerParser
         return new ReturnStatementNode(expression);
     }
 
+    private IfStatementNode ParseIf()
+    {
+        Expect(TokenType.If);
+        Expect(TokenType.LeftRoundBracket);
+        var condition = ParseExpression();
+        Expect(TokenType.RightRoundBracket);
+        var ifBody = ParseBlock();
+        BlockNode? elseBlock = null;
+        if (CurrentToken.Kind == TokenType.Else)
+        {
+            MoveNext();
+            elseBlock = ParseBlock();
+        }
+
+        return new IfStatementNode(condition, ifBody, new List<ElifStatementNode>(), elseBlock);
+    }
+
+    private ForStatementNode ParseFor()
+    {
+        Expect(TokenType.For);
+        Expect(TokenType.LeftRoundBracket);
+        var init = ParseVariableDeclaration();
+        Expect(TokenType.Semicolon);
+        var condition = ParseExpression();
+        Expect(TokenType.Semicolon);
+        var post = ParseAssignment();
+        Expect(TokenType.RightRoundBracket);
+        var body = ParseBlock();
+
+        return new ForStatementNode(init, condition, post, body);
+    }
+
+    private WhileStatementNode ParseWhile()
+    {
+        Expect(TokenType.While);
+        Expect(TokenType.LeftRoundBracket);
+        var condition = ParseExpression();
+        Expect(TokenType.RightRoundBracket);
+        var body = ParseBlock();
+
+        return new WhileStatementNode(condition, body);
+    }
+
     private StatementNode ParseAssignment()
     {
         int saveIndex = _currentTokenIndex;
@@ -199,17 +258,132 @@ public class CompilerParser
     
     private ExpressionNode ParseExpression()
     {
-        return ParseAdditive();
+        return ParseLogicalOr();
+    }
+
+    private ExpressionNode ParseLogicalOr()
+    {
+        ExpressionNode expr = ParseLogicalAnd();
+        while (CurrentToken.Kind == TokenType.LogicalOr)
+        {
+            MoveNext();
+            ExpressionNode right = ParseLogicalAnd();
+            expr = new BinaryExpressionNode(expr, right, BinaryOperatorType.LogicalOr);
+        }
+
+        return expr;
+    }
+
+    private ExpressionNode ParseLogicalAnd()
+    {
+        ExpressionNode expr = ParseEquality();
+        while (CurrentToken.Kind == TokenType.LogicalAnd)
+        {
+            MoveNext();
+            ExpressionNode right = ParseEquality();
+            expr = new BinaryExpressionNode(expr, right, BinaryOperatorType.LogicalAnd);
+        }
+
+        return expr;
+    }
+
+    private ExpressionNode ParseEquality()
+    {
+        ExpressionNode expr = ParseComparison();
+        while (true)
+        {
+            BinaryOperatorType? binaryOperatorType;
+            switch (CurrentToken.Kind)
+            {
+                case TokenType.Equal:
+                    binaryOperatorType = BinaryOperatorType.Equal;
+                    break;
+                case TokenType.NotEqual:
+                    binaryOperatorType = BinaryOperatorType.NotEqual;
+                    break;
+                default:
+                    binaryOperatorType = null;
+                    break;
+            }
+
+            if (binaryOperatorType == null)
+            {
+                break;
+            }
+
+            MoveNext();
+            ExpressionNode right = ParseComparison();
+            expr = new BinaryExpressionNode(expr, right, binaryOperatorType.Value);
+        }
+
+        return expr;
+    }
+
+    private ExpressionNode ParseComparison()
+    {
+        ExpressionNode expr = ParseAdditive();
+        while (true)
+        {
+            BinaryOperatorType? binaryOperatorType;
+            switch (CurrentToken.Kind)
+            {
+                case TokenType.Less:
+                    binaryOperatorType = BinaryOperatorType.Less;
+                    break;
+                case TokenType.LessEqual:
+                    binaryOperatorType = BinaryOperatorType.LessOrEqual;
+                    break;
+                case TokenType.Greater:
+                    binaryOperatorType = BinaryOperatorType.Greater;
+                    break;
+                case TokenType.GreaterEqual:
+                    binaryOperatorType = BinaryOperatorType.GreaterOrEqual;
+                    break;
+                default:
+                    binaryOperatorType = null;
+                    break;
+            }
+
+            if (binaryOperatorType == null)
+            {
+                break;
+            }
+
+            MoveNext();
+            ExpressionNode right = ParseComparison();
+            expr = new BinaryExpressionNode(expr, right, binaryOperatorType.Value);
+        }
+
+        return expr;
     }
 
     private ExpressionNode ParseAdditive()
     {
         ExpressionNode expr = ParseMultiplicative();
-        while (CurrentToken.Kind == TokenType.Plus)
+        while (true)
         {
-            Expect(TokenType.Plus);
+            BinaryOperatorType? binaryOperatorType;
+            switch (CurrentToken.Kind)
+            {
+                case TokenType.Plus:
+                    binaryOperatorType = BinaryOperatorType.Addition;
+                    break;
+                case TokenType.Minus:
+                    binaryOperatorType = BinaryOperatorType.Subtraction;
+                    break;
+                default:
+                    binaryOperatorType = null;
+                    break;
+            }
+
+            if (binaryOperatorType == null)
+            {
+                break;
+            }
+
+            MoveNext();
             ExpressionNode right = ParseMultiplicative();
-            expr = new BinaryExpressionNode(expr, right, BinaryOperatorType.Addition);
+            expr = new BinaryExpressionNode(expr, right, binaryOperatorType.Value);
         }
 
         return expr;
@@ -218,11 +392,33 @@ public class CompilerParser
     private ExpressionNode ParseMultiplicative()
     {
         ExpressionNode expr = ParseUnary();
-        while (CurrentToken.Kind == TokenType.Multiply)
+        while (true)
         {
-            Expect(TokenType.Multiply);
+            BinaryOperatorType? binaryOperatorType;
+            switch (CurrentToken.Kind)
+            {
+                case TokenType.Multiply:
+                    binaryOperatorType = BinaryOperatorType.Multiplication;
+                    break;
+                case TokenType.Divide:
+                    binaryOperatorType = BinaryOperatorType.Division;
+                    break;
+                case TokenType.Modulo:
+                    binaryOperatorType = BinaryOperatorType.Modulus;
+                    break;
+                default:
+                    binaryOperatorType = null;
+                    break;
+            }
+
+            if (binaryOperatorType == null)
+            {
+                break;
+            }
+
+            MoveNext();
             ExpressionNode right = ParseUnary();
-            expr = new BinaryExpressionNode(expr, right, BinaryOperatorType.Multiplication);
+            expr = new BinaryExpressionNode(expr, right, binaryOperatorType.Value);
         }
 
         return expr;
@@ -230,11 +426,16 @@ public class CompilerParser
 
     private ExpressionNode ParseUnary()
     {
-        if (CurrentToken.Kind == TokenType.Minus)
+        if (CurrentToken.Kind == TokenType.Minus || CurrentToken.Kind == TokenType.LogicalNegation)
         {
+            var unaryOperatorType = UnaryOperatorType.Minus;
+            if (CurrentToken.Kind == TokenType.LogicalNegation)
+            {
+                unaryOperatorType = UnaryOperatorType.Negation;
+            }
             MoveNext();
             ExpressionNode expr = ParseUnary();
-            return new UnaryExpressionNode(UnaryOperatorType.Minus, expr);
+            return new UnaryExpressionNode(unaryOperatorType, expr);
         }
 
         return ParsePostfix();
@@ -287,6 +488,12 @@ public class CompilerParser
             return new LiteralExpressionNode(intLiteral.Lexeme, LiteralType.IntegerLiteral);
         }
 
+        if (CurrentToken.Kind == TokenType.BoolLiteral)
+        {
+            var boolLiteral = Expect(TokenType.BoolLiteral);
+            return new LiteralExpressionNode(boolLiteral.Lexeme, LiteralType.BooleanLiteral);
+        }
+
         if (CurrentToken.Kind == TokenType.Identifier)
         {
             var identifier = Expect(TokenType.Identifier);
@@ -326,7 +533,8 @@ public class CompilerParser
     private bool IsBuiltInType(TokenType tokenType)
     {
         return tokenType == TokenType.Integer ||
-               tokenType == TokenType.Void;
+               tokenType == TokenType.Void ||
+               tokenType == TokenType.Bool;
     }
 
     private Token MoveNext()

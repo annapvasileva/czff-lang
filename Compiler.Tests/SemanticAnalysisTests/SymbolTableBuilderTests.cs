@@ -177,4 +177,28 @@ public class SymbolTableBuilderTests
 
         Assert.Equal(json1, json2);
     }
+
+    [Fact]
+    public void FourthExampleTest()
+    {
+        var expectedTable = new SymbolTable(null);
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 2 });
+        var mainBodyTable = new SymbolTable(expectedTable);
+        mainBodyTable.Symbols.Add("x", new VariableSymbol("x", "I;", 0));
+        mainBodyTable.Symbols.Add("i", new VariableSymbol("i", "I;", 1));
+
+        var ast = AstStore.GetAst("FourthExample");
+        var symbolTableBuilder = new SymbolTableBuilder();
+        ast.Root.Accept(symbolTableBuilder);
+        var table = symbolTableBuilder.SymbolTable;
+
+        var json1 = JsonSerializer.Serialize(expectedTable, 
+            new JsonSerializerOptions { WriteIndented = true });
+        var json2 = JsonSerializer.Serialize(table, 
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+        _output.WriteLine(json2);
+
+        Assert.Equal(json1, json2);
+    }
 }

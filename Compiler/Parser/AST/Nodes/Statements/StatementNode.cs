@@ -8,4 +8,7 @@ namespace Compiler.Parser.AST.Nodes.Statements;
 [JsonDerivedType(typeof(ArrayAssignmentStatementNode), typeDiscriminator: "arrayAssigment")]
 [JsonDerivedType(typeof(IdentifierAssignmentStatementNode), typeDiscriminator: "identifierAssigment")]
 [JsonDerivedType(typeof(ExpressionStatementNode), typeDiscriminator: "expressionStatement")]
+[JsonDerivedType(typeof(IfStatementNode), typeDiscriminator: "if")]
+[JsonDerivedType(typeof(ForStatementNode), typeDiscriminator: "for")]
+[JsonDerivedType(typeof(WhileStatementNode), typeDiscriminator: "while")]
 public abstract class StatementNode : AstNode { }
