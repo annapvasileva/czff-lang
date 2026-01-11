@@ -12,6 +12,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 {
     private SymbolTable _scope = scope;
     private Stack<HashSet<VariableSymbol>> _initStack = new();
+    private int _loopCount = 0;
 
     public void Visit(LiteralExpressionNode literalExpressionNode) { }
 
@@ -237,9 +238,21 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         throw new NotImplementedException();
     }
 
-    public void Visit(BreakStatementNode breakStatementNode) { }
+    public void Visit(BreakStatementNode breakStatementNode)
+    {
+        if (!IsInLoop())
+        {
+            throw new SemanticException("Break statement is not in loop");
+        }
+    }
 
-    public void Visit(ContinueStatementNode continueStatementNode) { }
+    public void Visit(ContinueStatementNode continueStatementNode)
+    {
+        if (!IsInLoop())
+        {
+            throw new SemanticException("Continue statement is not in loop");
+        }
+    }
 
     public void Visit(ReturnStatementNode returnStatementNode)
     {
@@ -287,7 +300,9 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
             throw new SemanticException($"While statement: condition type is {conditionType}. Expected: B;");
         }
         whileStatementNode.Condition.Accept(this);
+        EnterLoop();
         whileStatementNode.Body.Accept(this);
+        ExitLoop();
         ExitScope();
         _scope = _scope.Parent!;
     }
@@ -309,7 +324,9 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         forStatementNode.Init.Accept(this);
         forStatementNode.Condition.Accept(this);
         forStatementNode.Post.Accept(this);
+        EnterLoop();
         forStatementNode.Body.Accept(this);
+        ExitLoop();
         ExitScope();
         _scope = _scope.Parent!;
     }
@@ -533,4 +550,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
             return CheckVoidType(arrayTypeNode.ElementType);
         return false;
     }
+    
+    private void EnterLoop() => _loopCount++;
+    private void ExitLoop() => _loopCount--;
+    private bool IsInLoop() => _loopCount > 0;
 }

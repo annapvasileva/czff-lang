@@ -541,6 +541,32 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
               """,
               $"For statement: condition type is I;. Expected: B;"
           };
+          
+          yield return new object[]
+          {
+              """
+              func void Main() {
+                  break;
+                  return;
+              }
+
+              """,
+              "Break statement is not in loop"
+          };
+          
+          yield return new object[]
+          {
+              """
+              func void Main() {
+                  if (1 == 1) { 
+                      print 1;
+                      break;
+                  }
+                  return;
+              }
+              """,
+              "Break statement is not in loop"
+          };
     }
 
     IEnumerator IEnumerable.GetEnumerator () => GetEnumerator();
