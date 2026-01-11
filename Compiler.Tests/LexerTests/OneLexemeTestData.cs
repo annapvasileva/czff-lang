@@ -252,6 +252,18 @@ public class OneLexemeTestData : IEnumerable<object[]>
             "while",
             new Token(TokenType.While, "while", 1, 1) 
         };
+        
+        yield return new object[] 
+        { 
+            "break",
+            new Token(TokenType.Break, "break", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "continue",
+            new Token(TokenType.Continue, "continue", 1, 1) 
+        };
     }
     
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

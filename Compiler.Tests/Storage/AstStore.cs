@@ -344,7 +344,7 @@ public static class AstStore
                             })),
                         new IfStatementNode(
                             new BinaryExpressionNode(
-                                new IdentifierExpressionNode("i"),
+                                new IdentifierExpressionNode("x"),
                                 new LiteralExpressionNode("10", LiteralType.IntegerLiteral),
                                 BinaryOperatorType.Less),
                             new BlockNode(new List<StatementNode>()

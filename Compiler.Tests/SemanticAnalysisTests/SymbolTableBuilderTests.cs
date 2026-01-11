@@ -185,7 +185,12 @@ public class SymbolTableBuilderTests
         expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 2 });
         var mainBodyTable = new SymbolTable(expectedTable);
         mainBodyTable.Symbols.Add("x", new VariableSymbol("x", "I;", 0));
-        mainBodyTable.Symbols.Add("i", new VariableSymbol("i", "I;", 1));
+        
+        var forBodyTable = new SymbolTable(mainBodyTable);
+        forBodyTable.Symbols.Add("i", new VariableSymbol("i", "I;", 1));
+        
+        var ifBodyTable = new SymbolTable(mainBodyTable);
+        var elseBodyTable = new SymbolTable(mainBodyTable);
 
         var ast = AstStore.GetAst("FourthExample");
         var symbolTableBuilder = new SymbolTableBuilder();

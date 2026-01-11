@@ -220,7 +220,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
                 throw new GeneratorException($"Symbol {parameter.Name} is not a variable.");
             }
             
-            _currentFunction!.Operations.Add(new Ldv(variableSymbol.Index));
+            _currentFunction!.Operations.Add(new Store(variableSymbol.Index));
         }
         
         int idx = _target.ConstantPool.GetIndexOrAddConstant(new StringConstant(descriptor));
@@ -307,6 +307,11 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
     public void Visit(ReturnStatementNode returnStatementNode)
     {
+        if (returnStatementNode.Expression != null)
+        {
+            returnStatementNode.Expression.Accept(this);
+        }
+
         _currentFunction!.Operations.Add(new Ret());
     }
 

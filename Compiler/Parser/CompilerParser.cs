@@ -140,6 +140,14 @@ public class CompilerParser
                 return ParseFor();
             case TokenType.While:
                 return ParseWhile();
+            case TokenType.Break:
+                Expect(TokenType.Break);
+                Expect(TokenType.Semicolon);
+                return new BreakStatementNode();
+            case TokenType.Continue:
+                Expect(TokenType.Continue);
+                Expect(TokenType.Semicolon);
+                return new ContinueStatementNode();
             default:
                 var assignmentNode = ParseAssignment();
                 Expect(TokenType.Semicolon);

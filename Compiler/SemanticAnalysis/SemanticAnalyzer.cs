@@ -12,6 +12,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 {
     private SymbolTable _scope = scope;
     private Stack<HashSet<VariableSymbol>> _initStack = new();
+    private int _loopCount = 0;
 
     public void Visit(LiteralExpressionNode literalExpressionNode) { }
 
@@ -164,7 +165,10 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
             }
             expressionStatementNode.Expression.Accept(this);
         }
-        throw new SemanticException("Result of expression must be used");
+        else
+        {
+            throw new SemanticException("Result of expression must be used");
+        }
     }
 
     public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
@@ -236,12 +240,18 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(BreakStatementNode breakStatementNode)
     {
-        throw new NotImplementedException();
+        if (!IsInLoop())
+        {
+            throw new SemanticException("Break statement is not in loop");
+        }
     }
 
     public void Visit(ContinueStatementNode continueStatementNode)
     {
-        throw new NotImplementedException();
+        if (!IsInLoop())
+        {
+            throw new SemanticException("Continue statement is not in loop");
+        }
     }
 
     public void Visit(ReturnStatementNode returnStatementNode)
@@ -254,11 +264,24 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(IfStatementNode ifStatementNode)
     {
+        _scope = ifStatementNode.IfBlock.Scope;
+        EnterScope();
+        var conditionType = GetExpressionType(ifStatementNode.Condition);
+        if (conditionType != "B;")
+        {
+            throw new SemanticException($"If statement: condition type is {conditionType}. Expected: B;");
+        }
         ifStatementNode.Condition.Accept(this);
         ifStatementNode.IfBlock.Accept(this);
+        ExitScope();
+        _scope = _scope.Parent!;
         if (ifStatementNode.ElseBlock != null)
         {
+            _scope = ifStatementNode.ElseBlock.Scope;
+            EnterScope();
             ifStatementNode.ElseBlock.Accept(this);
+            ExitScope();
+            _scope = _scope.Parent!;
         }
     }
 
@@ -269,16 +292,43 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(WhileStatementNode whileStatementNode)
     {
+        _scope = whileStatementNode.Body.Scope;
+        EnterScope();
+        var conditionType = GetExpressionType(whileStatementNode.Condition);
+        if (conditionType != "B;")
+        {
+            throw new SemanticException($"While statement: condition type is {conditionType}. Expected: B;");
+        }
         whileStatementNode.Condition.Accept(this);
+        EnterLoop();
         whileStatementNode.Body.Accept(this);
+        ExitLoop();
+        ExitScope();
+        _scope = _scope.Parent!;
     }
 
     public void Visit(ForStatementNode forStatementNode)
     {
+        _scope = forStatementNode.Body.Scope;
+        EnterScope();
+        if (forStatementNode.Init.Expression == null)
+        {
+            throw new SemanticException("For statement: you must init variable");
+        }
+
+        var conditionType = GetExpressionType(forStatementNode.Condition);
+        if (conditionType != "B;")
+        {
+            throw new SemanticException($"For statement: condition type is {conditionType}. Expected: B;");
+        }
         forStatementNode.Init.Accept(this);
         forStatementNode.Condition.Accept(this);
         forStatementNode.Post.Accept(this);
+        EnterLoop();
         forStatementNode.Body.Accept(this);
+        ExitLoop();
+        ExitScope();
+        _scope = _scope.Parent!;
     }
 
     public void Visit(PrintStatementNode printStatementNode)
@@ -305,7 +355,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
     {
         foreach (var symbol in _scope.Symbols)
         {
-            if (symbol.Value is VariableSymbol variableSymbol && !_initStack.Last().Contains(variableSymbol))
+            if (symbol.Value is VariableSymbol variableSymbol && !_initStack.First().Contains(variableSymbol))
             {
                 throw new SemanticException($"Variable {variableSymbol.Name} is not initialized");
             }
@@ -500,4 +550,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
             return CheckVoidType(arrayTypeNode.ElementType);
         return false;
     }
+    
+    private void EnterLoop() => _loopCount++;
+    private void ExitLoop() => _loopCount--;
+    private bool IsInLoop() => _loopCount > 0;
 }
