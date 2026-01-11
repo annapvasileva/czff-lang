@@ -8,6 +8,10 @@ public enum TokenType
     Print,
     Return,
     New,
+    If,
+    Else,
+    For,
+    While,
 
     Integer,
     Void,

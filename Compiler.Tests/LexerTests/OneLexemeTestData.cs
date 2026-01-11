@@ -228,6 +228,30 @@ public class OneLexemeTestData : IEnumerable<object[]>
             "!=",
             new Token(TokenType.NotEqual, "!=", 1, 1) 
         };
+
+        yield return new object[] 
+        { 
+            "if",
+            new Token(TokenType.If, "if", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "else",
+            new Token(TokenType.Else, "else", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "for",
+            new Token(TokenType.For, "for", 1, 1) 
+        };
+
+        yield return new object[] 
+        { 
+            "while",
+            new Token(TokenType.While, "while", 1, 1) 
+        };
     }
     
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

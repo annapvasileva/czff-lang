@@ -374,6 +374,14 @@ public class CompilerLexer
                 return TokenType.Return;
             case "new":
                 return TokenType.New;
+            case "if":
+                return TokenType.If;
+            case "else":
+                return TokenType.Else;
+            case "for":
+                return TokenType.For;
+            case "while":
+                return TokenType.While;
         }
 
         return null;

@@ -112,7 +112,6 @@ public class CompilerParser
         while (CurrentToken.Kind != TokenType.RightCurlyBracket && CurrentToken.Kind != TokenType.Eof)
         {
             statements.Add(ParseStatement());
-            Expect(TokenType.Semicolon);
         }
         Expect(TokenType.RightCurlyBracket);
         
@@ -121,14 +120,31 @@ public class CompilerParser
 
     private StatementNode ParseStatement()
     {
-        return CurrentToken.Kind switch
+        switch (CurrentToken.Kind)
         {
-            TokenType.Func => ParseFunctionDeclaration(),
-            TokenType.Var => ParseVariableDeclaration(),
-            TokenType.Print => ParsePrint(),
-            TokenType.Return => ParseReturn(),
-            _ => ParseAssignment()
-        };
+            case TokenType.Var:
+               var variableDeclarationNode = ParseVariableDeclaration();
+               Expect(TokenType.Semicolon);
+                return variableDeclarationNode;
+            case TokenType.Print:
+                var printStatementNode = ParsePrint();
+                Expect(TokenType.Semicolon);
+                return printStatementNode;
+            case TokenType.Return:
+                var returnStatementNode = ParseReturn();
+                Expect(TokenType.Semicolon);
+                return returnStatementNode;
+            case TokenType.If:
+                return ParseIf();
+            case TokenType.For:
+                return ParseFor();
+            case TokenType.While:
+                return ParseWhile();
+            default:
+                var assignmentNode = ParseAssignment();
+                Expect(TokenType.Semicolon);
+                return assignmentNode;
+        }
     }
 
     private VariableDeclarationNode ParseVariableDeclaration()
@@ -164,6 +180,49 @@ public class CompilerParser
         }
 
         return new ReturnStatementNode(expression);
+    }
+
+    private IfStatementNode ParseIf()
+    {
+        Expect(TokenType.If);
+        Expect(TokenType.LeftRoundBracket);
+        var condition = ParseExpression();
+        Expect(TokenType.RightRoundBracket);
+        var ifBody = ParseBlock();
+        BlockNode? elseBlock = null;
+        if (CurrentToken.Kind == TokenType.Else)
+        {
+            MoveNext();
+            elseBlock = ParseBlock();
+        }
+
+        return new IfStatementNode(condition, ifBody, new List<ElifStatementNode>(), elseBlock);
+    }
+
+    private ForStatementNode ParseFor()
+    {
+        Expect(TokenType.For);
+        Expect(TokenType.LeftRoundBracket);
+        var init = ParseVariableDeclaration();
+        Expect(TokenType.Semicolon);
+        var condition = ParseExpression();
+        Expect(TokenType.Semicolon);
+        var post = ParseAssignment();
+        Expect(TokenType.RightRoundBracket);
+        var body = ParseBlock();
+
+        return new ForStatementNode(init, condition, post, body);
+    }
+
+    private WhileStatementNode ParseWhile()
+    {
+        Expect(TokenType.While);
+        Expect(TokenType.LeftRoundBracket);
+        var condition = ParseExpression();
+        Expect(TokenType.RightRoundBracket);
+        var body = ParseBlock();
+
+        return new WhileStatementNode(condition, body);
     }
 
     private StatementNode ParseAssignment()

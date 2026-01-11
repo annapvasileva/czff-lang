@@ -153,7 +153,12 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(IfStatementNode ifStatementNode)
     {
-        throw new NotImplementedException();
+        ifStatementNode.Condition.Accept(this);
+        ifStatementNode.IfBlock.Accept(this);
+        if (ifStatementNode.ElseBlock != null)
+        {
+            ifStatementNode.ElseBlock.Accept(this);
+        }
     }
 
     public void Visit(ElifStatementNode elifStatementNode)
@@ -163,12 +168,16 @@ public class SymbolTableBuilder : INodeVisitor
 
     public void Visit(WhileStatementNode whileStatementNode)
     {
-        throw new NotImplementedException();
+        whileStatementNode.Condition.Accept(this);
+        whileStatementNode.Body.Accept(this);
     }
 
     public void Visit(ForStatementNode forStatementNode)
     {
-        throw new NotImplementedException();
+        forStatementNode.Init.Accept(this);
+        forStatementNode.Condition.Accept(this);
+        forStatementNode.Post.Accept(this);
+        forStatementNode.Body.Accept(this);
     }
 
     public void Visit(PrintStatementNode printStatementNode)
