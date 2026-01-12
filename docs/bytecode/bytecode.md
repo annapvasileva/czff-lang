@@ -66,15 +66,15 @@ Tags list:
 - `u1` — `0x01` — 1 byte of uint
 - `u2` — `0x02` — 2 bytes of uint 
 - `u4` — `0x03` — 4 bytes of uint
-- `i1` — `0x04` — 1 bytes of int
-- `i2` — `0x04` — 2 bytes of int
-- `i4` — `0x04` — 4 bytes of int
-- `string` — `0x05` — *n = 2* bytes of length + *n* bytes of chars 
-- `u8` — `0x06` — 8 bytes of uint
-- `i8` — `0x07` — 8 bytes of int
-- `u16` — `0x08` — 16 bytes of uint
-- `i16` — `0x09` — 16 bytes of int
-- `b` — `0x0A` — 1 byte of bool
+- `i1` — `0x04` — 4 bytes of int
+- `i2` — `0x05` — 2 bytes of int
+- `i4` — `0x06` — 1 bytes of int
+- `u8` — `0x07` — 8 bytes of uint
+- `i8` — `0x08` — 8 bytes of int
+- `u16` — `0x09` — 16 bytes of uint
+- `i16` — `0x0A` — 16 bytes of int
+- `string` — `0x0B` — *n = 2* bytes of length + *n* bytes of chars 
+- `b` — `0x0C` — 1 byte of bool
 - W.I.P.
 
 ### Operation Codes
