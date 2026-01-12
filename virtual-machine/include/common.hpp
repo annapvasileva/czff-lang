@@ -7,6 +7,9 @@
 #include <unordered_map>
 #include <variant>
 
+#include "int128.hpp"
+#include "uint128.hpp"
+
 namespace czffvm {
 const uint32_t DEFAULT_MAX_HEAP_SIZE = 50;
 
@@ -89,14 +92,16 @@ struct HeapRef {
 };
 
 using Value = std::variant<
-    uint8_t,        // U1
-    uint16_t,       // U2
-    uint32_t,       // U4
-    int32_t,        // I4
-    std::string,    // STRING
-    uint64_t,       // U8
-    int64_t,        // I8
-    bool,           // BOOL
+    uint8_t,                    // U1
+    uint16_t,                   // U2
+    uint32_t,                   // U4
+    int32_t,                    // I4
+    std::string,                // STRING
+    uint64_t,                   // U8
+    int64_t,                    // I8
+    stdint128::int128_t,        // I16
+    stdint128::uint128_t,       // U16
+    bool,                       // BOOL
     HeapRef
 >;
 

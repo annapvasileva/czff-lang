@@ -43,6 +43,24 @@ Value ConstantToValue(const Constant& c) {
             return v;
         }
 
+        case ConstantTag::U16: {
+            stdint128::uint128_t v = 0;
+            for (int i = 0; i < 16; ++i)
+                v = (v << 8) | c.data[i];
+            return v;
+        }
+
+        case ConstantTag::I16: {
+            stdint128::uint128_t tmp = 0;
+            for (int i = 0; i < 16; ++i)
+                tmp = (tmp << 8) | c.data[i];
+
+            stdint128::int128_t v;
+            v.u = tmp;
+
+            return v;
+        }
+
         case ConstantTag::BOOL:
             return bool(c.data[0]);
 

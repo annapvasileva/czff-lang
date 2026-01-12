@@ -18,6 +18,7 @@ add_executable(
     src/byte_reader_tests.cpp
     src/interpreter_tests.cpp
     src/garbage_collection_tests.cpp
+    src/int128_tests.cpp
 )
 
 add_library(
