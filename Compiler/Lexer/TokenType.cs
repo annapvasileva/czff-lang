@@ -16,6 +16,8 @@ public enum TokenType
     Continue,
 
     Integer,
+    Integer64,
+    Integer128,
     Void,
     Array,
     Bool,

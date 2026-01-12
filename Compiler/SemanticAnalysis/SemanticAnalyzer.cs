@@ -27,7 +27,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     public void Visit(SimpleTypeNode simpleTypeNode)
     {
-        if (simpleTypeNode.GetName == "I;" || simpleTypeNode.GetName == "B;" || simpleTypeNode.GetName == "void;")
+        if (IsIntType(simpleTypeNode.GetName) || simpleTypeNode.GetName == "B;" || simpleTypeNode.GetName == "void;")
         {
             return;
         }
@@ -90,7 +90,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
             var varTypeName = variableDeclarationNode.Type.GetName;
             var initExpressionTypeName = GetExpressionType(variableDeclarationNode.Expression);
-            if (varTypeName != initExpressionTypeName)
+            if (!CanAssign(varTypeName, initExpressionTypeName))
             {
                 throw new SemanticException($"Variable {variableDeclarationNode.Name}: type - {initExpressionTypeName} does not match {varTypeName}");
             }
@@ -116,7 +116,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         var expectedReturnType = functionDeclarationNode.ReturnType.GetName;
         var returnType =
             GetExpressionType(((ReturnStatementNode)functionDeclarationNode.Body.Statements.Last()).Expression);
-        if (expectedReturnType != returnType)
+        if (!CanAssign(expectedReturnType, returnType))
         {
             throw new SemanticException($"Function {functionDeclarationNode.Name} expected return type is {expectedReturnType} but got {returnType}");
         }
@@ -187,7 +187,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
         var left = GetExpressionType(assigmentStatementNode.Left);
         var right = GetExpressionType(assigmentStatementNode.Right);
-        if (left != right)
+        if (!CanAssign(left, right))
         {
             throw new SemanticException($"Assigment: identifier have type: {left} but got type: {right}");
         }
@@ -199,7 +199,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         assigmentStatementNode.Right.Accept(this);
         var left = GetExpressionType(assigmentStatementNode.Left);
         var right = GetExpressionType(assigmentStatementNode.Right);
-        if (left != right)
+        if (!CanAssign(left, right))
         {
             throw new SemanticException($"Assigment: array have type: {left} but got type: {right}");
         }
@@ -219,8 +219,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         arrayCreationExpressionNode.Size.Accept(this);
         
         var sizeType = GetExpressionType(arrayCreationExpressionNode.Size);
-        if (sizeType != "I;")
-            throw new SemanticException($"Array creation: size type is {sizeType} but must be I;");
+        if (!IsIntType(sizeType))
+            throw new SemanticException($"Array creation: size type is {sizeType} but must be int");
     }
 
     public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
@@ -229,8 +229,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         arrayIndexExpressionNode.Index.Accept(this);
         
         var indexType = GetExpressionType(arrayIndexExpressionNode.Index);
-        if (indexType != "I;")
-            throw new SemanticException($"Array index: index type is {indexType} but must be I;");
+        if (!IsIntType(indexType))
+            throw new SemanticException($"Array index: index type is {indexType} but must be int");
     }
 
     public void Visit(MemberAccessNode memberAccessNode)
@@ -485,7 +485,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
     private string GetUnaryExpressionType(UnaryExpressionNode unaryExpression)
     {
         var expressionType = GetExpressionType(unaryExpression.Expression);
-        if (unaryExpression.UnaryOperatorType == UnaryOperatorType.Minus && expressionType == "I;")
+        if (unaryExpression.UnaryOperatorType == UnaryOperatorType.Minus && IsIntType(expressionType))
             return expressionType;
         if (unaryExpression.UnaryOperatorType == UnaryOperatorType.Negation && expressionType == "B;")
             return expressionType;
@@ -505,21 +505,22 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
     private string GetArithmeticOperationType(string left, string right)
     {
-        if (left != "I;" || right != "I;")
+        if (!IsIntType(left) || !IsIntType(right))
         {
             throw new SemanticException($"Now arithmetic operations only for int. Got: {left} and {right}");
         }
 
-        if (left == right)
-            return left;
-        throw new SemanticException($"Different types in arithmetic exception: {left} and {right}");
+        return GetBinaryIntOperationResult(left, right);
+        // if (CompareInt(left, right))
+        //     return left;
+        // throw new SemanticException($"Different types in arithmetic exception: {left} and {right}");
     }
 
     private string GetComparisonOperationType(string left, string right, BinaryOperatorType operatorType)
     {
         if (operatorType != BinaryOperatorType.Equal && operatorType != BinaryOperatorType.NotEqual)
         {
-            if (left != "I;" || right != "I;")
+            if (!IsIntType(left) || !IsIntType(right))
             {
                 throw new SemanticException($"Now comparison operations only for int. Got: {left} and {right}");
             }
@@ -549,6 +550,68 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         if (node is ArrayTypeNode arrayTypeNode)
             return CheckVoidType(arrayTypeNode.ElementType);
         return false;
+    }
+
+    private bool IsIntType(string strType)
+    {
+        return strType == "I;" || strType == "I8;" || strType == "I16;";
+    }
+
+    private bool CanAssign(string left, string right)
+    {
+        if (IsIntType(left) && IsIntType(right))
+        {
+            return CompareInt(left, right);
+        }
+        return left == right;
+    }
+
+    private bool CompareInt(string left, string right)
+    {
+        int leftInt = GetIntNumber(left);
+        int rightInt = GetIntNumber(right);
+        
+        return leftInt >= rightInt;
+    }
+
+    private int GetIntNumber(string strInt)
+    {
+        int result = 1;
+        switch (strInt)
+        {
+            case "I16;":
+                result = 3;
+                break;
+            case "I8;":
+                result = 2;
+                break;
+            default:
+                result = 1;
+                break;
+        }
+        
+        return result;
+    }
+    
+    private string GetBinaryIntOperationResult(string left, string right)
+    {
+        int leftInt = GetIntNumber(left);
+        int rightInt = GetIntNumber(right);
+        int mx = leftInt;
+        if (rightInt > leftInt)
+            mx = rightInt;
+
+        if (mx == 3)
+        {
+            return "I16;";
+        }
+
+        if (mx == 2)
+        {
+            return "I8;";
+        }
+        
+        return "I;";
     }
     
     private void EnterLoop() => _loopCount++;

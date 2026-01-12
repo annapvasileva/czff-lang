@@ -364,6 +364,10 @@ public class CompilerLexer
                 return TokenType.Print;
             case "int":
                 return TokenType.Integer;
+            case "int64":
+                return TokenType.Integer64;
+            case "int128":
+                return TokenType.Integer128;
             case "bool":
                 return TokenType.Bool;
             case "void":

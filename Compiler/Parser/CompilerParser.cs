@@ -541,6 +541,8 @@ public class CompilerParser
     private bool IsBuiltInType(TokenType tokenType)
     {
         return tokenType == TokenType.Integer ||
+               tokenType == TokenType.Integer64 ||
+               tokenType == TokenType.Integer128 ||
                tokenType == TokenType.Void ||
                tokenType == TokenType.Bool;
     }

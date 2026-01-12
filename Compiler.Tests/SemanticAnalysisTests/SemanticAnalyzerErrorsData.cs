@@ -193,7 +193,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
              }
 
              """,
-             "Array creation: size type is [I; but must be I;"
+             "Array creation: size type is [I; but must be int"
          };
          
           yield return new object[]
@@ -222,7 +222,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
              }
 
              """,
-             "Array creation: size type is [I; but must be I;"
+             "Array creation: size type is [I; but must be int"
          };
          
          yield return new object[]
@@ -236,7 +236,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
              }
 
              """,
-             "Array index: index type is [I; but must be I;"
+             "Array index: index type is [I; but must be int"
          };
          
          yield return new object[]
@@ -566,6 +566,51 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
               }
               """,
               "Break statement is not in loop"
+          };
+          
+          yield return new object[]
+          {
+              """
+              func void Main() {
+                  var int128 b = 10;
+                  var int64 a = b;
+                  return;
+              }
+              """,
+              "Variable a: type - I16; does not match I8;"
+          };
+          
+          yield return new object[]
+          {
+              """
+              func void f(int a) {
+                print a;
+                return;
+              }
+              func void Main() {
+                  var int64 a = 10;
+                  f(a);
+                  return;
+              }
+              """,
+              "Invalid argument 'a' type. Expected 'I;' but found 'I8;'"
+          };
+          
+          yield return new object[]
+          {
+              """
+              func void f(int a) {
+                print a;
+                return;
+              }
+              func void Main() {
+                  var int64 a = 10;
+                  var int128 b = 10;
+                  var int c = a / b;
+                  return;
+              }
+              """,
+              "Variable c: type - I16; does not match I;"
           };
     }
 

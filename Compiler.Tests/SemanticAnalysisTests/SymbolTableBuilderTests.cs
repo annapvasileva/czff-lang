@@ -206,4 +206,30 @@ public class SymbolTableBuilderTests
 
         Assert.Equal(json1, json2);
     }
+    
+    [Fact]
+    public void Int64Int128Test()
+    {
+        var expectedTable = new SymbolTable(null);
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 4 });
+        var mainBodyTable = new SymbolTable(expectedTable);
+        mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I8;", 0));
+        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I16;", 1));
+        mainBodyTable.Symbols.Add("c", new VariableSymbol("c", "I8;", 2));
+        mainBodyTable.Symbols.Add("d", new VariableSymbol("d", "I16;", 3));
+        
+        var ast = AstStore.GetAst("Int64Int128");
+        var symbolTableBuilder = new SymbolTableBuilder();
+        ast.Root.Accept(symbolTableBuilder);
+        var table = symbolTableBuilder.SymbolTable;
+
+        var json1 = JsonSerializer.Serialize(expectedTable, 
+            new JsonSerializerOptions { WriteIndented = true });
+        var json2 = JsonSerializer.Serialize(table, 
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+        _output.WriteLine(json2);
+
+        Assert.Equal(json1, json2);
+    }
 }
