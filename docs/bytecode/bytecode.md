@@ -128,4 +128,7 @@ String Descriptor is a string constant, that provides you inforamtion about type
 - `jmp` — `0x0015 + u2` opcode index
 - `jz` — `0x0016 + u2` opcode index
 - `jnz` — `0x0017 + u2` opcode index
+- `mod` — `0x0018`
+- `lor` — `0x0019`
+- `land` — `0x001A`
 - W.I.P.
