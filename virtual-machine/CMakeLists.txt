@@ -32,8 +32,12 @@ add_library(czff_virtual_machine_lib
 )
 
 # ===== AsmJit Library =====
-option(ASMJIT_EMBED "Embed AsmJit into the library/executable" ON)
-option(ASMJIT_STATIC "Build static library" ON)
+set(ASMJIT_STATIC ON CACHE BOOL "Build AsmJit as static library" FORCE)
+set(ASMJIT_EMBED OFF CACHE BOOL "Don't embed AsmJit" FORCE)
+
+if(WIN32)
+    add_definitions(-DASMJIT_STATIC)
+endif()
 
 add_subdirectory(extern/asmjit)
 
