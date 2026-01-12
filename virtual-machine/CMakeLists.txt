@@ -27,6 +27,7 @@ add_library(czff_virtual_machine_lib
     src/runtime_data_area/stack_data_area.cpp
     src/util/int128.cpp
     src/util/uint128.cpp
+    src/util/ball_disassembler.cpp
 )
 
 target_include_directories(czff_virtual_machine_lib

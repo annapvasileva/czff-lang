@@ -10,6 +10,8 @@
 #include "runtime_data_area.hpp"
 
 namespace czffvm {
+const int32_t kBitsInByte = 8;
+const uint32_t kMagicNumber = 0x62616c6c;
 
 class ClassLoaderError : public std::runtime_error {
 public:

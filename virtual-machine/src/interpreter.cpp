@@ -530,7 +530,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
 
                 std::vector<Value> args(argc);
                 for (size_t i = 0; i < argc; ++i) {
-                    args[argc - 1 - i] = caller.operand_stack.back();
+                    args[i] = caller.operand_stack.back();
                     caller.operand_stack.pop_back();
                 }
 
@@ -580,13 +580,13 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 CallFrame& f = rda_.GetStack().CurrentFrame();
 
                 if (f.operand_stack.empty())
-                    throw std::runtime_error("EQ: Operand stack underflow");
+                    throw std::runtime_error("LT: Operand stack underflow");
 
                 Value b = f.operand_stack.back();
                 f.operand_stack.pop_back();
 
                 if (f.operand_stack.empty())
-                    throw std::runtime_error("EQ: Operand stack underflow");
+                    throw std::runtime_error("LT: Operand stack underflow");
 
                 Value a = f.operand_stack.back();
                 f.operand_stack.pop_back();
@@ -600,7 +600,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                                     && std::is_integral_v<X>) {
                             return x < y;
                         } else {
-                            throw std::runtime_error("EQ: incompatible types");
+                            throw std::runtime_error("LT: incompatible types");
                         }
                     },
                     a, b
@@ -613,13 +613,13 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 CallFrame& f = rda_.GetStack().CurrentFrame();
 
                 if (f.operand_stack.empty())
-                    throw std::runtime_error("EQ: Operand stack underflow");
+                    throw std::runtime_error("LEQ: Operand stack underflow");
 
                 Value b = f.operand_stack.back();
                 f.operand_stack.pop_back();
 
                 if (f.operand_stack.empty())
-                    throw std::runtime_error("EQ: Operand stack underflow");
+                    throw std::runtime_error("LEQ: Operand stack underflow");
 
                 Value a = f.operand_stack.back();
                 f.operand_stack.pop_back();
@@ -633,7 +633,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                                     && std::is_integral_v<X>) {
                             return x <= y;
                         } else {
-                            throw std::runtime_error("EQ: incompatible types");
+                            throw std::runtime_error("LEQ: incompatible types");
                         }
                     },
                     a, b
