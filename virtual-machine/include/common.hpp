@@ -48,13 +48,15 @@ enum class ConstantTag : uint8_t {
     U1 = 0x01,
     U2 = 0x02,
     U4 = 0x03,
-    I4 = 0x04,
-    STRING = 0x05,
-    U8 = 0x06,
-    I8 = 0x07,
-    U16 = 0x08,
-    I16 = 0x09,
-    BOOL = 0x0A,
+    I1 = 0x04,
+    I2 = 0x05,
+    I4 = 0x06,
+    U8 = 0x07,
+    I8 = 0x08,
+    U16 = 0x09,
+    I16 = 0x0A,
+    STRING = 0x0B,
+    BOOL = 0x0C,
 };
 
 struct Constant {
