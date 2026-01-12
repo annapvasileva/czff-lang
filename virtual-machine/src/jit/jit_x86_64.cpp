@@ -1,4 +1,9 @@
+#include <array>
+#include <vector>
+#include <asmjit/x86.h>
+
 #include "jit/jit_compiler.hpp"
+#include "common.hpp"
 
 namespace czffvm_jit {
 
