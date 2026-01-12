@@ -26,7 +26,7 @@ public static class AstStore
                 return GetThirdExampleAst();
             case "FourthExample":
                 return GetFourthExampleAst();
-            case "Int64Int128":
+            case "Int64":
                 return GetInt64Int128Ast();
             default:
                 throw new Exception($"Unknown ast name '{name}'");
@@ -380,27 +380,16 @@ public static class AstStore
                         new VariableDeclarationNode(
                             new SimpleTypeNode("int64"),
                             "a",
-                            new LiteralExpressionNode("10", LiteralType.IntegerLiteral)),
-                        new VariableDeclarationNode(
-                            new SimpleTypeNode("int128"),
-                            "b",
-                            new LiteralExpressionNode("5", LiteralType.IntegerLiteral)),
+                            new LiteralExpressionNode("10", LiteralType.Integer64Literal)),
                         new VariableDeclarationNode(
                             new SimpleTypeNode("int64"),
-                            "c",
+                            "c"),
+                        new IdentifierAssignmentStatementNode(
+                            new IdentifierExpressionNode("c"),
                             new BinaryExpressionNode(
-                                new LiteralExpressionNode("2", LiteralType.IntegerLiteral),
+                                new LiteralExpressionNode("2", LiteralType.Integer64Literal),
                                 new IdentifierExpressionNode("a"),
                                 BinaryOperatorType.Multiplication)),
-                        new VariableDeclarationNode(
-                            new SimpleTypeNode("int128"),
-                            "d"),
-                        new IdentifierAssignmentStatementNode(
-                            new  IdentifierExpressionNode("d"),
-                            new BinaryExpressionNode(
-                                new IdentifierExpressionNode("b"),
-                                new IdentifierExpressionNode("c"),
-                                BinaryOperatorType.Addition)),
                         new ReturnStatementNode(null)
                     })
                 )

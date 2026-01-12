@@ -572,12 +572,12 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
           {
               """
               func void Main() {
-                  var int128 b = 10;
-                  var int64 a = b;
+                  var int64 b = 10L;
+                  var int a = b;
                   return;
               }
               """,
-              "Variable a: type - I16; does not match I8;"
+              "Variable a: type - I8; does not match I;"
           };
           
           yield return new object[]
@@ -588,7 +588,7 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
                 return;
               }
               func void Main() {
-                  var int64 a = 10;
+                  var int64 a = 10L;
                   f(a);
                   return;
               }
@@ -604,13 +604,13 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
                 return;
               }
               func void Main() {
-                  var int64 a = 10;
-                  var int128 b = 10;
+                  var int64 a = 10L;
+                  var int64 b = 100L;
                   var int c = a / b;
                   return;
               }
               """,
-              "Variable c: type - I16; does not match I;"
+              "Variable c: type - I8; does not match I;"
           };
     }
 
