@@ -231,6 +231,9 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
                 case OperationCode::ADD:
                 case OperationCode::PRINT:
                 case OperationCode::RET:
+                case OperationCode::EQ:
+                case OperationCode::LT:
+                case OperationCode::LEQ:
                     break;
                 case OperationCode::NEWARR:
                 case OperationCode::CALL:
@@ -238,6 +241,9 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
                 case OperationCode::LDC:
                 case OperationCode::STORE:
                 case OperationCode::LDV:
+                case OperationCode::JMP:
+                case OperationCode::JZ:
+                case OperationCode::JNZ:
                     op.arguments.push_back(r.ReadU1());
                     op.arguments.push_back(r.ReadU1());
                     break;

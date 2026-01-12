@@ -606,4 +606,298 @@ inline std::vector<uint8_t> MakeArrayMutationCallBall() {
     return w.b;
 }
 
+inline std::vector<uint8_t> MakeJmpProgramBall() {
+    using namespace ball;
+    Builder w;
 
+    // ---- Header ----
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0);
+    w.u1(0);
+
+    // ---- Constant pool ----
+    w.u2(6);
+
+    // 0 "Main"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("Main");
+    // 1 ""
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("");
+    // 2 "void;"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("void;");
+    // 3 int 1
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(1);
+    // 4 int 2
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(2);
+    // 5 int 3
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(3);
+
+    // ---- Functions ----
+    w.u2(1);
+    w.u2(0); w.u2(1); w.u2(2);
+    w.u2(2); w.u2(0);
+
+    /*
+      0: LDC 3
+      1: PRINT
+      2: JMP 5
+      3: LDC 4   (skip)
+      4: PRINT
+      5: LDC 5
+      6: PRINT
+      7: RET
+    */
+
+    w.u2(8);
+
+    auto op=[&](auto c){ w.u2((uint16_t)c); };
+    auto op2=[&](auto c,uint16_t a){
+        w.u2((uint16_t)c); w.u1(a>>8); w.u1(a&0xFF);
+    };
+
+    op2(czffvm::OperationCode::LDC,3);
+    op(czffvm::OperationCode::PRINT);
+    op2(czffvm::OperationCode::JMP,5);
+    op2(czffvm::OperationCode::LDC,4);
+    op(czffvm::OperationCode::PRINT);
+    op2(czffvm::OperationCode::LDC,5);
+    op(czffvm::OperationCode::PRINT);
+    op(czffvm::OperationCode::RET);
+
+    w.u2(0);
+
+    return w.b;
+}
+
+inline std::vector<uint8_t> MakeJzProgramBall() {
+    using namespace ball;
+    Builder w;
+
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0); w.u1(0);
+
+    w.u2(5);
+
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("Main");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("void;");
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(0);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(2);
+
+    w.u2(1);
+    w.u2(0); w.u2(1); w.u2(2);
+    w.u2(2); w.u2(0);
+
+    /*
+      0: LDC 3
+      1: JZ 3
+      2: PRINT (skip)
+      3: LDC 4
+      4: PRINT
+      5: RET
+    */
+
+    w.u2(6);
+
+    auto op=[&](auto c){ w.u2((uint16_t)c); };
+    auto op2=[&](auto c,uint16_t a){
+        w.u2((uint16_t)c); w.u1(a>>8); w.u1(a&0xFF);
+    };
+
+    op2(czffvm::OperationCode::LDC,3);
+    op2(czffvm::OperationCode::JZ,3);
+    op(czffvm::OperationCode::PRINT);
+    op2(czffvm::OperationCode::LDC,4);
+    op(czffvm::OperationCode::PRINT);
+    op(czffvm::OperationCode::RET);
+
+    w.u2(0);
+
+    return w.b;
+}
+
+inline std::vector<uint8_t> MakeJnzProgramBall() {
+    using namespace ball;
+    Builder w;
+
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0); w.u1(0);
+
+    w.u2(6);
+
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("Main");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("void;");
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(1);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(2);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(3);
+
+    w.u2(1);
+    w.u2(0); w.u2(1); w.u2(2);
+    w.u2(2); w.u2(0);
+
+    /*
+      0: LDC 3
+      1: JNZ 3
+      2: LDC 4 (skip)
+      3: LDC 5
+      4: PRINT
+      5: RET
+    */
+
+    w.u2(6);
+
+    auto op=[&](auto c){ w.u2((uint16_t)c); };
+    auto op2=[&](auto c,uint16_t a){
+        w.u2((uint16_t)c); w.u1(a>>8); w.u1(a&0xFF);
+    };
+
+    op2(czffvm::OperationCode::LDC,3);
+    op2(czffvm::OperationCode::JNZ,3);
+    op2(czffvm::OperationCode::LDC,4);
+    op2(czffvm::OperationCode::LDC,5);
+    op(czffvm::OperationCode::PRINT);
+    op(czffvm::OperationCode::RET);
+
+    w.u2(0);
+
+    return w.b;
+}
+
+inline std::vector<uint8_t> MakeFactorialProgramBall() {
+    using namespace ball;
+    Builder w;
+
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0); w.u1(0);
+
+    w.u2(7);
+
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("Factorial");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("I;");
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(1);
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("Main");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("void;");
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(6);
+
+    w.u2(2); // two functions
+
+    auto op = [&](auto c){ w.u2((uint16_t)c); };
+    auto op2=[&](auto c,uint16_t a){
+        w.u2((uint16_t)c);
+        w.u1(a>>8); w.u1(a&0xFF);
+    };
+
+    // --------- Factorial ---------
+    w.u2(0); // name
+    w.u2(1); // params
+    w.u2(1); // return type
+    w.u2(10); // max_stack_used
+    w.u2(1); // locals count
+    w.u2(14); // code len
+
+    op2(czffvm::OperationCode::STORE,0); // int i
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDC,2); // 1
+    op(czffvm::OperationCode::LEQ);
+    op2(czffvm::OperationCode::JZ,7);
+    op2(czffvm::OperationCode::LDC,2); // 1
+    op(czffvm::OperationCode::RET);
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDC,2); // 1
+    op(czffvm::OperationCode::SUB);
+    op2(czffvm::OperationCode::CALL,0);
+    op2(czffvm::OperationCode::LDV,0);
+    op(czffvm::OperationCode::MUL);
+    op(czffvm::OperationCode::RET);
+
+    // --------- Main ---------
+    w.u2(3); // name
+    w.u2(4); // params
+    w.u2(5); // return type
+    w.u2(2); // max_stack_used
+    w.u2(1); // locals count
+    w.u2(6); // code len
+
+    op2(czffvm::OperationCode::LDC,6); // 6
+    op2(czffvm::OperationCode::CALL,0);
+    op2(czffvm::OperationCode::STORE,0);
+    op2(czffvm::OperationCode::LDV,0);
+    op(czffvm::OperationCode::PRINT);
+    op(czffvm::OperationCode::RET);
+
+    // ---------- Classes ----------
+    w.u2(0);
+
+    return w.b;
+}
+
+inline std::vector<uint8_t> MakeConditionalProgramBall() {
+    using namespace ball;
+    Builder w;
+
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0); w.u1(0);
+
+    w.u2(8);
+
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("Main");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("void;");
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(0);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(5);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(1);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(10);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(2);
+
+
+    w.u2(1); // one function
+
+    auto op = [&](auto c){ w.u2((uint16_t)c); };
+    auto op2=[&](auto c,uint16_t a){
+        w.u2((uint16_t)c);
+        w.u1(a>>8); w.u1(a&0xFF);
+    };
+
+    // --------- Main ---------
+    w.u2(0); // name
+    w.u2(1); // params
+    w.u2(2); // return type
+    w.u2(2); // max_stack_used
+    w.u2(2); // locals count
+    w.u2(28); // code len
+
+    op2(czffvm::OperationCode::LDC,3); // 0
+    op2(czffvm::OperationCode::STORE,0);
+    op2(czffvm::OperationCode::LDC,3); // 0
+    op2(czffvm::OperationCode::STORE,1);
+    op2(czffvm::OperationCode::LDV,1); // i
+    op2(czffvm::OperationCode::LDC,4); // 5
+    op(czffvm::OperationCode::LT);
+    op2(czffvm::OperationCode::JZ,17);
+    op2(czffvm::OperationCode::LDV,0); // x
+    op2(czffvm::OperationCode::LDV,1); // i
+    op(czffvm::OperationCode::ADD);
+    op2(czffvm::OperationCode::STORE,0);
+    op2(czffvm::OperationCode::LDV,1); // i
+    op2(czffvm::OperationCode::LDC,5);  // 1
+    op(czffvm::OperationCode::ADD);
+    op2(czffvm::OperationCode::STORE,1);
+    op2(czffvm::OperationCode::JMP,4);
+    op2(czffvm::OperationCode::LDV,0); // x
+    op(czffvm::OperationCode::PRINT);
+    op2(czffvm::OperationCode::LDV,0); // x
+    op2(czffvm::OperationCode::LDC,6); // 10
+    op(czffvm::OperationCode::LT);
+    op2(czffvm::OperationCode::JZ,25);
+    op2(czffvm::OperationCode::LDC,5); // 1
+    op(czffvm::OperationCode::PRINT);
+    op2(czffvm::OperationCode::LDC,7); // 2
+    op(czffvm::OperationCode::PRINT);
+    op(czffvm::OperationCode::RET);
+
+    // ---------- Classes ----------
+    w.u2(0);
+
+    return w.b;
+}
