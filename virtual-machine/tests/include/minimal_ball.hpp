@@ -832,6 +832,82 @@ inline std::vector<uint8_t> MakeFactorialProgramBall() {
     return w.b;
 }
 
+inline std::vector<uint8_t> MakeFactorialProgramBall2() {
+    using namespace ball;
+    Builder w;
+
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0); w.u1(0);
+
+    w.u2(8);
+
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("Factorial");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("I;");
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(0);
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(1);
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("Main");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("");
+    w.u1((uint8_t)czffvm::ConstantTag::STRING); w.string("void;");
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(6);
+
+    w.u2(2); // two functions
+
+    auto op = [&](auto c){ w.u2((uint16_t)c); };
+    auto op2=[&](auto c,uint16_t a){
+        w.u2((uint16_t)c);
+        w.u1(a>>8); w.u1(a&0xFF);
+    };
+
+    // --------- Factorial ---------
+    w.u2(0); // name
+    w.u2(1); // params
+    w.u2(1); // return type
+    w.u2(10); // max_stack_used
+    w.u2(2); // locals count
+    w.u2(19); // code len
+
+    op2(czffvm::OperationCode::STORE,0); // int i
+    op2(czffvm::OperationCode::LDC,2); // 0
+    op2(czffvm::OperationCode::STORE,1); // int res
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDC,3); // 1
+    op(czffvm::OperationCode::LEQ);
+    op2(czffvm::OperationCode::JZ,10);
+    op2(czffvm::OperationCode::LDC,3); // 1
+    op2(czffvm::OperationCode::STORE,1); // int res
+    op2(czffvm::OperationCode::JMP, 17);
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDC,3); // 1
+    op(czffvm::OperationCode::SUB);
+    op2(czffvm::OperationCode::CALL,0);
+    op2(czffvm::OperationCode::LDV,0);
+    op(czffvm::OperationCode::MUL);
+    op2(czffvm::OperationCode::STORE,1); // int res
+    
+    op2(czffvm::OperationCode::LDV,1);
+    op(czffvm::OperationCode::RET);
+
+    // --------- Main ---------
+    w.u2(4); // name
+    w.u2(5); // params
+    w.u2(6); // return type
+    w.u2(2); // max_stack_used
+    w.u2(1); // locals count
+    w.u2(6); // code len
+
+    op2(czffvm::OperationCode::LDC,7); // 6
+    op2(czffvm::OperationCode::CALL,0);
+    op2(czffvm::OperationCode::STORE,0);
+    op2(czffvm::OperationCode::LDV,0);
+    op(czffvm::OperationCode::PRINT);
+    op(czffvm::OperationCode::RET);
+
+    // ---------- Classes ----------
+    w.u2(0);
+
+    return w.b;
+}
+
 inline std::vector<uint8_t> MakeConditionalProgramBall() {
     using namespace ball;
     Builder w;
