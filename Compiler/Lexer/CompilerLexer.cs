@@ -202,9 +202,18 @@ public class CompilerLexer
             string number = ReadNumber();
             if (number.Last() == 'L')
             {
-                return CreateNewToken(TokenType.Integer64Literal, number.Substring(0, number.Length - 1), startLine, startColumn);
+                string onlyDigitPart = number.Substring(0, number.Length - 1);
+                if (!long.TryParse(onlyDigitPart, out long _))
+                {
+                    throw new LexerException($"{number} is not correct for int64", cursor.Line + 1, cursor.Column + 1);
+                }
+                return CreateNewToken(TokenType.Integer64Literal, onlyDigitPart, startLine, startColumn);
             }
             
+            if (!int.TryParse(number, out int _))
+            {
+                throw new LexerException($"{number} is not correct for int32", cursor.Line + 1, cursor.Column + 1);
+            }
             return CreateNewToken(TokenType.IntegerLiteral, number, startLine, startColumn);
         }
         else if (_currentChar == '-')
