@@ -27,6 +27,12 @@ add_library(czff_virtual_machine_lib
     src/runtime_data_area/stack_data_area.cpp
 )
 
+# ===== AsmJit Library =====
+option(ASMJIT_EMBED "Embed AsmJit into the library/executable" ON)
+option(ASMJIT_STATIC "Build static library" ON)
+
+add_subdirectory(extern/asmjit)
+
 target_include_directories(czff_virtual_machine_lib
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
@@ -79,6 +85,17 @@ if(JIT_ARCH STREQUAL "x86_64") # supported architectures
         PUBLIC
             CZFF_JIT_${DEF_JIT_ARCH}
     )
+
+    target_include_directories(czff_jit_${JIT_ARCH}
+        PUBLIC
+            ${PROJECT_SOURCE_DIR}/include
+            ${PROJECT_SOURCE_DIR}/extern/asmjit
+    )
+
+    target_link_libraries(czff_jit_${JIT_ARCH}
+        PRIVATE
+            asmjit
+    )
 else()
     if (JIT_ARCH STREQUAL "none")
         message(STATUS "[CZFF] JIT compilation is disabled")
@@ -96,13 +113,12 @@ else()
         PUBLIC
             CZFF_JIT_DISABLED
     )
-
+    
+    target_include_directories(czff_jit_${JIT_ARCH}
+        PUBLIC
+            ${PROJECT_SOURCE_DIR}/include
+    )
 endif()
-
-target_include_directories(czff_jit_${JIT_ARCH}
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-)
 
 # ===== Executable =====
 add_executable(czffvm
