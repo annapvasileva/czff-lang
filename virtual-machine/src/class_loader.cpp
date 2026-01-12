@@ -5,9 +5,6 @@
 
 namespace czffvm {
 
-const int32_t kBitsInByte = 8;
-const uint32_t kMagicNumber = 0x62616c6c;
-
 ClassLoaderError::ClassLoaderError(
     const std::string& stage,
     const std::string& message,
