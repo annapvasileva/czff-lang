@@ -304,7 +304,22 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 std::string elem_type(type_c.data.begin(), type_c.data.end()); // пример: I; или [I;
                 std::string array_type = "[" + elem_type;
 
-                std::vector<Value> elements(arr_size);
+                auto make_default = [&]() -> Value {
+                    if (elem_type == "U1;")  return uint8_t(0);
+                    if (elem_type == "U2;")  return uint16_t(0);
+                    if (elem_type == "U4;")  return uint32_t(0);
+                    if (elem_type == "I;")  return int32_t(0);
+                    if (elem_type == "U8;")  return uint64_t(0);
+                    if (elem_type == "I8;")  return int64_t(0);
+                    if (elem_type == "U16;") return stdint128::uint128_t(0);
+                    if (elem_type == "I16;") return stdint128::int128_t(0);
+                    if (elem_type == "B;") return false;
+                    throw std::runtime_error("NEWARR: unknown element type");
+                };
+
+                Value def = make_default();
+
+                std::vector<Value> elements(arr_size, def);
 
                 HeapRef ref = rda_.GetHeap().Allocate(array_type, std::move(elements));
 

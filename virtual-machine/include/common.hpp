@@ -107,6 +107,8 @@ using Value = std::variant<
 
 Value ConstantToValue(const Constant& c);
 
+std::string dump(const Value& v);
+
 }
 
 namespace std {

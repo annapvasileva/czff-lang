@@ -287,3 +287,25 @@ TEST(InterpreterIntegrationTestSuite, ExecutesConditionalProgram) {
     EXPECT_EQ(out.str(), "102");
     EXPECT_TRUE(rda.GetStack().Empty());
 }
+
+TEST(InterpreterIntegrationTestSuite, ExecutesArrayWithForProgram) {
+    RuntimeDataArea rda;
+    ClassLoader loader(rda);
+    Interpreter interpreter(rda);
+
+    auto data = MakeArrayWithForProgramBall();
+    TempFile tmp("array_and_for.ball");
+    WriteFile(tmp.path,data);
+
+    loader.LoadProgram(tmp.path);
+
+    std::ostringstream out;
+    auto* old = std::cout.rdbuf(out.rdbuf());
+
+    interpreter.Execute(loader.EntryPoint());
+
+    std::cout.rdbuf(old);
+
+    EXPECT_EQ(out.str(), "4545454545");
+    EXPECT_TRUE(rda.GetStack().Empty());
+}

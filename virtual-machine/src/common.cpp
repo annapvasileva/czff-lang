@@ -76,6 +76,24 @@ bool HeapRef::operator==(const HeapRef& other) const {
 bool HeapRef::operator!=(const HeapRef& other) const {
     return !(*this == other);
 }
+
+std::string dump(const Value& v){
+    return std::visit([](auto&& x){
+        using T = std::decay_t<decltype(x)>;
+        if constexpr (std::is_same_v<T,uint8_t>)   return "U1";
+        if constexpr (std::is_same_v<T,uint16_t>)  return "U2";
+        if constexpr (std::is_same_v<T,uint32_t>)  return "U4";
+        if constexpr (std::is_same_v<T,int32_t>)   return "I4";
+        if constexpr (std::is_same_v<T,std::string>) return "STRING";
+        if constexpr (std::is_same_v<T,uint64_t>)  return "U8";
+        if constexpr (std::is_same_v<T,int64_t>)   return "I8";
+        if constexpr (std::is_same_v<T,stdint128::int128_t>)  return "I16";
+        if constexpr (std::is_same_v<T,stdint128::uint128_t>) return "U16";
+        if constexpr (std::is_same_v<T,bool>)      return "BOOL";
+        if constexpr (std::is_same_v<T,HeapRef>)   return "REF";
+        return "unknown";
+    }, v);
+};
 }
 
 namespace std {

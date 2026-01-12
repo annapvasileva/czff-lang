@@ -978,3 +978,118 @@ inline std::vector<uint8_t> MakeConditionalProgramBall() {
 
     return w.b;
 }
+
+inline std::vector<uint8_t> MakeArrayWithForProgramBall() {
+    using namespace ball;
+    Builder w;
+
+    // ---------- Header ----------
+    w.u4(0x62616c6c);
+    w.u1(1); w.u1(0); w.u1(0);
+    w.u1(0);
+
+    // ---------- Constant pool ----------
+    w.u2(8);
+
+    // 0 "Main"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("Main");
+
+    // 1 params ""
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("");
+
+    // 2 return "void"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("void;");
+
+    // 3 int 5
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(5);
+
+    // 4 type "I;"
+    w.u1((uint8_t)czffvm::ConstantTag::STRING);
+    w.string("I;");
+
+    // values
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(0); // 5
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(10); // 6
+    w.u1((uint8_t)czffvm::ConstantTag::I4); w.u4(1); // 7
+
+    // ---------- Functions ----------
+    w.u2(1);
+
+    w.u2(0); // Main
+    w.u2(1); // ""
+    w.u2(2); // void;
+
+    w.u2(6); // max stack
+    w.u2(3); // locals
+    w.u2(49); // code len
+
+    auto op = [&](auto c){ w.u2((uint16_t)c); };
+    auto op2=[&](auto c,uint16_t a){
+        w.u2((uint16_t)c);
+        w.u1(a>>8); w.u1(a&0xFF);
+    };
+
+    // var array<int> x = new int(5)[];
+    op2(czffvm::OperationCode::LDC,3);
+    op2(czffvm::OperationCode::NEWARR,4);
+    op2(czffvm::OperationCode::STORE,0);
+
+    // for (var int i = 0; i < 5; i = i + 1) {
+    op2(czffvm::OperationCode::LDC,5);
+    op2(czffvm::OperationCode::STORE,1);
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,3);
+    op (czffvm::OperationCode::LT);
+    op2(czffvm::OperationCode::JZ,33);
+    // for (var int j = 0; j < 10; j = j + 1) {
+    op2(czffvm::OperationCode::LDC,5);
+    op2(czffvm::OperationCode::STORE,2);
+    op2(czffvm::OperationCode::LDV,2);
+    op2(czffvm::OperationCode::LDC,6);
+    op (czffvm::OperationCode::LT);
+    op2(czffvm::OperationCode::JZ,28);
+
+    // x[i] = x[i] + j;
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDV,1);
+    op (czffvm::OperationCode::LDELEM);
+    op2(czffvm::OperationCode::LDV,2);
+    op (czffvm::OperationCode::ADD);
+    op (czffvm::OperationCode::STELEM);
+    op2(czffvm::OperationCode::LDV,2);
+    op2(czffvm::OperationCode::LDC,7);
+    op (czffvm::OperationCode::ADD);
+    op2(czffvm::OperationCode::STORE,2);
+    op2(czffvm::OperationCode::JMP,11);
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,7);
+    op (czffvm::OperationCode::ADD);
+    op2(czffvm::OperationCode::STORE,1);
+    op2(czffvm::OperationCode::JMP,5);
+    op2(czffvm::OperationCode::LDC,5);
+    op2(czffvm::OperationCode::STORE,1);
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,3);
+    op(czffvm::OperationCode::LT);
+    op2(czffvm::OperationCode::JZ,48);
+    op2(czffvm::OperationCode::LDV,0);
+    op2(czffvm::OperationCode::LDV,1);
+    op (czffvm::OperationCode::LDELEM);
+    op (czffvm::OperationCode::PRINT);
+    op2(czffvm::OperationCode::LDV,1);
+    op2(czffvm::OperationCode::LDC,7);
+    op (czffvm::OperationCode::ADD);
+    op2(czffvm::OperationCode::STORE,1);
+    op2(czffvm::OperationCode::JMP,35);
+    op (czffvm::OperationCode::RET);
+
+    // ---------- Classes ----------
+    w.u2(0);
+
+    return w.b;
+}
