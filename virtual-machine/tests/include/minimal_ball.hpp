@@ -941,7 +941,7 @@ inline std::vector<uint8_t> MakeConditionalProgramBall() {
     w.u2(2); // return type
     w.u2(2); // max_stack_used
     w.u2(2); // locals count
-    w.u2(28); // code len
+    w.u2(29); // code len
 
     op2(czffvm::OperationCode::LDC,3); // 0
     op2(czffvm::OperationCode::STORE,0);
@@ -965,9 +965,10 @@ inline std::vector<uint8_t> MakeConditionalProgramBall() {
     op2(czffvm::OperationCode::LDV,0); // x
     op2(czffvm::OperationCode::LDC,6); // 10
     op(czffvm::OperationCode::LT);
-    op2(czffvm::OperationCode::JZ,25);
+    op2(czffvm::OperationCode::JZ,26);
     op2(czffvm::OperationCode::LDC,5); // 1
     op(czffvm::OperationCode::PRINT);
+    op2(czffvm::OperationCode::JMP,28);
     op2(czffvm::OperationCode::LDC,7); // 2
     op(czffvm::OperationCode::PRINT);
     op(czffvm::OperationCode::RET);
