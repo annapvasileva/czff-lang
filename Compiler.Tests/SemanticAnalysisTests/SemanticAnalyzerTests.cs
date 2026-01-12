@@ -190,8 +190,6 @@ public class SemanticAnalyzerTests
         ast.Root.Accept(symbolTableBuilder);
         var semanticAnalyzer = new SemanticAnalyzer(symbolTableBuilder.SymbolTable);
 
-        // SemanticException exception = Assert.Throws<SemanticException>(() => ast.Root.Accept(semanticAnalyzer));
-        // Assert.Equal("", exception.Message);
         var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
         Assert.Null(exception);
     }

@@ -511,9 +511,6 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         }
 
         return GetBinaryIntOperationResult(left, right);
-        // if (CompareInt(left, right))
-        //     return left;
-        // throw new SemanticException($"Different types in arithmetic exception: {left} and {right}");
     }
 
     private string GetComparisonOperationType(string left, string right, BinaryOperatorType operatorType)
