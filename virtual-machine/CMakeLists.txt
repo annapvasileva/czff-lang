@@ -10,14 +10,9 @@ project(czff_virtual_machine
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_BUILD_TYPE Release)
 
 # ===== Options =====
 option(CZFF_ENABLE_WARNINGS "Enable compiler warnings" ON)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_definitions(DEBUG_BUILD)
-endif()
 
 # ===== Library =====
 add_library(czff_virtual_machine_lib
@@ -30,18 +25,11 @@ add_library(czff_virtual_machine_lib
     src/runtime_data_area/method_area.cpp
     src/runtime_data_area/heap_data_area.cpp
     src/runtime_data_area/stack_data_area.cpp
-    src/util/int128.cpp
-    src/util/uint128.cpp
-    src/util/ball_disassembler.cpp
 )
 
 # ===== AsmJit Library =====
-set(ASMJIT_STATIC ON CACHE BOOL "Build AsmJit as static library" FORCE)
-set(ASMJIT_EMBED OFF CACHE BOOL "Don't embed AsmJit" FORCE)
-
-if(WIN32)
-    add_definitions(-DASMJIT_STATIC)
-endif()
+option(ASMJIT_EMBED "Embed AsmJit into the library/executable" ON)
+option(ASMJIT_STATIC "Build static library" ON)
 
 add_subdirectory(extern/asmjit)
 
@@ -49,7 +37,6 @@ target_include_directories(czff_virtual_machine_lib
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/include/runtime_data_area
-        ${PROJECT_SOURCE_DIR}/include/util
 )
 
 # ===== Warnings =====
