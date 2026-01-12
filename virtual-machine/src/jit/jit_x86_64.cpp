@@ -7,6 +7,8 @@
 
 namespace czffvm_jit {
 
+using namespace czffvm;
+
 class CompiledRuntimeFunction {
 private:
     asmjit::x86::Gp stackPtr;
