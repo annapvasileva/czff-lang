@@ -121,4 +121,64 @@ public class SemanticAnalyzerTests
         var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
         Assert.Null(exception);
     }
+    
+    [Fact]
+    public void BreakTest()
+    {
+        string source = """
+                        func void Main() {
+                            for (var int i = 0; i < 10; i = i + 1) {
+                                if (i > 5) {
+                                    break;
+                                }
+                            }
+                            return;
+                        }
+                        """;
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+        var ast = parser.Parse();
+        var builder = new SymbolTableBuilder();
+        ast.Root.Accept(builder);
+        var semanticAnalyzer = new SemanticAnalyzer(builder.SymbolTable);
+        
+        var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
+        Assert.Null(exception);
+    }
+    
+    [Fact]
+    public void NestedLoopBreakTest()
+    {
+        string source = """
+                        func void Main() {
+                            for (var int j = 0; j < 10; j = j + 1) {
+                                var bool flag = false;
+                                var int i = 0;
+                                while (i < 10) {
+                                    i = i + 1;
+                                    if (i > 5) {
+                                        flag = true;
+                                        continue;
+                                    }
+                                    print i;
+                                }
+                                if (flag) {
+                                    break;
+                                }
+                            }
+                            return;
+                        }
+                        """;
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+        var ast = parser.Parse();
+        var builder = new SymbolTableBuilder();
+        ast.Root.Accept(builder);
+        var semanticAnalyzer = new SemanticAnalyzer(builder.SymbolTable);
+        
+        var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
+        Assert.Null(exception);
+    }
 }

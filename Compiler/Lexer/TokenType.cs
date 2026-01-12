@@ -12,6 +12,8 @@ public enum TokenType
     Else,
     For,
     While,
+    Break,
+    Continue,
 
     Integer,
     Void,

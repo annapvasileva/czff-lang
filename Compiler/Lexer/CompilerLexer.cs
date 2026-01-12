@@ -382,6 +382,10 @@ public class CompilerLexer
                 return TokenType.For;
             case "while":
                 return TokenType.While;
+            case "break":
+                return TokenType.Break;
+            case "continue":
+                return TokenType.Continue;
         }
 
         return null;
