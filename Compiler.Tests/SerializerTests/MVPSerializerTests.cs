@@ -2,7 +2,6 @@
 using Compiler.Operations;
 using Compiler.Serialization;
 using Compiler.SourceFiles;
-using Compiler.SourceFiles.Constants;
 using Compiler.Tests.Storage;
 using Compiler.Util;
 
@@ -44,11 +43,11 @@ public class MVPSerializerTests
         // new ConstantItem(5, "void"),
         // new ConstantItem(4, [2]),
         // new ConstantItem(4, [3]),
-        expected.AddRange([0x5, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("Main"));
-        expected.AddRange([0x5, 0x0, 0x0]); expected.AddRange(Encoding.UTF8.GetBytes(""));
-        expected.AddRange([0x5, 0x0, 0x5]); expected.AddRange(Encoding.UTF8.GetBytes("void;"));
-        expected.Add(0x4); expected.AddRange([0,0,0,2]);
-        expected.Add(0x4); expected.AddRange([0,0,0,3]);
+        expected.AddRange([0xB, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("Main"));
+        expected.AddRange([0xB, 0x0, 0x0]); expected.AddRange(Encoding.UTF8.GetBytes(""));
+        expected.AddRange([0xB, 0x0, 0x5]); expected.AddRange(Encoding.UTF8.GetBytes("void;"));
+        expected.Add(0x6); expected.AddRange([0,0,0,2]);
+        expected.Add(0x6); expected.AddRange([0,0,0,3]);
 
         // Functions pool length (1)
         expected.AddRange(ByteConverter.IntToU2(1));
@@ -169,17 +168,17 @@ public class MVPSerializerTests
         // new IntConstant(2))
         // new IntConstant(3))
         // new IntConstant(4))
-        expected.AddRange([0x5, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("Main"));
-        expected.AddRange([0x5, 0x0, 0x0]); expected.AddRange(Encoding.UTF8.GetBytes(""));
-        expected.AddRange([0x5, 0x0, 0x5]); expected.AddRange(Encoding.UTF8.GetBytes("void;"));
-        expected.Add(0x4); expected.AddRange([0,0,0,5]);
-        expected.AddRange([0x5, 0x0, 0x2]); expected.AddRange(Encoding.UTF8.GetBytes("I;"));
-        expected.Add(0x4); expected.AddRange([0,0,0,0]);
-        expected.Add(0x4); expected.AddRange(ByteConverter.IntToI4(-1));
-        expected.Add(0x4); expected.AddRange([0,0,0,1]);
-        expected.Add(0x4); expected.AddRange([0,0,0,2]);
-        expected.Add(0x4); expected.AddRange([0,0,0,3]);
-        expected.Add(0x4); expected.AddRange([0,0,0,4]);
+        expected.AddRange([0xB, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("Main"));
+        expected.AddRange([0xB, 0x0, 0x0]); expected.AddRange(Encoding.UTF8.GetBytes(""));
+        expected.AddRange([0xB, 0x0, 0x5]); expected.AddRange(Encoding.UTF8.GetBytes("void;"));
+        expected.Add(0x6); expected.AddRange([0,0,0,5]);
+        expected.AddRange([0xB, 0x0, 0x2]); expected.AddRange(Encoding.UTF8.GetBytes("I;"));
+        expected.Add(0x6); expected.AddRange([0,0,0,0]);
+        expected.Add(0x6); expected.AddRange(ByteConverter.IntToI4(-1));
+        expected.Add(0x6); expected.AddRange([0,0,0,1]);
+        expected.Add(0x6); expected.AddRange([0,0,0,2]);
+        expected.Add(0x6); expected.AddRange([0,0,0,3]);
+        expected.Add(0x6); expected.AddRange([0,0,0,4]);
 
         // Functions pool length (1)
         expected.AddRange(ByteConverter.IntToU2(1));
@@ -361,14 +360,14 @@ public class MVPSerializerTests
     
         // Constants:
         // "Sum", "Main", "II;", "I;", "", "void;", 1, 2
-        expected.AddRange([0x5, 0x0, 0x3]); expected.AddRange(Encoding.UTF8.GetBytes("Sum"));
-        expected.AddRange([0x5, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("I;I;"));
-        expected.AddRange([0x5, 0x0, 0x2]); expected.AddRange(Encoding.UTF8.GetBytes("I;"));
-        expected.AddRange([0x5, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("Main"));
-        expected.AddRange([0x5, 0x0, 0x0]); expected.AddRange(Encoding.UTF8.GetBytes(""));
-        expected.AddRange([0x5, 0x0, 0x5]); expected.AddRange(Encoding.UTF8.GetBytes("void;"));
-        expected.Add(0x4); expected.AddRange([0,0,0,1]);
-        expected.Add(0x4); expected.AddRange([0,0,0,2]);
+        expected.AddRange([0xB, 0x0, 0x3]); expected.AddRange(Encoding.UTF8.GetBytes("Sum"));
+        expected.AddRange([0xB, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("I;I;"));
+        expected.AddRange([0xB, 0x0, 0x2]); expected.AddRange(Encoding.UTF8.GetBytes("I;"));
+        expected.AddRange([0xB, 0x0, 0x4]); expected.AddRange(Encoding.UTF8.GetBytes("Main"));
+        expected.AddRange([0xB, 0x0, 0x0]); expected.AddRange(Encoding.UTF8.GetBytes(""));
+        expected.AddRange([0xB, 0x0, 0x5]); expected.AddRange(Encoding.UTF8.GetBytes("void;"));
+        expected.Add(0x6); expected.AddRange([0,0,0,1]);
+        expected.Add(0x6); expected.AddRange([0,0,0,2]);
     
         // Functions count = 2
         expected.AddRange(ByteConverter.IntToU2(2));

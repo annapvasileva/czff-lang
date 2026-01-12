@@ -50,13 +50,6 @@ public static class ByteConverter
         };
     }
 
-    public static byte[] IntToU16(decimal value)
-    {
-        throw new NotSupportedException("U16 is not supported directly. Use BigInteger if needed.");
-    }
-
-    // ---------- Signed ----------
-
     public static byte[] IntToI1(int value)
     {
         return new[]
@@ -99,10 +92,5 @@ public static class ByteConverter
             (byte)((value >> 8) & 0xFF),
             (byte)(value & 0xFF)
         };
-    }
-
-    public static byte[] IntToI16(decimal value)
-    {
-        throw new NotSupportedException("I16 is not supported directly. Use BigInteger if needed.");
     }
 }

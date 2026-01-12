@@ -27,6 +27,21 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
                 int number = Convert.ToInt32(literalExpressionNode.Value);
                 constant = new IntConstant(number);
                 break;
+            case LiteralType.BooleanLiteral:
+                bool flag;
+                switch (literalExpressionNode.Value)
+                {
+                    case "true":
+                        flag = true;
+                        break;
+                    case "false": 
+                        flag = false;
+                        break;
+                    default:
+                        throw new GeneratorException($"Literal {literalExpressionNode.Value} is not a boolean.");
+                }
+                constant = new BoolConstant(flag);
+                break;
             case LiteralType.StringLiteral:
                 string line = literalExpressionNode.Value;
                 constant = new StringConstant(line);

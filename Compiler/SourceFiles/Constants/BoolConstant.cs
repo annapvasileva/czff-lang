@@ -4,9 +4,18 @@ namespace Compiler.SourceFiles.Constants;
 
 public class BoolConstant : ConstantItem
 {
-    public BoolConstant(int data) : base(12, [])
+    public BoolConstant(bool data) : base(12, [])
     {
-        var bytes = ByteConverter.IntToI4(data);
+        byte[] bytes;
+        if (data)
+        {
+            bytes = [1];
+        }
+        else
+        {
+            bytes = [0];
+        }
+        
         Data = bytes;
     }
 }
