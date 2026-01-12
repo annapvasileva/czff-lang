@@ -31,6 +31,25 @@ public:
         std::vector<asmjit::v1_21::Label> labels
     ) : stackPtr(stackPtr), stackBase(stackBase), framePtr(framePtr), pc(pc), memPtr(memPtr), a(a), labels(labels) {}
 };
+
+class CompiledRuntimeFunctionBuilder {
+public:
+    asmjit::x86::Gp stackPtr;
+    asmjit::x86::Gp stackBase;
+    asmjit::x86::Gp framePtr;
+    asmjit::x86::Gp pc;
+    asmjit::x86::Gp memPtr;
+    
+    asmjit::x86::Assembler* a;
+    std::vector<asmjit::v1_21::Label> labels;
+
+    CompiledRuntimeFunction Build() {
+        return CompiledRuntimeFunction {
+            stackPtr, stackBase, framePtr, pc, memPtr, a, std::move(labels)
+        };
+    }
+};
+
 class X86JitCompiler : public JitCompiler {
     // TODO
 };
