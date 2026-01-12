@@ -90,7 +90,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
             var varTypeName = variableDeclarationNode.Type.GetName;
             var initExpressionTypeName = GetExpressionType(variableDeclarationNode.Expression);
-            if (!CanAssign(varTypeName, initExpressionTypeName))
+            if (varTypeName != initExpressionTypeName)
             {
                 throw new SemanticException($"Variable {variableDeclarationNode.Name}: type - {initExpressionTypeName} does not match {varTypeName}");
             }
@@ -116,7 +116,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         var expectedReturnType = functionDeclarationNode.ReturnType.GetName;
         var returnType =
             GetExpressionType(((ReturnStatementNode)functionDeclarationNode.Body.Statements.Last()).Expression);
-        if (!CanAssign(expectedReturnType, returnType))
+        if (expectedReturnType != returnType)
         {
             throw new SemanticException($"Function {functionDeclarationNode.Name} expected return type is {expectedReturnType} but got {returnType}");
         }
@@ -187,7 +187,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
         var left = GetExpressionType(assigmentStatementNode.Left);
         var right = GetExpressionType(assigmentStatementNode.Right);
-        if (!CanAssign(left, right))
+        if (left != right)
         {
             throw new SemanticException($"Assigment: identifier have type: {left} but got type: {right}");
         }
@@ -199,7 +199,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         assigmentStatementNode.Right.Accept(this);
         var left = GetExpressionType(assigmentStatementNode.Left);
         var right = GetExpressionType(assigmentStatementNode.Right);
-        if (!CanAssign(left, right))
+        if (left != right)
         {
             throw new SemanticException($"Assigment: array have type: {left} but got type: {right}");
         }
@@ -513,7 +513,9 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
             throw new SemanticException($"Now arithmetic operations only for int. Got: {left} and {right}");
         }
 
-        return GetBinaryIntOperationResult(left, right);
+        if (left == right)
+            return left;
+        throw new SemanticException($"Different types in arithmetic exception: {left} and {right}");
     }
 
     private string GetComparisonOperationType(string left, string right, BinaryOperatorType operatorType)
@@ -557,63 +559,6 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         return strType == "I;" || strType == "I8;" || strType == "I16;";
     }
 
-    private bool CanAssign(string left, string right)
-    {
-        if (IsIntType(left) && IsIntType(right))
-        {
-            return CompareInt(left, right);
-        }
-        return left == right;
-    }
-
-    private bool CompareInt(string left, string right)
-    {
-        int leftInt = GetIntNumber(left);
-        int rightInt = GetIntNumber(right);
-        
-        return leftInt >= rightInt;
-    }
-
-    private int GetIntNumber(string strInt)
-    {
-        int result = 1;
-        switch (strInt)
-        {
-            case "I16;":
-                result = 3;
-                break;
-            case "I8;":
-                result = 2;
-                break;
-            default:
-                result = 1;
-                break;
-        }
-        
-        return result;
-    }
-    
-    private string GetBinaryIntOperationResult(string left, string right)
-    {
-        int leftInt = GetIntNumber(left);
-        int rightInt = GetIntNumber(right);
-        int mx = leftInt;
-        if (rightInt > leftInt)
-            mx = rightInt;
-
-        if (mx == 3)
-        {
-            return "I16;";
-        }
-
-        if (mx == 2)
-        {
-            return "I8;";
-        }
-        
-        return "I;";
-    }
-    
     private void EnterLoop() => _loopCount++;
     private void ExitLoop() => _loopCount--;
     private bool IsInLoop() => _loopCount > 0;

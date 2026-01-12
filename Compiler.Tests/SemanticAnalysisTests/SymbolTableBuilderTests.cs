@@ -211,14 +211,12 @@ public class SymbolTableBuilderTests
     public void Int64Int128Test()
     {
         var expectedTable = new SymbolTable(null);
-        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 4 });
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 2 });
         var mainBodyTable = new SymbolTable(expectedTable);
         mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I8;", 0));
-        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I16;", 1));
-        mainBodyTable.Symbols.Add("c", new VariableSymbol("c", "I8;", 2));
-        mainBodyTable.Symbols.Add("d", new VariableSymbol("d", "I16;", 3));
+        mainBodyTable.Symbols.Add("c", new VariableSymbol("c", "I8;", 1));
         
-        var ast = AstStore.GetAst("Int64Int128");
+        var ast = AstStore.GetAst("Int64");
         var symbolTableBuilder = new SymbolTableBuilder();
         ast.Root.Accept(symbolTableBuilder);
         var table = symbolTableBuilder.SymbolTable;

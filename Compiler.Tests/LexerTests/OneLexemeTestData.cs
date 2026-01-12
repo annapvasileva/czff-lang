@@ -45,7 +45,19 @@ public class OneLexemeTestData : IEnumerable<object[]>
         
         yield return new object[] 
         { 
-            "12389128432241", 
+            "123L", 
+            new Token(TokenType.Integer64Literal, "123", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "-9123L", 
+            new Token(TokenType.Integer64Literal, "-9123", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "12389128432241L", 
             new Token(TokenType.Integer64Literal, "12389128432241", 1, 1) 
         };
         

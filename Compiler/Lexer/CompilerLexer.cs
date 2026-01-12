@@ -200,17 +200,21 @@ public class CompilerLexer
         if (char.IsDigit(_currentChar) || _currentChar == '-' && char.IsDigit(Peek()))
         {
             string number = ReadNumber();
-            if (int.TryParse(number, out int _))
+            if (number.Last() == 'L')
             {
-                return CreateNewToken(TokenType.IntegerLiteral, number, startLine, startColumn);
-            }
-    
-            if (long.TryParse(number, out long _))
-            {
-                return CreateNewToken(TokenType.Integer64Literal, number, startLine, startColumn);
+                string onlyDigitPart = number.Substring(0, number.Length - 1);
+                if (!long.TryParse(onlyDigitPart, out long _))
+                {
+                    throw new LexerException($"{number} is not correct for int64", cursor.Line + 1, cursor.Column + 1);
+                }
+                return CreateNewToken(TokenType.Integer64Literal, onlyDigitPart, startLine, startColumn);
             }
             
-            throw new LexerException($"int64 overflow", startLine + 1, startColumn + 1);
+            if (!int.TryParse(number, out int _))
+            {
+                throw new LexerException($"{number} is not correct for int32", cursor.Line + 1, cursor.Column + 1);
+            }
+            return CreateNewToken(TokenType.IntegerLiteral, number, startLine, startColumn);
         }
         else if (_currentChar == '-')
         {
@@ -356,6 +360,12 @@ public class CompilerLexer
             number += _currentChar;
             cursor.MoveNext();
             SetCurrentChar();
+            if (_currentChar == 'L')
+            {
+                number += "L";
+                cursor.MoveNext();
+                break;
+            }
         } 
         while (char.IsDigit(_currentChar));
 
