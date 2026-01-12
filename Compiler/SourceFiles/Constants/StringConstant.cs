@@ -4,7 +4,7 @@ namespace Compiler.SourceFiles.Constants;
 
 public class StringConstant : ConstantItem
 {
-    public StringConstant(string line) : base(5, [])
+    public StringConstant(string line) : base(11, [])
     {
         int size = line.Length;
         Data = new byte[2 + size];

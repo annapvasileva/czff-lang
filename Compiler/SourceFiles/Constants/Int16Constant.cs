@@ -2,9 +2,9 @@
 
 namespace Compiler.SourceFiles.Constants;
 
-public class IntConstant : ConstantItem
+public class Int16Constant : ConstantItem
 {
-    public IntConstant(int data) : base(6, [])
+    public Int16Constant(int data) : base(5, [])
     {
         var bytes = ByteConverter.IntToI4(data);
         Data = bytes;
