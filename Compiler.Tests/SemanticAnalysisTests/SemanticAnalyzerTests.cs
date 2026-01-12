@@ -181,4 +181,16 @@ public class SemanticAnalyzerTests
         var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
         Assert.Null(exception);
     }
+    
+    [Fact]
+    public void Int64Int128Test()
+    {
+        var ast = AstStore.GetAst("Int64Int128");
+        var symbolTableBuilder = new SymbolTableBuilder();
+        ast.Root.Accept(symbolTableBuilder);
+        var semanticAnalyzer = new SemanticAnalyzer(symbolTableBuilder.SymbolTable);
+
+        var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
+        Assert.Null(exception);
+    }
 }

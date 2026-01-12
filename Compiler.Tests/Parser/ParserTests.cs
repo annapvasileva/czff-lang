@@ -1158,4 +1158,52 @@ public class ParserTests
 
         Assert.Equal(json1, json2);
     }
+    
+    [Fact]
+    public void Int64Int128Test()
+    {
+        string source = """
+                        func void Main() {
+                            var int64 a = 10;
+                            var int128 b = 5;
+                            return;
+                        }
+                        """;
+        var expectedAst = new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int64"),
+                            "a",
+                            new LiteralExpressionNode("10", LiteralType.IntegerLiteral)),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int128"),
+                            "b",
+                            new LiteralExpressionNode("5", LiteralType.IntegerLiteral)),
+                        new ReturnStatementNode(null)
+                    })
+                )
+            }));
+        
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+
+        var ast = parser.Parse();
+
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
 }

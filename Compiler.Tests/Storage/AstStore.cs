@@ -26,6 +26,8 @@ public static class AstStore
                 return GetThirdExampleAst();
             case "FourthExample":
                 return GetFourthExampleAst();
+            case "Int64Int128":
+                return GetInt64Int128Ast();
             default:
                 throw new Exception($"Unknown ast name '{name}'");
         }
@@ -359,6 +361,47 @@ public static class AstStore
                                     new LiteralExpressionNode("2", LiteralType.IntegerLiteral)),
                             })),
                         new ReturnStatementNode(null),
+                    })
+                )
+            }));
+    }
+
+    private static AstTree GetInt64Int128Ast()
+    {
+        return new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(new List<StatementNode>()
+                    {
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int64"),
+                            "a",
+                            new LiteralExpressionNode("10", LiteralType.IntegerLiteral)),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int128"),
+                            "b",
+                            new LiteralExpressionNode("5", LiteralType.IntegerLiteral)),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int64"),
+                            "c",
+                            new BinaryExpressionNode(
+                                new LiteralExpressionNode("2", LiteralType.IntegerLiteral),
+                                new IdentifierExpressionNode("a"),
+                                BinaryOperatorType.Multiplication)),
+                        new VariableDeclarationNode(
+                            new SimpleTypeNode("int128"),
+                            "d"),
+                        new IdentifierAssignmentStatementNode(
+                            new  IdentifierExpressionNode("d"),
+                            new BinaryExpressionNode(
+                                new IdentifierExpressionNode("b"),
+                                new IdentifierExpressionNode("c"),
+                                BinaryOperatorType.Addition)),
+                        new ReturnStatementNode(null)
                     })
                 )
             }));

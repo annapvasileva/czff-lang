@@ -11,6 +11,12 @@ public class SimpleTypeNode : TypeAnnotationNode
             case "int":
                 Name = "I";
                 break;
+            case "int64":
+                Name = "I8";
+                break;
+            case "int128":
+                Name = "I16";
+                break;
             case "bool":
                 Name = "B";
                 break;

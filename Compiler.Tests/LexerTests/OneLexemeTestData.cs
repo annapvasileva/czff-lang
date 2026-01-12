@@ -264,6 +264,18 @@ public class OneLexemeTestData : IEnumerable<object[]>
             "continue",
             new Token(TokenType.Continue, "continue", 1, 1) 
         };
+
+        yield return new object[] 
+        { 
+            "int64",
+            new Token(TokenType.Integer64, "int64", 1, 1) 
+        };
+        
+        yield return new object[] 
+        { 
+            "int128",
+            new Token(TokenType.Integer128, "int128", 1, 1) 
+        };
     }
     
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
