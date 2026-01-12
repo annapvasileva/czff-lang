@@ -387,7 +387,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
 
         if (expressionNode is ArrayIndexExpressionNode arrayIndexExpression)
         {
-            return GetArrayIndexType(arrayIndexExpression);
+            return GetExpressionType(arrayIndexExpression.Array).Remove(0, 1); // to get a type
+            // return GetArrayIndexType(arrayIndexExpression);
         }
 
         if (expressionNode is BinaryExpressionNode binaryExpression)
@@ -473,6 +474,8 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
         {
             case LiteralType.IntegerLiteral:
                 return "I;";
+            case LiteralType.Integer64Literal:
+                return "I8;";
             case LiteralType.BooleanLiteral:
                 return "B;";
             case LiteralType.StringLiteral:

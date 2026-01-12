@@ -495,6 +495,12 @@ public class CompilerParser
             var intLiteral = Expect(TokenType.IntegerLiteral);
             return new LiteralExpressionNode(intLiteral.Lexeme, LiteralType.IntegerLiteral);
         }
+        
+        if (CurrentToken.Kind == TokenType.Integer64Literal)
+        {
+            var int64Literal = Expect(TokenType.Integer64Literal);
+            return new LiteralExpressionNode(int64Literal.Lexeme, LiteralType.Integer64Literal);
+        }
 
         if (CurrentToken.Kind == TokenType.BoolLiteral)
         {

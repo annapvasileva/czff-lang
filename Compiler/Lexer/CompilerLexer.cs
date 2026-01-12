@@ -200,7 +200,17 @@ public class CompilerLexer
         if (char.IsDigit(_currentChar) || _currentChar == '-' && char.IsDigit(Peek()))
         {
             string number = ReadNumber();
-            return CreateNewToken(TokenType.IntegerLiteral, number, startLine, startColumn);
+            if (int.TryParse(number, out int _))
+            {
+                return CreateNewToken(TokenType.IntegerLiteral, number, startLine, startColumn);
+            }
+    
+            if (long.TryParse(number, out long _))
+            {
+                return CreateNewToken(TokenType.Integer64Literal, number, startLine, startColumn);
+            }
+            
+            throw new LexerException($"int64 overflow", startLine + 1, startColumn + 1);
         }
         else if (_currentChar == '-')
         {

@@ -46,7 +46,7 @@ public class OneLexemeTestData : IEnumerable<object[]>
         yield return new object[] 
         { 
             "12389128432241", 
-            new Token(TokenType.IntegerLiteral, "12389128432241", 1, 1) 
+            new Token(TokenType.Integer64Literal, "12389128432241", 1, 1) 
         };
         
         yield return new object[] 

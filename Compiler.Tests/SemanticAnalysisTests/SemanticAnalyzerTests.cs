@@ -193,4 +193,36 @@ public class SemanticAnalyzerTests
         var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
         Assert.Null(exception);
     }
+    
+    [Fact]
+    public void FactorialInt64Test()
+    {
+        string source = """
+                        func int64 Factorial(int i) {
+                            if (i <= 1) {
+                                return 1;
+                            } 
+                            return Factorial(i - 1) * i;
+                        }
+                        
+                        func void Main() {
+                            var int64 res = Factorial(20);
+                            print res;
+                            print 12345678901929;
+                            var int64 c = 1234567897646;
+                            
+                            return;
+                        }
+                        """;
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+        var ast = parser.Parse();
+        var builder = new SymbolTableBuilder();
+        ast.Root.Accept(builder);
+        var semanticAnalyzer = new SemanticAnalyzer(builder.SymbolTable);
+
+        var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
+        Assert.Null(exception);
+    }
 }

@@ -23,6 +23,8 @@ public enum TokenType
     Bool,
 
     IntegerLiteral,
+    Integer64Literal,
+    Integer128Literal,
     BoolLiteral,
 
     Plus,
