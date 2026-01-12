@@ -318,26 +318,35 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
     public void Visit(IfStatementNode ifStatementNode)
     {
         _scope = ifStatementNode.IfBlock.Scope;
+        
         ifStatementNode.Condition.Accept(this);
         
-        var buff = _currentFunction!;
-        _currentFunction = new Function();
-        
-        ifStatementNode.IfBlock.Accept(this);
-        (buff, _currentFunction) = (_currentFunction, buff);
-        
-        int endIndex = buff.Operations.Count + _currentFunction.Operations.Count + 1;
-        
-        _currentFunction.Operations.Add(new Jz(endIndex));
-        _currentFunction.Operations.AddRange(buff.Operations);
-        _scope = ifStatementNode.IfBlock.Scope.Parent!;
+        Jz jumpToElse = new Jz(-1);
+        _currentFunction!.Operations.Add(jumpToElse);
 
+        ifStatementNode.IfBlock.Accept(this);
+
+        int endIndex;
         if (ifStatementNode.ElseBlock != null)
         {
-            _scope = ifStatementNode.ElseBlock.Scope;
+            Jmp jumpOverElse = new Jmp(-1);
+            _currentFunction.Operations.Add(jumpOverElse);
+            
+            int elseIndex = _currentFunction.Operations.Count;
+            jumpToElse.JumpIndex = elseIndex;
+            
             ifStatementNode.ElseBlock.Accept(this);
-            _scope = _scope.Parent!;
+            
+            endIndex = _currentFunction.Operations.Count;
+            jumpOverElse.JumpIndex = endIndex;
         }
+        else
+        {
+            endIndex = _currentFunction.Operations.Count;
+            jumpToElse.JumpIndex = endIndex;
+        }
+        
+        _scope = _scope.Parent!;
     }
 
     public void Visit(ElifStatementNode elifStatementNode)
@@ -348,22 +357,24 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
     public void Visit(WhileStatementNode whileStatementNode)
     {
         _scope = whileStatementNode.Body.Scope;
-        int startIndex = _currentFunction!.Operations.Count - 1;
+        
+        int startIndex = _currentFunction!.Operations.Count;
         whileStatementNode.Condition.Accept(this);
         
-        var buff = _currentFunction!;
-        
-        _currentFunction = new Function();
+        Jz jumpToEnd = new Jz(-1);
+        _currentFunction.Operations.Add(jumpToEnd);
+
         whileStatementNode.Body.Accept(this);
-        (buff, _currentFunction) = (_currentFunction, buff);
         
-        int endIndex = buff.Operations.Count + _currentFunction.Operations.Count + 2;
+        _currentFunction.Operations.Add(new Jmp(startIndex));
         
-        _currentFunction.Operations.Add(new Jz(endIndex));
+        int endIndex = _currentFunction.Operations.Count;
+        jumpToEnd.JumpIndex = endIndex;
         
-        foreach (var op in buff.Operations)
+        foreach (var op in _currentFunction.Operations.Slice(startIndex,
+                     _currentFunction.Operations.Count - startIndex)) 
         {
-            if (op is Jmp jmp)
+            if (op is JumpOperation jmp)
             {
                 if (jmp.JumpIndex == -1)
                 {
@@ -376,8 +387,6 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
                 }
             }
         }
-        _currentFunction.Operations.AddRange(buff.Operations);
-        _currentFunction.Operations.Add(new Jmp(startIndex));
         _scope = _scope.Parent!;
     }
 
@@ -386,23 +395,25 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         _scope = forStatementNode.Body.Scope;
         forStatementNode.Init.Accept(this);
         
-        int startIndex = _currentFunction!.Operations.Count - 1;
+        int startIndex = _currentFunction!.Operations.Count;
         forStatementNode.Condition.Accept(this);
         
-        var buff = _currentFunction!;
-        
-        _currentFunction = new Function();
+        Jz jumpToEnd = new Jz(-1);
+        _currentFunction.Operations.Add(jumpToEnd);
+
         forStatementNode.Body.Accept(this);
+        
         forStatementNode.Post.Accept(this);
-        (buff, _currentFunction) = (_currentFunction, buff);
         
-        int endIndex = buff.Operations.Count + _currentFunction.Operations.Count + 2;
+        _currentFunction.Operations.Add(new Jmp(startIndex));
         
-        _currentFunction.Operations.Add(new Jz(endIndex));
+        int endIndex = _currentFunction.Operations.Count;
+        jumpToEnd.JumpIndex = endIndex;
         
-        foreach (var op in buff.Operations)
+        foreach (var op in _currentFunction.Operations.Slice(startIndex,
+                     _currentFunction.Operations.Count - startIndex)) 
         {
-            if (op is Jmp jmp)
+            if (op is JumpOperation jmp)
             {
                 if (jmp.JumpIndex == -1)
                 {
@@ -415,9 +426,6 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
                 }
             }
         }
-        _currentFunction.Operations.AddRange(buff.Operations);
-        
-        _currentFunction.Operations.Add(new Jmp(startIndex));
         _scope = _scope.Parent!;
     }
 

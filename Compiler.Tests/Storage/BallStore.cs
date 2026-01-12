@@ -331,7 +331,7 @@ public static class BallStore
                 new Ldv(1),
                 new Ldc(4),
                 new Lt(),
-                new Jz(18),   // goto after loop
+                new Jz(17),   // goto after loop
 
                 // x = x + i
                 new Ldv(0),
@@ -347,17 +347,19 @@ public static class BallStore
 
                 new Jmp(4),           // goto loop_start
 
-                // ---- after loop (pc = 18) ----
-                // if (i < 10)
-                new Ldv(1),
+                // ---- after loop (pc = 17) ----
+                // if (x < 10)
+                new Ldv(0),
+                new Print(),
+                new Ldv(0),
                 new Ldc(6),
                 new Lt(),
-                new Jz(25),
-
+                new Jz(26),
+                
                 // then: print 1
-                new Ldc(4),
+                new Ldc(5),
                 new Print(),
-                new Jmp(27),
+                new Jmp(28),
 
                 // else:
                 new Ldc(7),
