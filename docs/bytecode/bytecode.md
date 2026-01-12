@@ -66,11 +66,13 @@ Tags list:
 - `u1` — `0x01` — 1 byte of uint
 - `u2` — `0x02` — 2 bytes of uint 
 - `u4` — `0x03` — 4 bytes of uint
+- `i1` — `0x04` — 1 bytes of int
+- `i2` — `0x04` — 2 bytes of int
 - `i4` — `0x04` — 4 bytes of int
 - `string` — `0x05` — *n = 2* bytes of length + *n* bytes of chars 
-- `u8` — `0x06` — 8 bytes of int
+- `u8` — `0x06` — 8 bytes of uint
 - `i8` — `0x07` — 8 bytes of int
-- `u16` — `0x08` — 16 bytes of int
+- `u16` — `0x08` — 16 bytes of uint
 - `i16` — `0x09` — 16 bytes of int
 - `b` — `0x0A` — 1 byte of bool
 - W.I.P.
@@ -84,7 +86,17 @@ String Descriptor is a string constant, that provides you inforamtion about type
 
 - Primitives:
     - `int` : `I;`
+    - `uint` : `U;`
+    - `int8` : `I1;`
+    - `int16` : `I2;`
+    - `int64` : `I8;`
+    - `int128` : `I16;`
+    - `uint8` : `U1;`
+    - `uint16` : `U2;`
+    - `uint64` : `U8;`
+    - `uint128` : `U16;`
     - `bool`: `B;`
+    - `string` : `String;`
 - Array is stated as `[` symbol, it doesn't have `;` on the end because it's a composite type and also no other type do have `[` in it. After `[` descriptor of inner type is stated.
     - `array<int>` : `[I;`
     - `array<array<int>>` : `[[I;`
@@ -114,5 +126,6 @@ String Descriptor is a string constant, that provides you inforamtion about type
 - `lt` — `0x0013`
 - `leq` — `0x0014`
 - `jmp` — `0x0015 + u2` opcode index
-- `jnz` — `0x0016 + u2` opcode index
+- `jz` — `0x0016 + u2` opcode index
+- `jnz` — `0x0017 + u2` opcode index
 - W.I.P.
