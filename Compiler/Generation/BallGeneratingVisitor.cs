@@ -119,8 +119,17 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
                 _currentFunction!.Operations.Add(new Eq());
                 _currentFunction!.Operations.Add(new Neg());
                 break;
+            case BinaryOperatorType.LogicalOr:
+                _currentFunction!.Operations.Add(new Lor());
+                break;
+            case BinaryOperatorType.LogicalAnd:
+                _currentFunction!.Operations.Add(new Land());
+                break;
+            case BinaryOperatorType.Modulus:
+                _currentFunction!.Operations.Add(new Mod());
+                break;
             default:
-                throw new NotImplementedException();
+                throw new GeneratorException("Binary operator not supported.");
         }
     }
 
