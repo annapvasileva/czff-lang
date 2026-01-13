@@ -1,4 +1,4 @@
-name: Build Compiler + VM
+name: Build Compiler + VM (Windows + MinGW)
 
 on:
   workflow_dispatch:
@@ -23,14 +23,12 @@ jobs:
         install: >
           mingw-w64-x86_64-toolchain
           mingw-w64-x86_64-cmake
-          mingw-w64-x86_64-make
+          mingw-w64-x86_64-ninja
 
     - name: Add MSYS2 to PATH
       shell: bash
-      run: |
-        echo "$MINGW_PREFIX/bin" >> $GITHUB_PATH
+      run: echo "$MINGW_PREFIX/bin" >> $GITHUB_PATH
 
-    - name: Build Compiler and VM
+    - name: Build Compiler + VM
       shell: pwsh
-      run: |
-        ./build.ps1
+      run: ./build.ps1
