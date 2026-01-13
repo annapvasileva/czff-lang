@@ -1,7 +1,7 @@
 name: Build Compiler + VM (Windows + MinGW)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # ручной запуск
 
 jobs:
   build:
@@ -14,7 +14,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: "8.0.x"
+        dotnet-version: '10.0.x'
 
     - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
@@ -27,8 +27,18 @@ jobs:
 
     - name: Add MSYS2 to PATH
       shell: bash
-      run: echo "$MINGW_PREFIX/bin" >> $GITHUB_PATH
+      run: |
+        echo "$MINGW_PREFIX/bin" >> $GITHUB_PATH
 
-    - name: Build Compiler + VM
+    - name: Build C# Compiler
       shell: pwsh
-      run: ./build.ps1
+      run: |
+        dotnet restore Compiler/Compiler.csproj
+        dotnet publish Compiler/Compiler.csproj -c Release -o build/compiler
+
+    - name: Build C++ VM
+      shell: bash
+      run: |
+        mkdir -p build/vm
+        cmake -S virtual-machine -B build/vm -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake --build build/vm
