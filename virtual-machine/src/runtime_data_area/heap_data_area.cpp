@@ -2,12 +2,20 @@
 
 namespace czffvm {
 
-Heap::Heap(StackDataArea& stack, uint32_t max_heap_size)
-    : stack_(stack), max_heap_size_(max_heap_size) {}
+Heap::Heap(StackDataArea& stack, uint32_t max_heap_size_in_bytes)
+    : stack_(stack), max_heap_size_in_bytes_(max_heap_size_in_bytes) {}
 
 HeapRef Heap::Allocate(const std::string& type,
-                       std::vector<Value> fields) {
-    
+                       std::vector<Value>&& fields) {
+    size_t approximate_size = EstimateSize(type, fields);
+    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+        Collect();
+    }
+
+    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+        throw std::runtime_error("Heap memory limit exceeded");
+    }
+
     if (!free_list_.empty()) {
         uint32_t id = free_list_.back();
         free_list_.pop_back();
@@ -16,12 +24,9 @@ HeapRef Heap::Allocate(const std::string& type,
             .type = type,
             .fields = std::move(fields)
         };
+        used_bytes_ += approximate_size;
 
         return HeapRef(id);
-    }
-
-    if (objects_.size() > max_heap_size_) {
-        Collect();
     }
 
     HeapRef ref{ objects_.size() };
@@ -31,6 +36,43 @@ HeapRef Heap::Allocate(const std::string& type,
         .type = type,
         .fields = std::move(fields)
     });
+    used_bytes_ += approximate_size;
+
+    return ref;
+}
+
+HeapRef Heap::Allocate(const std::string& type,
+                       std::vector<Value>& fields) {
+    size_t approximate_size = EstimateSize(type, fields);
+    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+        Collect();
+    }
+
+    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+        throw std::runtime_error("Heap memory limit exceeded");
+    }
+
+    if (!free_list_.empty()) {
+        uint32_t id = free_list_.back();
+        free_list_.pop_back();
+        objects_[id] = HeapObject{
+            .marked = false,
+            .type = type,
+            .fields = std::move(fields)
+        };
+        used_bytes_ += approximate_size;
+
+        return HeapRef(id);
+    }
+
+    HeapRef ref{ objects_.size() };
+
+    objects_.push_back(HeapObject{
+        .marked = false,
+        .type = type,
+        .fields = std::move(fields)
+    });
+    used_bytes_ += approximate_size;
 
     return ref;
 }
@@ -79,6 +121,7 @@ void Heap::Sweep() {
         if (!obj) continue;
 
         if (!obj->marked) {
+            used_bytes_ -= EstimateSize(obj->type, obj->fields);
             obj.reset();
             free_list_.push_back(i);
         } else {
@@ -86,5 +129,36 @@ void Heap::Sweep() {
         }
     }
 }
+
+size_t Heap::EstimateSize(const std::string& type, const std::vector<Value>& fields) {
+    size_t size = sizeof(HeapObject);
+
+    size += type.size();
+
+    size += fields.size() * sizeof(Value);
+
+    for (auto& v : fields) {
+        if (auto* s = std::get_if<std::string>(&v))
+            size += s->size();
+    }
+
+    return size;
+}
+
+size_t Heap::EstimateSize(const std::string& type, const std::vector<Value>&& fields) {
+    size_t size = sizeof(HeapObject);
+
+    size += type.size();
+
+    size += fields.size() * sizeof(Value);
+
+    for (auto& v : fields) {
+        if (auto* s = std::get_if<std::string>(&v))
+            size += s->size();
+    }
+
+    return size;
+}
+
 
 }
