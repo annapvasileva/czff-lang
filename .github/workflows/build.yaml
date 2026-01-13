@@ -1,7 +1,6 @@
 name: Build Compiler + VM (Windows + MinGW)
 
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 
 
 jobs:
