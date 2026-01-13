@@ -1,7 +1,7 @@
 #pragma once
 
-#include <unordered_map>
 #include <vector>
+#include <optional>
 
 #include "common.hpp"
 #include "stack_data_area.hpp"
@@ -12,7 +12,6 @@ struct HeapObject {
     bool marked = false;
     std::string type;
     std::vector<Value> fields;
-    uint8_t generation = 0;
 };
 
 class Heap {
@@ -23,17 +22,18 @@ public:
 
     HeapObject& Get(HeapRef ref);
 
-    void Collect(size_t generation = 0);
+    void Collect();
 
 private:
-    std::unordered_map<HeapRef, HeapObject> objects_;
+    std::vector<std::optional<HeapObject>> objects_;
+    std::vector<uint32_t> free_list_;
     uint32_t next_id_ = 1;
     StackDataArea& stack_;
     uint32_t max_heap_size_;
 
     void MarkFromRoots();
     void Mark(const HeapRef& ref);
-    void Sweep(size_t generation = 0);
+    void Sweep();
 };
 
 }  // namespace czffvm
