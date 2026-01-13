@@ -1,4 +1,4 @@
-name: Build Compiler + VM
+name: Build Compiler + VM (Windows + MinGW)
 
 on:
   push:
@@ -14,25 +14,34 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v4
 
-    - name: Setup MinGW
-      uses: msys2/setup-msys2@v3
-      with:
-        update: true
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '10.0.x'
+        dotnet-version: "8.0.x"
 
-    - name: Setup CMake
-      uses: lukka/get-cmake@latest
-
-    - name: Build C# Compiler
+    - name: Build Compiler (.NET)
       run: |
         dotnet restore Compiler/Compiler.csproj
         dotnet build Compiler/Compiler.csproj -c Release
 
-    - name: Build C++ VM
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-make
+
+    - name: Add MSYS2 to PATH
+      shell: bash
       run: |
-        cmake -S virtual-machine -B build/vm -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
-        cmake --build build/vm --config Release
+        echo "$MINGW_PREFIX/bin" >> $GITHUB_PATH
+
+    - name: Build VM (C++)
+      shell: bash
+      run: |
+        mkdir -p build/vm
+        cd build/vm
+        cmake -G "MSYS Makefiles" ../../virtual-machine
+        cmake --build . --config Release
