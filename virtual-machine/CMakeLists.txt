@@ -15,6 +15,10 @@ set(CMAKE_BUILD_TYPE Release)
 # ===== Options =====
 option(CZFF_ENABLE_WARNINGS "Enable compiler warnings" ON)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(DEBUG_BUILD)
+endif()
+
 # ===== Library =====
 add_library(czff_virtual_machine_lib
     src/virtual_machine.cpp
