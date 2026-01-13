@@ -8,13 +8,24 @@ namespace czffvm_jit {
 using namespace czffvm;
 
 class CompiledRuntimeFunction {
+public:
     template<typename FuncType>
-    FuncType getFunction() const;
+    FuncType getFunction() const {
+        return reinterpret_cast<FuncType>(GetCode());
+    }
+
     
-    virtual ~CompiledRuntimeFunction() = default;
+    ~CompiledRuntimeFunction() = default;
+    virtual void* GetCode() const = 0;
+    virtual size_t GetSize() const = 0;
+    virtual uint16_t GetNameIndex() const = 0;
+    virtual uint16_t GetReturnTypeIndex() const = 0;
+    
+    explicit operator bool() const { return GetCode() != nullptr; }
 };
 
 class JitCompiler {
+public:
     virtual ~JitCompiler() = default;
     
     virtual bool CanCompile(czffvm::OperationCode opcode) = 0;
