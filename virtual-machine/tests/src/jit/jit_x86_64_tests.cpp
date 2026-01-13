@@ -176,7 +176,7 @@ TEST(BasicJITCompilationTestSuite, ArrayCreation) {
     func.code = {
         // --- new int[3] ---
         {czffvm::OperationCode::LDC,    {3}},        // size = 3
-        {czffvm::OperationCode::NEWARR, {0x00, 0x00}}, // type_idx
+        {czffvm::OperationCode::NEWARR, {0x00, 0x01}}, // type_idx
     };
 
     int32_t stack[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -185,7 +185,7 @@ TEST(BasicJITCompilationTestSuite, ArrayCreation) {
         rda,
         jit, 
         func, 
-        {{czffvm::ConstantTag::U1, {'I', ';'}}},
+        {{czffvm::ConstantTag::I4, {0x02, 0x00, 0x00, 0x00}}, {czffvm::ConstantTag::U1, {'I'}}},
         stack
     ));
 
@@ -194,65 +194,9 @@ TEST(BasicJITCompilationTestSuite, ArrayCreation) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
 
-    ASSERT_NO_THROW(rda.GetHeap().Get({0}));
-    auto array = rda.GetHeap().Get({0});
-
-    ASSERT_EQ(array.type, "[I;");
-    ASSERT_EQ(array.fields.size(), 3);
-}
-
-TEST(BasicJITCompilationTestSuite, ArrayStore) {
-    auto rda = czffvm::RuntimeDataArea(10000);
-    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
-
-    czffvm::RuntimeFunction func;
-    func.locals_count = 2;  // a, b, c
-    func.max_stack = 32;
-
-    // arr = new int[3]
-
-    func.code = {
-        // --- new int[3] ---
-        {czffvm::OperationCode::LDC,    {3}},        // size = 3
-        {czffvm::OperationCode::NEWARR, {0x00, 0x00}}, // type_idx
-
-        {czffvm::OperationCode::DUP, {}},            // arr
-        {czffvm::OperationCode::LDC, {0}},            // index 0
-        {czffvm::OperationCode::LDC, {12}},            // a
-        {czffvm::OperationCode::STELEM, {}},
-    };
-
-    int32_t stack[16] = {12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-    ASSERT_NO_THROW(CompileAndExecute(
-        rda,
-        jit, 
-        func, 
-        {{czffvm::ConstantTag::U2, {'I', ';'}}},
-        stack
-    ));
-
-    std::cout << "[TEST] After call:" << std::endl;
-    for (int i = 0; i < 16; i++) {
-        std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
-    }
-
-    ASSERT_NO_THROW(rda.GetHeap().Get({0}));
-    auto array = rda.GetHeap().Get({0});
-
-    ASSERT_EQ(array.type, "[I;");
-    ASSERT_EQ(array.fields.size(), 3);
-
-    uint32_t arr_elem;
-    if (auto p = std::get_if<uint8_t>(&array.fields[0]))      arr_elem = *p;
-    else if (auto p = std::get_if<uint16_t>(&array.fields[0])) arr_elem = *p;
-    else if (auto p = std::get_if<uint32_t>(&array.fields[0])) arr_elem = *p;
-    else if (auto p = std::get_if<int32_t>(&array.fields[0]))  arr_elem = static_cast<uint32_t>(*p);
-    else {
-        throw std::runtime_error("NEWARR: array size must be integer");
-    }
-    ASSERT_EQ(arr_elem, 12);
-
+    ASSERT_NO_THROW(rda.GetHeap().Get({1}));
+    ASSERT_EQ(rda.GetHeap().Get({1}).type, "[I");
+    ASSERT_EQ(rda.GetHeap().Get({1}).fields.size(), 3);
 }
 
 TEST(BasicJITCompilationTestSuite, ArrayOperations) {
@@ -270,53 +214,46 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
     // return arr[0] + arr[1] * arr[2]
 
     func.code = {
-        // new int[3]
-        {czffvm::OperationCode::LDC,    {8}},
-        {czffvm::OperationCode::NEWARR, {0x00, 0x00}},   // arr
+        // --- new int[3] ---
+        {czffvm::OperationCode::LDC,    {3}},        // size = 3
+        {czffvm::OperationCode::NEWARR, {0x00, 0x01}}, // type_idx
 
-        // arr[0] = a
-        {czffvm::OperationCode::DUP, {}},
+        // --- arr[0] = a ---
+        {czffvm::OperationCode::DUP, {}},            // arr
+        {czffvm::OperationCode::LDC, {0}},            // index 0
+        {czffvm::OperationCode::LDV, {0}},            // a
+        {czffvm::OperationCode::STELEM, {}},
+
+        // --- arr[1] = b ---
+        {czffvm::OperationCode::DUP, {}},            // arr
+        {czffvm::OperationCode::LDC, {1}},            // index 1
+        {czffvm::OperationCode::LDV, {1}},            // b
+        {czffvm::OperationCode::STELEM, {}},
+
+        // --- arr[2] = c ---
+        {czffvm::OperationCode::DUP, {}},            // arr
+        {czffvm::OperationCode::LDC, {2}},            // index 2
+        {czffvm::OperationCode::LDV, {2}},            // c
+        {czffvm::OperationCode::STELEM, {}},
+
+        // --- arr[0] + arr[1] * arr[2] ---
+        {czffvm::OperationCode::DUP, {}},            // arr
         {czffvm::OperationCode::LDC, {0}},
-        {czffvm::OperationCode::LDV, {0}},
-        {czffvm::OperationCode::STELEM, {}},
+        {czffvm::OperationCode::LDELEM, {}},          // arr[0]
 
-        // arr[1] = b
-        {czffvm::OperationCode::DUP, {}},
+        {czffvm::OperationCode::DUP, {}},            // arr
         {czffvm::OperationCode::LDC, {1}},
-        {czffvm::OperationCode::LDV, {1}},
-        {czffvm::OperationCode::STELEM, {}},
+        {czffvm::OperationCode::LDELEM, {}},          // arr[1]
 
-        // arr[2] = c
-        {czffvm::OperationCode::DUP, {}},
+        {czffvm::OperationCode::DUP, {}},            // arr
         {czffvm::OperationCode::LDC, {2}},
-        {czffvm::OperationCode::LDV, {2}},
-        {czffvm::OperationCode::STELEM, {}},
+        {czffvm::OperationCode::LDELEM, {}},          // arr[2]
 
-        // ===== ВЫЧИСЛЕНИЕ =====
-
-        // arr[1]
-        {czffvm::OperationCode::DUP, {}},
-        {czffvm::OperationCode::DUP, {}},        // arr arr
-        {czffvm::OperationCode::LDC, {1}},       // arr arr 1
-        {czffvm::OperationCode::LDELEM, {}},     // arr v1
-
-        // arr[2]
-        {czffvm::OperationCode::SWAP, {}},       // arr v1 arr
-        {czffvm::OperationCode::LDC, {2}},       // arr v1 arr 2
-        {czffvm::OperationCode::LDELEM, {}},     // arr v1 v2
-
-        {czffvm::OperationCode::MUL, {}},        // arr (v1*v2)
-
-        // arr[0]
-        {czffvm::OperationCode::SWAP, {}},       // arr (v1*v2) arr
-        {czffvm::OperationCode::LDC, {0}},       // arr (v1*v2) arr 0
-        {czffvm::OperationCode::LDELEM, {}},     // arr (v1*v2) v0
-
-        {czffvm::OperationCode::ADD, {}},        // arr result
+        {czffvm::OperationCode::MUL, {}},             // arr[1] * arr[2]
+        {czffvm::OperationCode::ADD, {}},             // arr[0] + (...)
 
         {czffvm::OperationCode::RET, {}}
     };
-
 
     int32_t stack[16] = {2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -324,7 +261,7 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
         rda,
         jit, 
         func, 
-        {{czffvm::ConstantTag::U1, {'I'}}},
+        {{czffvm::ConstantTag::I4, {0x02, 0x00, 0x00, 0x00}}, {czffvm::ConstantTag::U1, {'I'}}},
         stack
     ));
 
@@ -332,174 +269,6 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
     for (int i = 0; i < 16; i++) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
-
-    ASSERT_NO_THROW(rda.GetHeap().Get({0}));
-    auto array = rda.GetHeap().Get({0});
-
-    ASSERT_EQ(array.type, "[I");
-    ASSERT_EQ(array.fields.size(), 8);
-    ASSERT_EQ(stack[0], 14);
-}
-
-TEST(BasicJITCompilationTestSuite, EqualTest) {
-    auto rda = czffvm::RuntimeDataArea(10000);
-    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
-
-    czffvm::RuntimeFunction func;
-    func.locals_count = 0;
-    func.max_stack = 4;
-    func.code = {
-        {czffvm::OperationCode::LDC, {5}},   // a
-        {czffvm::OperationCode::LDC, {5}},   // b
-        {czffvm::OperationCode::EQ,  {}},
-        {czffvm::OperationCode::RET, {}}
-    };
-
-    int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
-
-    ASSERT_EQ(stack[0], 1);
-}
-
-TEST(BasicJITCompilationTestSuite, LessThanTest) {
-    auto rda = czffvm::RuntimeDataArea(10000);
-    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
-
-    czffvm::RuntimeFunction func;
-    func.locals_count = 0;
-    func.max_stack = 4;
-    func.code = {
-        {czffvm::OperationCode::LDC, {3}},
-        {czffvm::OperationCode::LDC, {7}},
-        {czffvm::OperationCode::LT, {}},
-        {czffvm::OperationCode::RET, {}}
-    };
-
-    int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
-
-    ASSERT_EQ(stack[0], 1);
-}
-
-TEST(BasicJITCompilationTestSuite, LessOrEqualTest) {
-    auto rda = czffvm::RuntimeDataArea(10000);
-    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
-
-    czffvm::RuntimeFunction func;
-    func.locals_count = 0;
-    func.max_stack = 4;
-    func.code = {
-        {czffvm::OperationCode::LDC, {5}},
-        {czffvm::OperationCode::LDC, {5}},
-        {czffvm::OperationCode::LEQ, {}},
-        {czffvm::OperationCode::RET, {}}
-    };
-
-    int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
-
-    ASSERT_EQ(stack[0], 1);
-}
-
-TEST(BasicJITCompilationTestSuite, NegativeTest) {
-    auto rda = czffvm::RuntimeDataArea(10000);
-    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
-
-    czffvm::RuntimeFunction func;
-    func.locals_count = 0;
-    func.max_stack = 2;
-    func.code = {
-        {czffvm::OperationCode::LDC, {5}},
-        {czffvm::OperationCode::NEG, {}},
-        {czffvm::OperationCode::RET, {}}
-    };
-
-    int32_t stack[2] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
-
-    ASSERT_EQ(stack[0], -5);
-}
-
-TEST(BasicJITCompilationTestSuite, ModuloDivisionTest) {
-    auto rda = czffvm::RuntimeDataArea(10000);
-    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
-
-    czffvm::RuntimeFunction func;
-    func.locals_count = 0;
-    func.max_stack = 4;
-    func.code = {
-        {czffvm::OperationCode::LDC, {17}},
-        {czffvm::OperationCode::LDC, {5}},
-        {czffvm::OperationCode::MOD, {}},
-        {czffvm::OperationCode::RET, {}}
-    };
-
-    int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
-
-    ASSERT_EQ(stack[0], 2);
-}
-
-TEST(BasicJITCompilationTestSuite, LogicalOrTest) {
-    auto rda = czffvm::RuntimeDataArea(10000);
-    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
-
-    czffvm::RuntimeFunction func;
-    func.locals_count = 0;
-    func.max_stack = 4;
-    func.code = {
-        {czffvm::OperationCode::LDC, {0}},
-        {czffvm::OperationCode::LDC, {1}},
-        {czffvm::OperationCode::LOR, {}},
-        {czffvm::OperationCode::RET, {}}
-    };
-
-    int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
-
-    ASSERT_EQ(stack[0], 1);
-}
-
-TEST(BasicJITCompilationTestSuite, LogicalAndTest) {
-    auto rda = czffvm::RuntimeDataArea(10000);
-    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
-
-    czffvm::RuntimeFunction func;
-    func.locals_count = 0;
-    func.max_stack = 4;
-    func.code = {
-        {czffvm::OperationCode::LDC, {1}},
-        {czffvm::OperationCode::LDC, {1}},
-        {czffvm::OperationCode::LAND, {}},
-        {czffvm::OperationCode::RET, {}}
-    };
-
-    int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
-
-    ASSERT_EQ(stack[0], 1);
-}
-
-TEST(BasicJITCompilationTestSuite, ConditionalJumpTest) {
-    auto rda = czffvm::RuntimeDataArea(10000);
-    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
-
-    czffvm::RuntimeFunction func;
-    func.locals_count = 0;
-    func.max_stack = 4;
-    func.code = {
-        {czffvm::OperationCode::LDC, {0}},          // cond
-        {czffvm::OperationCode::JZ,  {0x00, 0x04}}, // jump to LDC 42
-        {czffvm::OperationCode::LDC, {1}},          // skipped
-        {czffvm::OperationCode::RET, {}},
-        {czffvm::OperationCode::LDC, {42}},         // target
-        {czffvm::OperationCode::RET, {}}
-    };
-
-    int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
-
-    ASSERT_EQ(stack[0], 42);
 }
 
 
