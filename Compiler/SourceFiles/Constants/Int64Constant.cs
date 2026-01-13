@@ -5,9 +5,9 @@ namespace Compiler.SourceFiles.Constants;
 
 public class Int64Constant : ConstantItem
 {
-    public Int64Constant(int data) : base(8, [])
+    public Int64Constant(long data) : base(8, [])
     {
-        var bytes = ByteConverter.IntToI4(data);
+        var bytes = ByteConverter.IntToI8(data);
         Data = bytes;
     }
 }

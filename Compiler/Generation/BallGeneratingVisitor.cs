@@ -16,7 +16,6 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
     private readonly Ball _target = target;
     private Function? _currentFunction;
     private SymbolTable _scope = scope;
-    private List<List<IOperation>> _buffer = new List<List<IOperation>>();
     
     public void Visit(LiteralExpressionNode literalExpressionNode)
     {
@@ -24,8 +23,21 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         switch (literalExpressionNode.Type)
         {
             case LiteralType.IntegerLiteral:
-                int number = Convert.ToInt32(literalExpressionNode.Value);
-                constant = new IntConstant(number);
+                string numberLine = literalExpressionNode.Value;
+                
+                if (numberLine.Substring(numberLine.Length - 1) == "L")
+                {
+                    numberLine = numberLine.Substring(0, numberLine.Length - 1);
+
+                    long number = Convert.ToInt64(numberLine);
+                    constant = new Int64Constant(number);
+                }
+                else
+                {
+                    int number = Convert.ToInt32(literalExpressionNode.Value);
+                    constant = new IntConstant(number);
+                }
+                
                 break;
             case LiteralType.BooleanLiteral:
                 bool flag;
