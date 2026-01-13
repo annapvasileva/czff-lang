@@ -23,21 +23,14 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
         switch (literalExpressionNode.Type)
         {
             case LiteralType.IntegerLiteral:
-                string numberLine = literalExpressionNode.Value;
-                
-                if (numberLine.Substring(numberLine.Length - 1) == "L")
-                {
-                    numberLine = numberLine.Substring(0, numberLine.Length - 1);
-
-                    long number = Convert.ToInt64(numberLine);
-                    constant = new Int64Constant(number);
-                }
-                else
-                {
-                    int number = Convert.ToInt32(literalExpressionNode.Value);
-                    constant = new IntConstant(number);
-                }
-                
+                int number = Convert.ToInt32(literalExpressionNode.Value);
+                constant = new IntConstant(number);
+            
+                break;
+            case LiteralType.Integer64Literal:
+                long number64 = Convert.ToInt64(literalExpressionNode.Value);
+                constant = new Int64Constant(number64);
+            
                 break;
             case LiteralType.BooleanLiteral:
                 bool flag;
