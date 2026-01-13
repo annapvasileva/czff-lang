@@ -33,14 +33,20 @@ struct uint128_t {
     }
 
     friend uint128_t operator*(uint128_t a, uint128_t b){
-        uint64_t a0 = a.lo, a1 = a.hi;
-        uint64_t b0 = b.lo, b1 = b.hi;
+        uint64_t a_lo = (uint32_t)a.lo;
+        uint64_t a_hi = a.lo >> 32;
+        uint64_t b_lo = (uint32_t)b.lo;
+        uint64_t b_hi = b.lo >> 32;
 
-        __uint128_t p = ( __uint128_t)a0 * b0;
-        uint64_t lo = (uint64_t)p;
-        uint64_t hi = (uint64_t)(p >> 64);
+        uint64_t lo_lo = a_lo * b_lo;
+        uint64_t lo_hi = a_lo * b_hi;
+        uint64_t hi_lo = a_hi * b_lo;
+        uint64_t hi_hi = a_hi * b_hi;
 
-        hi += a0*b1 + a1*b0;
+        uint64_t cross = (lo_hi & 0xFFFFFFFF) + (hi_lo & 0xFFFFFFFF) + (lo_lo >> 32);
+        uint64_t lo = (cross << 32) | (lo_lo & 0xFFFFFFFF);
+        uint64_t hi = a.hi * b.lo + a.lo * b.hi + hi_hi + (lo_hi >> 32) + (hi_lo >> 32) + (cross >> 32);
+
         return {hi, lo};
     }
 
