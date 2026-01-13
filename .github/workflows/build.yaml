@@ -14,6 +14,11 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v4
 
+    - name: Setup MinGW
+      uses: msys2/setup-msys2@v3
+      with:
+        update: true
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -29,5 +34,5 @@ jobs:
 
     - name: Build C++ VM
       run: |
-        cmake -S virtual-machine -B build/vm -DCMAKE_BUILD_TYPE=Release
+        cmake -S virtual-machine -B build/vm -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
         cmake --build build/vm --config Release
