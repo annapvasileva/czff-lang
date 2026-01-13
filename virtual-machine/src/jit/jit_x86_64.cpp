@@ -236,25 +236,26 @@ void X86JitCompiler::CompileOperation(asmjit::x86::Assembler& a, asmjit::x86::Gp
         }
         case OperationCode::NEWARR: {
             using namespace asmjit::x86;
+            // ─── pop size ─────────────
+            a.sub(stackPtr, 4);                 // stackPtr -= sizeof(uint32)
+            a.mov(edx, dword_ptr(stackPtr));    // size -> EDX
 
-            // pop size
-            a.sub(stackPtr, 4);
-            a.mov(edx, dword_ptr(stackPtr));   // uint32 size
-
-            // type_idx из аргументов операции
+            // ─── type_idx ─────────────
             uint16_t type_idx = (op.arguments[0] << 8) | op.arguments[1];
-            a.mov(r8d, type_idx);
+            a.mov(r8d, type_idx);               // type -> R8D
 
-            // резервируем место для HeapRef результата
-            a.sub(stackPtr, 8);                 // push placeholder
-            a.lea(r9, ptr(stackPtr));           // r9 = HeapRef*
+            // ─── allocate space для HeapRef ───
+            a.sub(stackPtr, 8);                  // место для HeapRef
+            a.lea(r9, ptr(stackPtr));            // r9 = HeapRef*
 
-            // вызов хелпера
-            a.mov(rcx, heapPtr);                // RCX = X86JitHeapHelper*
+            // ─── call helper ─────────
+            a.mov(rcx, heapPtr);                 // RCX = heapHelper
             a.mov(rax, (uint64_t)JIT_NewArray);
-            a.call(rax);                        // результат записан в *r9
+            a.call(rax);
 
-            // стекPtr уже указывает на HeapRef, ничего не добавляем
+            // ─── push HeapRef на стек VM ──
+            // HeapRef уже записан по stackPtr
+            a.add(stackPtr, 8); 
             break;
         }
         case OperationCode::STELEM: {
