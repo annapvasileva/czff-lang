@@ -1,0 +1,10 @@
+=/
+Our first simple program on CZFF 
+/=
+func void Main() {
+    var int a = 2;
+    var int b = 3;
+    var int res = a + b;
+    print res;
+    return;
+}

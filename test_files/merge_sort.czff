@@ -1,0 +1,62 @@
+  =/
+  Merge Sort Implementation
+  /=
+  func void Merge(array<int> arr, int left, int mid, int right) {
+      var int it1 = 0;
+      var int it2 = 0;
+      var array<int> result = new int(right - left)[]; // create array with size right - left
+
+      while (left + it1 < mid && mid + it2 < right) {
+            if (arr[left + it1] <= arr[mid + it2]) {
+                result[it1 + it2] = arr[left + it1];
+                it1 = it1 + 1;
+            } else {
+                result[it1 + it2] = arr[mid + it2];
+                it2 = it2 + 1;
+            }
+      }
+
+      while (left + it1 < mid) {
+          result[it1 + it2] = arr[left + it1];
+          it1 = it1 + 1;
+      }
+                      
+      while (mid + it2 < right) {
+          result[it1 + it2] = arr[mid + it2];
+          it2 = it2 + 1;
+      }
+
+      for (var int i = 0; i < it1 + it2; i = i + 1) {
+          arr[left + i] = result[i];
+      }
+      return;
+  }
+
+  func void MergeSort(array<int> arr, int left, int right) {
+      if (left + 1 >= right) {
+        return;
+      }
+
+      var int mid = (left + right) / 2;
+      MergeSort(arr, left, mid);
+      MergeSort(arr, mid, right);
+      Merge(arr, left, mid, right);
+      return;
+  }
+
+  func void Main() {
+      var int n = 1000000;
+      var array<int> arr = new int(n)[]; // create array with size n
+      for (var int i = 0; i < n; i = i + 1) {
+        arr[i] = n - i;
+      }
+      MergeSort(arr, 0, n);
+      for (var int i = 0; i < n - 1; i = i + 1) {
+          if (arr[i] > arr[i + 1]) {
+            print 0;
+            return;
+          }
+      }
+      print 1;
+      return;
+  }

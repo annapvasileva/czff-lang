@@ -1,0 +1,13 @@
+func int64 Factorial(int64 i) {
+    if (i <= 1L) {
+        return 1L;
+    } 
+    return Factorial(i - 1L) * i;
+}
+
+func void Main() {
+    var int64 res = Factorial(20L);
+    print res;
+    
+    return;
+}
