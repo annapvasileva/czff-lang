@@ -195,8 +195,64 @@ TEST(BasicJITCompilationTestSuite, ArrayCreation) {
     }
 
     ASSERT_NO_THROW(rda.GetHeap().Get({1}));
-    ASSERT_EQ(rda.GetHeap().Get({1}).type, "[I");
-    ASSERT_EQ(rda.GetHeap().Get({1}).fields.size(), 3);
+    auto array = rda.GetHeap().Get({1});
+
+    ASSERT_EQ(array.type, "[I");
+    ASSERT_EQ(array.fields.size(), 3);
+}
+
+TEST(BasicJITCompilationTestSuite, ArrayStore) {
+    auto rda = czffvm::RuntimeDataArea(10000);
+    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
+
+    czffvm::RuntimeFunction func;
+    func.locals_count = 2;  // a, b, c
+    func.max_stack = 32;
+
+    // arr = new int[3]
+
+    func.code = {
+        // --- new int[3] ---
+        {czffvm::OperationCode::LDC,    {3}},        // size = 3
+        {czffvm::OperationCode::NEWARR, {0x00, 0x00}}, // type_idx
+
+        {czffvm::OperationCode::DUP, {}},            // arr
+        {czffvm::OperationCode::LDC, {0}},            // index 0
+        {czffvm::OperationCode::LDC, {12}},            // a
+        {czffvm::OperationCode::STELEM, {}},
+    };
+
+    int32_t stack[16] = {12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    ASSERT_NO_THROW(CompileAndExecute(
+        rda,
+        jit, 
+        func, 
+        {{czffvm::ConstantTag::U2, {'I', ';'}}},
+        stack
+    ));
+
+    std::cout << "[TEST] After call:" << std::endl;
+    for (int i = 0; i < 16; i++) {
+        std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
+    }
+
+    ASSERT_NO_THROW(rda.GetHeap().Get({1}));
+    auto array = rda.GetHeap().Get({1});
+
+    ASSERT_EQ(array.type, "[I");
+    ASSERT_EQ(array.fields.size(), 3);
+
+    uint32_t arr_elem;
+    if (auto p = std::get_if<uint8_t>(&array.fields[0]))      arr_elem = *p;
+    else if (auto p = std::get_if<uint16_t>(&array.fields[0])) arr_elem = *p;
+    else if (auto p = std::get_if<uint32_t>(&array.fields[0])) arr_elem = *p;
+    else if (auto p = std::get_if<int32_t>(&array.fields[0]))  arr_elem = static_cast<uint32_t>(*p);
+    else {
+        throw std::runtime_error("NEWARR: array size must be integer");
+    }
+    ASSERT_EQ(arr_elem, 12);
+
 }
 
 TEST(BasicJITCompilationTestSuite, ArrayOperations) {
