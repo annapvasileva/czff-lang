@@ -32,9 +32,21 @@
 
         * [User-defined Data Types](#user-defined-data-types)
 
-    * [Expressions and Operators](#expressions-and-operators)
+    * [Blocks, Scopes and Declarations](#blocks-scopes-and-declarations)
 
-        * [Function Calls](#function-calls)
+        * [Blocks](#blocks)
+
+        * [Scopes](#scopes)
+
+        * [Declarations](#declarations)
+
+            * [Variable Declarations](#variable-declarations)
+
+            * [Function Declarations](#function-declarations)
+
+            * [Class Declarations](#class-declarations)
+
+    * [Expressions and Operators](#expressions-and-operators)
 
         * [Arithmetic Operators](#arithmetic-operators)
 
@@ -42,31 +54,23 @@
 
         * [Logical Operators](#logical-operators)
 
+        * [Function Calls](#function-calls)
+
+        * [Array Access](#array-access)
+
+        * [Member Access](#member-access)
+
+    * [Statements](#statements)
+    
         * [Assignment](#assignment)
 
-        * [Ternary Conditional Operator](#ternary-conditional-operator)
+        * [Control Flow](#control-flow)
 
-        * [Conversions](#conversions)
+            * [Conditions](#conditions)
 
-        * [Priority and Order of Operations](#priority-and-order-of-operations)
+            * [Loops](#loops)
 
-    * [Blocks, Scopes and Declarations](#blocks-scopes-and-declarations)
-
-        * [Constant Declarations](#constant-declarations)
-
-        * [Variable Declarations](#variable-declarations)
-
-        * [Function Declarations](#function-declarations)
-
-        * [Class Declarations](#class-declarations)
-
-    * [Control Flow](#control-flow)
-
-        * [Conditions](#conditions)
-
-        * [Loops](#loops)
-
-        * [Exceptions](#exceptions)
+    * [Exceptions](#exceptions)
 
 3. [System Components](#system-components)
 
@@ -138,97 +142,238 @@
 
 ### Characters
 
-Newline, whitespace…, decimal digits, letters
+    new_line = "\n" ;
+    whitespace = " " | "\t" | "\r" ;
+    decimal_digit = "0" ... "9" ;
+    letter = "A" ... "Z" | "a" ... "z" ;
 
 ### Comments
 
-* One line
+One-line comments start with the character sequence // and stop at the end of the line
 
-* Multiple lines
+General comments start with the character sequence =/ and stop with the first subsequent character sequence /=
 
 ### Tokens
 
-* Identifiers (названия переменных и типов)
+* Identifiers
 
-* Keywords (if, for, while…)
+        identifier_first_letter = "_" | letter ;
+        identifier = identifier_first_letter , { letter | decimal_digit | "_" } ;
 
-* Operators (+, -, %...)
+* Keywords
+
+        break   class  continue else    
+        for     func    if      new     
+        return  var     while
+
+* Operators
+
+        +   -   *   /   %
+        &&  ||  !   ==  =
+        <   >   <=  =>  !=
+
+* Puncuation
+
+        ,   .   ;   :   
+        (   )   {   }   [   ]
 
 ### Literals
 
-* numeric
+    integer_literal = decimal_digit , { decimal_digit } ;
+    string_literal = "\"" , { character - forbidden_character } , "\""
+    bool_literal = "true" | "false" ;
+    literal = integer_literal | string_literal | bool_literal ;
 
-* string
+    forbidden_character = "\"" | new_line
 
-### Constants
+character - arbitrary Unicode symbol
 
 ### Types
 
 #### Primitive Types
 
-* Bool
+* bool - *true* or *false*
 
-* Integer
+* int - the set of all signed 64-bit integers
 
 #### Composite Types
 
-* String
+* string - sequence of characters
 
-* Array
+* array<*type*> - sequence of elements of a single type
 
 #### User-Defined Data Types
 
-* Classes
-
-* Structures
-
-### Expressions and Operators
-
-#### Function Calls
-
-#### Arithmetic Operators
-
-#### Comparison Operators
-
-#### Logical Operators
-
-#### Assignment
-
-#### Ternary Conditional Operator
-
-### Conversions
-
-* Implicit
-
-* Explicit
-
-### Priority and Order of Operations
+* class - a set of named elements, called fields, and functions, called methods.
 
 ### Blocks, Scopes and Declarations
 
-#### Constant Declarations
+#### Blocks
+
+A block is a sequence of declarations and statements within matching brace brackets
+
+    block = "{" , { statement , ";" } , "}" ;
+
+#### Scopes
+
+Scope is the context in which a name is visible. Scope types:
+
+* Class scope
+
+* Function scope
+
+* Statement scope (*if*, *for*...)
+
+#### Declarations
+
+    declaration = variable_declaration | function_declaration | class_declaration ;
 
 #### Variable Declarations
 
+    type = "bool" | "int" | "string" | "array<" , type ">" | identifier
+    primitive_type_declaration = "var" , int | bool , identifier , [ "=" , expression ] , ";" ;
+    string_declaration = "var" , "string" , identifier , [ "=" , expression ] , ";" ;
+    array_declaration = "var" , "array<" , type ">" , identifier , [ "=" , new , "(" , integer_literal , ")" , "[" , { , identifier , "," , } "]" ] , ";"
+    class_declaration = "var" , identifier , identifier , [ "=" , expression ] ,  ";" ;
+    variable_declaration = primitive_type_declaration | string_declaration | array_declaration | class_declaration ;
+
 #### Function Declarations
 
+    function_declaration = "func" , func_return_type , function_name , "(" , [ parameter_list ] , ")" , function_body ; 
+    function_name = identifier ;
+    func_return_type = type | "void" ;
+    parameter_list = parameter , { "," , parameter } ;
+    parameter = type , identifier ;
+    function_body = block ;
+
 #### Class Declarations
+
+    class_declaration = "class" , class_name , class_body ;
+    class_name = identifier ;
+    class_body = "{", { class_member } , "}" ;
+    class_member = field | constructor | method ;
+    field = variable_declaration ;
+    method = function_declaration ;
+    constructor = class_name , "(" , [ parameter_list ] , ")" , function_body ;
+
+### Expressions and Operators
+
+Expression is a piece of code that can be evaluated to a value
+
+    expression = logical_or ;
+    logical_or = logical_and , { "||" , logical_and } ;
+    logical_and = equality , { "&&" , equality } ;
+    equality = comparison , { "==" | "!=" , comparison } ;
+    comparison = additive , { ">" | ">=" | "<" | "<=" , additive } ;
+    additive = multiplicative , { "+" | "-" , multiplicative } ;
+    multiplicative = unary , { "*" | "/" , "%" , unary } ;
+    unary = "-" | "!" , unary
+                 | postfix ;
+    postfix = primary , { postfix_operation } ;
+    postfix_operation = function_call | index_access ;
+    primary = literal | identifier | "(" , expression , ")" ;
+
+#### Arithmetic Operators
+
+    arithmetic_operator = "+" | "-" | "*" | "/" | "%" ;
+
+#### Comparison Operators
+
+    comparison_operator = "==" | "!=" | "<" | "<=" | ">" | ">=" ;
+
+#### Logical Operators
+
+    logical_operator = "&&" | "||" | "!" ;
+
+#### Function Calls
+
+    function_call = function_name , "(" , [ arguments ] , ")" ;
+    arguments = expression , { "," , expression } ;
+
+#### Array access
+
+    array_access = identifier , "[" , expression , "]" ;
+
+#### Member access
+
+    member_access = identifier , "." , identifier ;
+
+### Statements
+
+Statement is the piece of code that tells the computer to do something
+
+    statement = expression_statement
+                | increment_decrement_statement
+                | assigment 
+                | declaration 
+                | break_statement
+                | continue_statement
+                | return_statement  
+                | if_statement
+                | for_statement
+                | while_statement
+                | io_statement
+    expression_statement = expression ;
+    increment_decrement_statement = expression , increment_decrement  ;
+
+#### Assignment
+
+    assigment = identifier | array_access | member_access , "=" | expression ;
 
 ### Control Flow
 
 #### Conditions
 
-if, else, elif...
+    if_statement = "if" , "(" , expression , ")" , block , { "elif" , "(" , expression , ")" , block } [ "else" , block ] ;
 
 #### Loops
 
-for, while + break, continue, return(?), (?) do-while, (?) foreach
+    break_statement = "break" ;
+    continue_statement = "continue" ;
+    return_statement = "return" , [ expression ] ;
 
-#### Exceptions
+<br>
+
+    for_statement = "for" , "(" , for_init , ";" , for_condition , ";" , for_post  ")" , block ;
+    for_init = varaible_declaration ;
+    for_condition = expression ;
+    for_post = expression ;
+
+<br>
+
+    while_statement = "while" , "(" , expression ")" , block ;
+
+### Exceptions
+
+If an exception occurs, we will stop the program, write the error code, and display an error message
 
 ## System Components
 
 ### Lexer and Parser
+
+Step 1. Lexer
+
+Program which will convert a text into lexical tokens belonging to categories include identifiers, operators, data types, language keywords.
+
+Step 2. Parser
+
+The tokens are then parsed into AST (abstract syntax tree) by the parser.
+
+Step 3. Semantic Analysis
+
+* Type checking
+    * Check operands types (for example, adding string to int is prohibited)
+    * Data types of operands in expressions match the expected data type
+    * Check argument types for function calls 
+
+* Undefined and unassigned variables checking
+
+* Scope checking
+
+    Check that variables are used within the scope they were defined
+
+* Flow control check 
+    Check that statements like "return" or "break" are used correctly.
 
 ### Bytecode Compiler
 - [Bytecode specification](./docs/bytecode/bytecode.md)
@@ -254,31 +399,125 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
 
 ## Standard Library
 
-* input, output
+* Input and Output
 
-* built-in functions
+    * print
+    
+    * println
+    
+    * read (until end of line or whitespace)
+    
+    * readline (until end of line)
 
-    * min, max
+    <br>
 
-    * ...
-
-* ...
+        io_statement = print_statement | read_statement ;
+        print_statement = "print" | "println" , "(" , [ expression , { "," , expression } ] , ")" , ";"
+        read_statement = "read" | "readln" , "(" , identifier , ")" , ";"
 
 ## Code Examples
 
 * Factorial calculation
 
-        var int n = 10;
-        print(factorial(n));
+        =/
+        Factorial calculation
+        /=
+        func int Factorial(int n) {
+            if (n <= 1) {
+                return 1;
+            }
+
+            return n * Factorial(n - 1);
+        }
+
+        func void Main(array<string> args) {
+            var int n = 10;
+            print(Factorial(n));
+        }
 
 * Array Sorting
 
-        array<int> arr
-        merge_sort(arr)
+        =/
+        Merge Sort Implementation
+        /=
+        func void Merge(array<int> arr, int left, int mid, int right) {
+            var int it1 = 0;
+            var int it2 = 0;
+            var array<int> result = new int(right - left)[]; // create array with size right - left
+
+            while (left + it1 < mid) {
+                if (mid + it2 < right) {
+                    if (arr[left + it1] <= arr[mid + it2]) {
+                        result[it1 + it2] = arr[left + it1];
+                        it1 = it1 + 1;
+                    } else {
+                        result[it1 + it2] = arr[mid + it2];
+                        it2 = it2 + 1;
+                    }
+                }
+            }
+
+            while (left + it1 < mid) {
+                result[it1 + it2] = arr[left + it1];
+                it1 = it1 + 1;
+            }
+                            
+            while (mid + it2 < right) {
+                result[it1 + it2] = arr[mid + it2];
+                it2 = it2 + 1;
+            }
+
+            for (var int i = 0; i < it1 + it2; i = i + 1) {
+                arr[left + i] = result[i];
+            }
+            return;
+        }
+
+        func void MergeSort(array<int> arr, int left, int right) {
+            if (left + 1 >= right) {
+                return;
+            }
+
+            var int mid = (left + right) / 2;
+            MergeSort(arr, left, mid);
+            MergeSort(arr, mid, right);
+            Merge(arr, left, mid, right);
+            return;
+        }
+
+        func void Main() {
+            var int n = 5;
+            var array<int> arr = new int(n)[]; // create array with size n
+            for (var int i = 0; i < n; i = i + 1) {
+                arr[i] = n - i;
+            }
+            MergeSort(arr, 0, n);
+            for (var int i = 0; i < n; i = i + 1) {
+                print arr[i];
+            }
+            return;
+        }
 
 * Prime Number Generation
 
-        var int n = 10;
-        var array<int> arr := sieve(n);
+        func void Main(array<string> args) {
+            var int n;
+            read(n);
+            var array<bool> prime = new(n + 1)[];
+            for (var int i = 2; i < n + 1; i = i + 1) {
+                prime[i] = true;
+            }
+            for (var int p = 2; p * p <= n; p = p + 1) {
+                if (prime[p] == true) {
+                    for (var int i = p * p; i <= n; i = i + p) {
+                        prime[i] = false;
+                    }
+                }
+            }
 
-* Maybe smth else
+            for (var int i = 2; i <= n; i = i + 1) {
+                if (prime[i] == true) {
+                    print i
+                }
+            }
+        }
