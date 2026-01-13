@@ -1,6 +1,6 @@
 ﻿namespace Compiler.Operations;
 
-public class Ret : IOperation
+public class Add : IOperation
 {
     public void Accept(IOperationVisitor operationVisitor)
     {
@@ -9,11 +9,11 @@ public class Ret : IOperation
 
     public string GetString()
     {
-        return "ret";
+        return "add";
     }
 }
 
-public class Halt : IOperation
+public class Sub : IOperation
 {
     public void Accept(IOperationVisitor operationVisitor)
     {
@@ -22,11 +22,11 @@ public class Halt : IOperation
 
     public string GetString()
     {
-        return "halt";
+        return "sub";
     }
 }
 
-public class Print : IOperation
+public class Mul : IOperation
 {
     public void Accept(IOperationVisitor operationVisitor)
     {
@@ -35,14 +35,12 @@ public class Print : IOperation
 
     public string GetString()
     {
-        return "print";
+        return "mul";
     }
 }
 
-public class Call(int functionIndex) : IOperation
+public class Div : IOperation
 {
-    public int FunctionIndex { get; set; } = functionIndex;
-    
     public void Accept(IOperationVisitor operationVisitor)
     {
         operationVisitor.Visit(this);
@@ -50,7 +48,32 @@ public class Call(int functionIndex) : IOperation
 
     public string GetString()
     {
-        return "call " + FunctionIndex;
+        return "div";
     }
 }
 
+public class Mod : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "mod";
+    }
+}
+
+public class Min : IOperation
+{
+    public void Accept(IOperationVisitor operationVisitor)
+    {
+        operationVisitor.Visit(this);
+    }
+
+    public string GetString()
+    {
+        return "min";
+    }
+}

@@ -26,4 +26,7 @@ public interface IOperationVisitor
     public void Visit(Jz operation);
     public void Visit(Jnz operation);
     public void Visit(Neg operation);
+    public void Visit(Mod operation);
+    public void Visit(Lor operation);
+    public void Visit(Land operation);
 }

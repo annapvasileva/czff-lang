@@ -16,7 +16,6 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
     private readonly Ball _target = target;
     private Function? _currentFunction;
     private SymbolTable _scope = scope;
-    private List<List<IOperation>> _buffer = new List<List<IOperation>>();
     
     public void Visit(LiteralExpressionNode literalExpressionNode)
     {
@@ -26,6 +25,12 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
             case LiteralType.IntegerLiteral:
                 int number = Convert.ToInt32(literalExpressionNode.Value);
                 constant = new IntConstant(number);
+            
+                break;
+            case LiteralType.Integer64Literal:
+                long number64 = Convert.ToInt64(literalExpressionNode.Value);
+                constant = new Int64Constant(number64);
+            
                 break;
             case LiteralType.BooleanLiteral:
                 bool flag;
@@ -119,8 +124,17 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
                 _currentFunction!.Operations.Add(new Eq());
                 _currentFunction!.Operations.Add(new Neg());
                 break;
+            case BinaryOperatorType.LogicalOr:
+                _currentFunction!.Operations.Add(new Lor());
+                break;
+            case BinaryOperatorType.LogicalAnd:
+                _currentFunction!.Operations.Add(new Land());
+                break;
+            case BinaryOperatorType.Modulus:
+                _currentFunction!.Operations.Add(new Mod());
+                break;
             default:
-                throw new NotImplementedException();
+                throw new GeneratorException("Binary operator not supported.");
         }
     }
 
