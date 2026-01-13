@@ -1,0 +1,33 @@
+name: Build Compiler + VM
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Setup CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Build C# Compiler
+      run: |
+        dotnet restore Compiler/Compiler.csproj
+        dotnet build Compiler/Compiler.csproj -c Release
+
+    - name: Build C++ VM
+      run: |
+        cmake -S VM -B build/vm -DCMAKE_BUILD_TYPE=Release
+        cmake --build build/vm --config Release
