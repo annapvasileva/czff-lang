@@ -11,7 +11,7 @@
 #include "uint128.hpp"
 
 namespace czffvm {
-const uint32_t DEFAULT_MAX_HEAP_SIZE = 50;
+const uint32_t DEFAULT_MAX_HEAP_SIZE_IN_BYTES = 1024 * 1024 * 50;
 
 enum class OperationCode : uint16_t {
     LDC = 0x0001,
@@ -37,6 +37,10 @@ enum class OperationCode : uint16_t {
     JMP = 0x0015,
     JZ = 0x0016,
     JNZ = 0x0017,
+    NEG = 0x0018,
+    MOD = 0x0019,
+    LOR = 0x001A,
+    LAND = 0x001B
 };
 
 struct Operation {
@@ -94,7 +98,9 @@ struct HeapRef {
 };
 
 using Value = std::variant<
+    int8_t,                     // I1
     uint8_t,                    // U1
+    int16_t,                    // I2
     uint16_t,                   // U2
     uint32_t,                   // U4
     int32_t,                    // I4

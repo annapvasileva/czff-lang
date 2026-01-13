@@ -231,6 +231,10 @@ void ClassLoader::LoadFunctions(ByteReader& r) {
                 case OperationCode::EQ:
                 case OperationCode::LT:
                 case OperationCode::LEQ:
+                case OperationCode::NEG:
+                case OperationCode::MOD:
+                case OperationCode::LOR:
+                case OperationCode::LAND:
                     break;
                 case OperationCode::NEWARR:
                 case OperationCode::CALL:

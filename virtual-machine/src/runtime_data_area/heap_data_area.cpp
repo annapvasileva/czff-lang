@@ -2,38 +2,92 @@
 
 namespace czffvm {
 
-Heap::Heap(StackDataArea& stack, uint32_t max_heap_size)
-    : stack_(stack), max_heap_size_(max_heap_size) {}
+Heap::Heap(StackDataArea& stack, uint32_t max_heap_size_in_bytes)
+    : stack_(stack), max_heap_size_in_bytes_(max_heap_size_in_bytes) {}
 
 HeapRef Heap::Allocate(const std::string& type,
-                       std::vector<Value> fields) {
-
-    if (next_id_ > max_heap_size_) {
-        Collect(0);
+                       std::vector<Value>&& fields) {
+    size_t approximate_size = EstimateSize(type, fields);
+    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+        Collect();
     }
 
-    HeapRef ref{ next_id_++ };
+    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+        throw std::runtime_error("Heap memory limit exceeded");
+    }
 
-    objects_.emplace(ref, HeapObject{
+    if (!free_list_.empty()) {
+        uint32_t id = free_list_.back();
+        free_list_.pop_back();
+        objects_[id] = HeapObject{
+            .marked = false,
+            .type = type,
+            .fields = std::move(fields)
+        };
+        used_bytes_ += approximate_size;
+
+        return HeapRef(id);
+    }
+
+    HeapRef ref{ objects_.size() };
+
+    objects_.push_back(HeapObject{
         .marked = false,
         .type = type,
         .fields = std::move(fields)
     });
+    used_bytes_ += approximate_size;
+
+    return ref;
+}
+
+HeapRef Heap::Allocate(const std::string& type,
+                       std::vector<Value>& fields) {
+    size_t approximate_size = EstimateSize(type, fields);
+    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+        Collect();
+    }
+
+    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+        throw std::runtime_error("Heap memory limit exceeded");
+    }
+
+    if (!free_list_.empty()) {
+        uint32_t id = free_list_.back();
+        free_list_.pop_back();
+        objects_[id] = HeapObject{
+            .marked = false,
+            .type = type,
+            .fields = std::move(fields)
+        };
+        used_bytes_ += approximate_size;
+
+        return HeapRef(id);
+    }
+
+    HeapRef ref{ objects_.size() };
+
+    objects_.push_back(HeapObject{
+        .marked = false,
+        .type = type,
+        .fields = std::move(fields)
+    });
+    used_bytes_ += approximate_size;
 
     return ref;
 }
 
 HeapObject& Heap::Get(HeapRef ref) {
-    auto it = objects_.find(ref);
-    if (it == objects_.end())
+    if (ref.id >= objects_.size() || !objects_[ref.id]) {
         throw std::runtime_error("Invalid heap reference");
+    }
 
-    return it->second;
+    return objects_[ref.id].value();
 }
 
-void Heap::Collect(size_t generation) {
+void Heap::Collect() {
     MarkFromRoots();
-    Sweep(generation);
+    Sweep();
 }
 
 void Heap::MarkFromRoots() {
@@ -49,36 +103,62 @@ void Heap::MarkFromRoots() {
 }
 
 void Heap::Mark(const HeapRef& ref) {
-    auto it = objects_.find(ref);
-    if (it == objects_.end()) return;
+    if (ref.id >= objects_.size() || !objects_[ref.id]) return;
 
-    auto& obj = it->second;
-    if (obj.marked) return;
+    auto& obj = objects_[ref.id];
+    if (obj->marked) return;
 
-    obj.marked = true;
+    obj->marked = true;
 
-    for (auto& f : obj.fields)
+    for (auto& f : obj->fields)
         if (auto* r = std::get_if<HeapRef>(&f))
             Mark(*r);
 }
 
-void Heap::Sweep(size_t generation) {
-    for (auto it = objects_.begin(); it != objects_.end();) {
-        HeapObject& obj = it->second;
-        if (obj.generation != generation) {
-            ++it;
-            continue;
-        }
+void Heap::Sweep() {
+    for (uint32_t i = 0; i < objects_.size(); ++i) {
+        auto& obj = objects_[i];
+        if (!obj) continue;
 
-        if (!obj.marked) {
-            it = objects_.erase(it);
+        if (!obj->marked) {
+            used_bytes_ -= EstimateSize(obj->type, obj->fields);
+            obj.reset();
+            free_list_.push_back(i);
         } else {
-            if (obj.generation < 2)
-                obj.generation++;
-            obj.marked = false;
-            ++it;
+            obj->marked=false;
         }
     }
 }
+
+size_t Heap::EstimateSize(const std::string& type, const std::vector<Value>& fields) {
+    size_t size = sizeof(HeapObject);
+
+    size += type.size();
+
+    size += fields.size() * sizeof(Value);
+
+    for (auto& v : fields) {
+        if (auto* s = std::get_if<std::string>(&v))
+            size += s->size();
+    }
+
+    return size;
+}
+
+size_t Heap::EstimateSize(const std::string& type, const std::vector<Value>&& fields) {
+    size_t size = sizeof(HeapObject);
+
+    size += type.size();
+
+    size += fields.size() * sizeof(Value);
+
+    for (auto& v : fields) {
+        if (auto* s = std::get_if<std::string>(&v))
+            size += s->size();
+    }
+
+    return size;
+}
+
 
 }

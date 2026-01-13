@@ -1,3 +1,4 @@
+#include <type_traits>
 #include <iostream>
 #include <optional>
 
@@ -12,63 +13,81 @@ Interpreter::Interpreter(RuntimeDataArea& rda)
     : rda_(rda) {}
 
 struct TypeDesc {
-    enum Kind {
-        INT,
-        BOOL,
-        ARRAY,
-        VOID
-    } kind;
-
-    std::unique_ptr<TypeDesc> element = nullptr;
-    std::string class_name = "";
+    enum Kind { INT, BOOL, ARRAY, STRING, VOID } kind;
+    bool is_signed = true;
+    int size_bytes = 0;
+    std::unique_ptr<TypeDesc> element;
 };
 
 static TypeDesc ParseType(const std::string& s, size_t& i) {
 
-    if (s[i] == 'I') {
-        i+=2;
-        return {TypeDesc::INT, nullptr, ""};
+    if (s.compare(i,7,"String;")==0) {
+        i+=7;
+        return {TypeDesc::STRING};
     }
 
-    if (s[i] == 'B') {
-        i+=2;
-        return {TypeDesc::BOOL, nullptr, ""};
-    }
-
-    if (s[i] == '[') {
+    if (s[i]=='I' || s[i]=='U') {
+        bool sign = s[i]=='I';
         i++;
-        TypeDesc inner = ParseType(s,i);
-        return {
-            TypeDesc::ARRAY,
-            std::make_unique<TypeDesc>(std::move(inner)),
-            ""
-        };
+
+        size_t start=i;
+        while (isdigit(s[i])) i++;
+
+        int bytes = start==i ? 4 : std::stoi(s.substr(start,i-start));
+
+        if (s[i++]!=';')
+            throw std::runtime_error("Bad descriptor");
+
+        return {TypeDesc::INT, sign, bytes};
+    }
+
+    if (s[i]=='B') {
+        i+=2;
+        return {TypeDesc::BOOL};
+    }
+
+    if (s[i]=='[') {
+        i++;
+        auto inner = ParseType(s,i);
+        return {TypeDesc::ARRAY,false,0,
+                std::make_unique<TypeDesc>(std::move(inner))};
     }
 
     if (s.compare(i,5,"void;")==0) {
         i+=5;
-        return {TypeDesc::VOID,nullptr,""};
+        return {TypeDesc::VOID};
     }
 
-    throw std::runtime_error("Bad type descriptor");
+    throw std::runtime_error("Bad descriptor");
 }
 
-static bool Match(const TypeDesc& t, const Value& v) {
-    return std::visit([&](auto&& x)->bool{
+static bool Match(const TypeDesc& t,const Value& v){
+    return std::visit([&](auto&& x){
         using T = std::decay_t<decltype(x)>;
 
-        switch(t.kind) {
-            case TypeDesc::INT:
-                return std::is_same_v<T,int32_t>;
+        if(t.kind==TypeDesc::BOOL)
+            return std::is_same_v<T,bool>;
 
-            case TypeDesc::BOOL:
-                return std::is_same_v<T,bool>;
+        if(t.kind==TypeDesc::ARRAY)
+            return std::is_same_v<T,HeapRef>;
 
-            case TypeDesc::ARRAY:
-                return std::is_same_v<T,HeapRef>;
+        if(t.kind==TypeDesc::STRING)
+            return std::is_same_v<T,HeapRef>;
 
-            case TypeDesc::VOID:
-                return false;
+        if(t.kind==TypeDesc::INT){
+            if(t.is_signed){
+                if(t.size_bytes==1) return std::is_same_v<T,int8_t>;
+                if(t.size_bytes==2) return std::is_same_v<T,int16_t>;
+                if(t.size_bytes==4) return std::is_same_v<T,int32_t>;
+                if(t.size_bytes==8) return std::is_same_v<T,int64_t>;
+                if(t.size_bytes==16) return std::is_same_v<T,stdint128::int128_t>;
+            } else {
+                if(t.size_bytes==1) return std::is_same_v<T,uint8_t>;
+                if(t.size_bytes==2) return std::is_same_v<T,uint16_t>;
+                if(t.size_bytes==4) return std::is_same_v<T,uint32_t>;
+                if(t.size_bytes==8) return std::is_same_v<T,uint64_t>;
+                if(t.size_bytes==16) return std::is_same_v<T,stdint128::uint128_t>;
+            }
         }
         return false;
     },v);
@@ -84,41 +103,13 @@ static bool CheckReturnType(const std::string& expected, const Value& v) {
     return Match(t,v);
 }
 
-static size_t CountParams(const std::string& s) {
-    size_t i = 0;
-    size_t count = 0;
-
-    while (i < s.size()) {
-        if (s[i] == '[') {
-            while (s[i] == '[') i++;
-
-            if (s[i] == 'I' || s[i] == 'B') {
-                i++;
-                if (s[i] != ';')
-                    throw std::runtime_error("Bad descriptor");
-                i++;
-            }
-            else {
-                throw std::runtime_error("Unknown type");
-            }
-
-            count++;
-            continue;
-        }
-
-        if (s[i] == 'I' || s[i] == 'B') {
-            i++;
-            if (s[i] != ';')
-                throw std::runtime_error("Bad descriptor");
-            i++;
-            count++;
-            continue;
-        }
-
-        throw std::runtime_error("Bad descriptor");
+static size_t CountParams(const std::string& s){
+    size_t i=0,c=0;
+    while(i<s.size()){
+        ParseType(s,i);
+        c++;
     }
-
-    return count;
+    return c;
 }
 
 void Interpreter::Execute(RuntimeFunction* entry) {
@@ -152,7 +143,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("STORE: Operand stack underflow");
                 }
-                f.locals.at(idx) = f.operand_stack.back();
+                f.locals.at(idx) = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
                 break;
             }
@@ -165,11 +156,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("ADD: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("ADD: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
@@ -193,7 +184,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("PRINT: Operand stack underflow");
                 }
-                Value v = f.operand_stack.back();
+                Value v = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 std::visit([](auto&& x) {
@@ -223,7 +214,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                         throw std::runtime_error("RET: missing return value");
                     }
 
-                    ret_value = f.operand_stack.back();
+                    ret_value = std::move(f.operand_stack.back());
                     f.operand_stack.pop_back();
 
                     if (!CheckReturnType(ret_type, *ret_value)) {
@@ -274,12 +265,12 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("SWAP: Operand stack underflow");
                 }
-                auto first = f.operand_stack.back();
+                auto first = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("SWAP: Operand stack underflow");
                 }
-                auto second = f.operand_stack.back();
+                auto second = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
                 
                 f.operand_stack.push_back(first);
@@ -287,7 +278,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 break;
             }
             case OperationCode::NEWARR: {
-                Value v_size = f.operand_stack.back();
+                Value v_size = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 uint32_t arr_size;
@@ -305,17 +296,19 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 std::string array_type = "[" + elem_type;
 
                 auto make_default = [&]() -> Value {
-                    if (elem_type == "U1;")  return uint8_t(0);
-                    if (elem_type == "U2;")  return uint16_t(0);
-                    if (elem_type == "U4;")  return uint32_t(0);
-                    if (elem_type == "I;")  return int32_t(0);
-                    if (elem_type == "U8;")  return uint64_t(0);
-                    if (elem_type == "I8;")  return int64_t(0);
+                    if (elem_type == "U1;") return uint8_t(0);
+                    if (elem_type == "I1;") return int8_t(0);
+                    if (elem_type == "U2;") return uint16_t(0);
+                    if (elem_type == "I2;") return int16_t(0);
+                    if (elem_type == "U;") return uint32_t(0);
+                    if (elem_type == "I;") return int32_t(0);
+                    if (elem_type == "U8;") return uint64_t(0);
+                    if (elem_type == "I8;") return int64_t(0);
                     if (elem_type == "U16;") return stdint128::uint128_t(0);
                     if (elem_type == "I16;") return stdint128::int128_t(0);
                     if (elem_type == "B;") return false;
-                    throw std::runtime_error("NEWARR: unknown element type");
-                };
+                    if (elem_type == "String;") return std::string();
+                    throw std::runtime_error("NEWARR: unknown element type"); };
 
                 Value def = make_default();
 
@@ -327,10 +320,10 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 break;
             }
             case OperationCode::STELEM: {
-                Value v_value = f.operand_stack.back();
+                Value v_value = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
-                Value v_index = f.operand_stack.back();
+                Value v_index = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 uint32_t index;
@@ -342,7 +335,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     throw std::runtime_error("STELEM: index must be integer");
                 }
 
-                Value v_arr = f.operand_stack.back();
+                Value v_arr = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 auto* ref = std::get_if<HeapRef>(&v_arr);
@@ -365,7 +358,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 break;
             }
             case OperationCode::LDELEM: {
-                Value v_index = f.operand_stack.back();
+                Value v_index = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 uint32_t index;
@@ -377,7 +370,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     throw std::runtime_error("LDELEM: index must be integer");
                 }
 
-                Value v_arr = f.operand_stack.back();
+                Value v_arr = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 auto* ref = std::get_if<HeapRef>(&v_arr);
@@ -402,11 +395,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("MUL: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("MUL: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
@@ -430,7 +423,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("MIN: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x) -> Value {
@@ -452,11 +445,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("SUB: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("SUB: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
@@ -480,11 +473,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("DIV: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("DIV: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
@@ -550,13 +543,13 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty())
                     throw std::runtime_error("EQ: Operand stack underflow");
 
-                Value b = f.operand_stack.back();
+                Value b = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 if (f.operand_stack.empty())
                     throw std::runtime_error("EQ: Operand stack underflow");
 
-                Value a = f.operand_stack.back();
+                Value a = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 auto result = std::visit(
@@ -582,13 +575,13 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty())
                     throw std::runtime_error("LT: Operand stack underflow");
 
-                Value b = f.operand_stack.back();
+                Value b = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 if (f.operand_stack.empty())
                     throw std::runtime_error("LT: Operand stack underflow");
 
-                Value a = f.operand_stack.back();
+                Value a = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 auto result = std::visit(
@@ -615,13 +608,13 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty())
                     throw std::runtime_error("LEQ: Operand stack underflow");
 
-                Value b = f.operand_stack.back();
+                Value b = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 if (f.operand_stack.empty())
                     throw std::runtime_error("LEQ: Operand stack underflow");
 
-                Value a = f.operand_stack.back();
+                Value a = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 auto result = std::visit(
@@ -662,7 +655,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     throw std::runtime_error("JZ: Operand stack underflow");
                 }
 
-                Value v = f.operand_stack.back();
+                Value v = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 bool cond = std::visit([](auto&& x) -> bool {
@@ -696,7 +689,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     throw std::runtime_error("JNZ: Operand stack underflow");
                 }
 
-                Value v = f.operand_stack.back();
+                Value v = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 bool cond = std::visit([](auto&& x) -> bool {
@@ -721,6 +714,109 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     f.pc = target;
                 }
 
+                break;
+            }
+            case OperationCode::NEG: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("NEG: Operand stack underflow");
+                }
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
+                auto result = std::visit(
+                    [](auto x) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+
+                        if constexpr (std::is_same_v<X,bool>) {
+                            return !x;
+                        } else {
+                            throw std::runtime_error("NEG: cannot apply logical negation to non-boolean types");
+                        }
+                    },
+                    a
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::MOD: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("MOD: Operand stack underflow");
+                }
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("MOD: Operand stack underflow");
+                }
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_integral_v<X>)) {
+                            return x % y;
+                        } else {
+                            throw std::runtime_error("MOD: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::LOR: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("LOR: Operand stack underflow");
+                }
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("LOR: Operand stack underflow");
+                }
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_same_v<X,bool>)) {
+                            return x || y;
+                        } else {
+                            throw std::runtime_error("LOR: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::LAND: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("LAND: Operand stack underflow");
+                }
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("LAND: Operand stack underflow");
+                }
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_same_v<X,bool>)) {
+                            return x && y;
+                        } else {
+                            throw std::runtime_error("LAND: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
                 break;
             }
             default:

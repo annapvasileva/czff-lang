@@ -6,8 +6,10 @@
 
 struct CmdOptions {
     std::string ball_path;
+    std::string stdlib_path;
     uint32_t max_heap_size = 0;
     bool is_set_max_heap_size = false;
+    bool is_set_stdlib = false;
     bool is_set_debug_mode = false;
 };
 
@@ -31,6 +33,15 @@ CmdOptions parseArguments(int argc, char* argv[]) {
             if (options.ball_path.size() < 5 || options.ball_path.substr(options.ball_path.size() - 5) != ".ball") {
                 throw std::runtime_error("File extension must be `.ball`");
             }
+        } else if (arg == "-s") {
+            if (i + 1 >= argc) {
+                throw std::runtime_error("-s parameter requires path");
+            }
+            options.stdlib_path = argv[++i];
+            if (options.stdlib_path.size() < 5 || options.stdlib_path.substr(options.stdlib_path.size() - 5) != ".ball") {
+                throw std::runtime_error("File extension must be `.ball`");
+            }
+            options.is_set_stdlib = true;
         }
         else if (arg == "-mhs") {
             if (i + 1 >= argc) {
@@ -74,6 +85,9 @@ int main(int argc, char* argv[]) {
             (opts.is_set_max_heap_size)
             ? czffvm::VirtualMachine(opts.max_heap_size)
             : czffvm::VirtualMachine();
+        if (opts.is_set_stdlib) {
+            vm.LoadStdlib(opts.stdlib_path);
+        }
         vm.LoadProgram(opts.ball_path);
 
         vm.Run();
