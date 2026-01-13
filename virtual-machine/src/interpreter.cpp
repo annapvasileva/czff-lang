@@ -307,6 +307,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     if (elem_type == "U16;") return stdint128::uint128_t(0);
                     if (elem_type == "I16;") return stdint128::int128_t(0);
                     if (elem_type == "B;") return false;
+                    if (elem_type == "String;") return std::string();
                     throw std::runtime_error("NEWARR: unknown element type"); };
 
                 Value def = make_default();
