@@ -54,8 +54,9 @@ jobs:
       - name: Run tests with output comparison
         shell: pwsh
         run: |
-          $compiler = "build/compiler/Compiler.exe"
-          $vm = "build/vm/czffvm.exe"
+          $compiler = Join-Path $PWD "build\compiler\Compiler.exe"
+          $vm = Join-Path $PWD "build\vm\czffvm.exe"
+          
           $testFiles = Get-ChildItem -Path test_files -Filter *.czff
 
           $allPassed = $true
@@ -66,8 +67,9 @@ jobs:
               $expectedOutputFile = Join-Path $file.Directory "$($file.BaseName).out"
 
               $compileTimer = [System.Diagnostics.Stopwatch]::StartNew()
-              & $compiler -s $file.FullName -c config.json -t $target
+              & "$compiler" -s "$($file.FullName)" -c "config.json" -t "$target"
               $compileTimer.Stop()
+              
               Write-Host "Compilation time: $($compileTimer.Elapsed.TotalMilliseconds) ms" -ForegroundColor Yellow
               
               if ($LASTEXITCODE -ne 0) {
@@ -77,7 +79,7 @@ jobs:
               }
 
               $runTimer = [System.Diagnostics.Stopwatch]::StartNew()
-              $actualOutput = & $vm -p $target -mhs 102457600
+              $actualOutput = & "$vm" -p "$target" -mhs 102457600
               $runTimer.Stop()
 
               Write-Host ""
