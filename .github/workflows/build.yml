@@ -31,6 +31,6 @@ jobs:
         echo "$MINGW_PREFIX/bin" >> $GITHUB_PATH
 
     - name: Build Compiler and VM
-      shell: bash
+      shell: pwsh
       run: |
         ./build.ps1
