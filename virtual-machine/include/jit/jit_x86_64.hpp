@@ -1,8 +1,66 @@
 #pragma once
 
+#include <memory>
+#include <asmjit/x86.h>
 #include "jit_compiler.hpp"
+#include "common.hpp"
+#include "runtime_data_area/runtime_data_area.hpp"
 
 namespace czffvm_jit {
+
+class X86CompiledRuntimeFunction : public CompiledRuntimeFunction {
+private:
+    std::weak_ptr<asmjit::JitRuntime> runtime;
+    void* compiled_code;
+    size_t code_size;
+    uint16_t name_index;
+    uint16_t return_type_index;
+    uint16_t max_stack;
+public:
+    X86CompiledRuntimeFunction(void* code, size_t size, std::weak_ptr<asmjit::JitRuntime> runtime_) 
+        : compiled_code(code), code_size(size), runtime(runtime_) {}
+    
+    ~X86CompiledRuntimeFunction() {
+#ifdef DEBUG_BUILD
+        std::cout << "[JIT-FUNC] Destroying, runtime use_count=" 
+                  << runtime.use_count() << std::endl;
+#endif
+        if (compiled_code) {
+            if (auto rt = runtime.lock()) {
+                rt->release(compiled_code);
+            }
+        }
+    };
+    
+    void* GetCode() const override { return compiled_code; }
+    size_t GetSize() const override { return code_size; }
+    
+    uint16_t GetNameIndex() const override { return name_index; }
+    uint16_t GetReturnTypeIndex() const override { return return_type_index; }
+};
+
+class X86JitHeapHelper {
+private:
+public:
+    czffvm::RuntimeDataArea& rda_;
+    X86JitHeapHelper(czffvm::RuntimeDataArea& rda) : rda_(rda) {}
+
+    czffvm::HeapRef NewArray(
+        uint32_t size,
+        uint16_t type_idx
+    );
+
+    void StoreElem(
+        czffvm::HeapRef ref,
+        uint32_t index,
+        czffvm::Value* value
+    );
+
+    czffvm::Value LoadElem(
+        czffvm::HeapRef ref,
+        uint32_t index
+    );
+};
 
 class X86JitCompiler : public JitCompiler {
 public:
@@ -13,11 +71,8 @@ public:
     bool CanCompile(czffvm::Operation op) override;
     std::unique_ptr<CompiledRuntimeFunction> CompileFunction(
         const RuntimeFunction& function) override;
-
-    static constexpr std::array<OperationCode, 1> kAllowedOperationsToCompile = { OperationCode::LDC };
-
 private:
-    asmjit::JitRuntime runtime;
+    std::shared_ptr<asmjit::JitRuntime> runtime;
 
     enum class VMReg {
         STACK_PTR,
@@ -28,30 +83,29 @@ private:
         TEMP1,
         TEMP2,
     };
+
+    void CompileOperation(
+        asmjit::x86::Assembler& a, 
+        asmjit::x86::Gp& stackPtr, 
+        asmjit::x86::Gp stackBase, 
+        asmjit::x86::Gp heapPtr, 
+        const Operation& op
+    );
 };
 
-class X86CompiledRuntimeFunction : public CompiledRuntimeFunction {
-private:
-    asmjit::JitRuntime* runtime;
-    void* compiledCode;
-    size_t codeSize;
+extern "C" void
+JIT_NewArray(X86JitHeapHelper* heap, uint32_t size, uint16_t type, HeapRef* out_ref);
 
-    CompileOperation(asmjit::x86::Assembler& a, asmjit::x86::Gp& stackPtr, asmjit::x86::Gp stackBase, const Operation& op);
-    
-public:
-    CompiledRuntimeFunction(void* code, size_t size) 
-        : compiledCode(code), codeSize(size) {}
-    
-    template<typename FuncType>
-    FuncType getFunction() const {
-        return reinterpret_cast<FuncType>(compiledCode);
-    }
-    
-    ~CompiledRuntimeFunction() override {
-        if (compiledCode) {
-            runtime->release(compiledCode);
-        }
-    }
-};
+extern "C" void
+JIT_StoreElem(X86JitHeapHelper* heap,
+              HeapRef* arr,
+              uint32_t index,
+              Value* value);
+
+extern "C" void
+JIT_LoadElem(X86JitHeapHelper* heap,
+             HeapRef* arr,
+             uint32_t index,
+             Value* out_value);
 
 } // namespace czffvm_jit
