@@ -12,63 +12,81 @@ Interpreter::Interpreter(RuntimeDataArea& rda)
     : rda_(rda) {}
 
 struct TypeDesc {
-    enum Kind {
-        INT,
-        BOOL,
-        ARRAY,
-        VOID
-    } kind;
-
-    std::unique_ptr<TypeDesc> element = nullptr;
-    std::string class_name = "";
+    enum Kind { INT, BOOL, ARRAY, STRING, VOID } kind;
+    bool is_signed = true;
+    int size_bytes = 0;
+    std::unique_ptr<TypeDesc> element;
 };
 
 static TypeDesc ParseType(const std::string& s, size_t& i) {
 
-    if (s[i] == 'I') {
-        i+=2;
-        return {TypeDesc::INT, nullptr, ""};
+    if (s.compare(i,7,"String;")==0) {
+        i+=7;
+        return {TypeDesc::STRING};
     }
 
-    if (s[i] == 'B') {
-        i+=2;
-        return {TypeDesc::BOOL, nullptr, ""};
-    }
-
-    if (s[i] == '[') {
+    if (s[i]=='I' || s[i]=='U') {
+        bool sign = s[i]=='I';
         i++;
-        TypeDesc inner = ParseType(s,i);
-        return {
-            TypeDesc::ARRAY,
-            std::make_unique<TypeDesc>(std::move(inner)),
-            ""
-        };
+
+        size_t start=i;
+        while (isdigit(s[i])) i++;
+
+        int bytes = start==i ? 4 : std::stoi(s.substr(start,i-start));
+
+        if (s[i++]!=';')
+            throw std::runtime_error("Bad descriptor");
+
+        return {TypeDesc::INT, sign, bytes};
+    }
+
+    if (s[i]=='B') {
+        i+=2;
+        return {TypeDesc::BOOL};
+    }
+
+    if (s[i]=='[') {
+        i++;
+        auto inner = ParseType(s,i);
+        return {TypeDesc::ARRAY,false,0,
+                std::make_unique<TypeDesc>(std::move(inner))};
     }
 
     if (s.compare(i,5,"void;")==0) {
         i+=5;
-        return {TypeDesc::VOID,nullptr,""};
+        return {TypeDesc::VOID};
     }
 
-    throw std::runtime_error("Bad type descriptor");
+    throw std::runtime_error("Bad descriptor");
 }
 
-static bool Match(const TypeDesc& t, const Value& v) {
-    return std::visit([&](auto&& x)->bool{
+static bool Match(const TypeDesc& t,const Value& v){
+    return std::visit([&](auto&& x){
         using T = std::decay_t<decltype(x)>;
 
-        switch(t.kind) {
-            case TypeDesc::INT:
-                return std::is_same_v<T,int32_t>;
+        if(t.kind==TypeDesc::BOOL)
+            return std::is_same_v<T,bool>;
 
-            case TypeDesc::BOOL:
-                return std::is_same_v<T,bool>;
+        if(t.kind==TypeDesc::ARRAY)
+            return std::is_same_v<T,HeapRef>;
 
-            case TypeDesc::ARRAY:
-                return std::is_same_v<T,HeapRef>;
+        if(t.kind==TypeDesc::STRING)
+            return std::is_same_v<T,HeapRef>;
 
-            case TypeDesc::VOID:
-                return false;
+        if(t.kind==TypeDesc::INT){
+            if(t.is_signed){
+                if(t.size_bytes==1) return std::is_same_v<T,int8_t>;
+                if(t.size_bytes==2) return std::is_same_v<T,int16_t>;
+                if(t.size_bytes==4) return std::is_same_v<T,int32_t>;
+                if(t.size_bytes==8) return std::is_same_v<T,int64_t>;
+                if(t.size_bytes==16) return std::is_same_v<T,stdint128::int128_t>;
+            } else {
+                if(t.size_bytes==1) return std::is_same_v<T,uint8_t>;
+                if(t.size_bytes==2) return std::is_same_v<T,uint16_t>;
+                if(t.size_bytes==4) return std::is_same_v<T,uint32_t>;
+                if(t.size_bytes==8) return std::is_same_v<T,uint64_t>;
+                if(t.size_bytes==16) return std::is_same_v<T,stdint128::uint128_t>;
+            }
         }
         return false;
     },v);
@@ -84,41 +102,13 @@ static bool CheckReturnType(const std::string& expected, const Value& v) {
     return Match(t,v);
 }
 
-static size_t CountParams(const std::string& s) {
-    size_t i = 0;
-    size_t count = 0;
-
-    while (i < s.size()) {
-        if (s[i] == '[') {
-            while (s[i] == '[') i++;
-
-            if (s[i] == 'I' || s[i] == 'B') {
-                i++;
-                if (s[i] != ';')
-                    throw std::runtime_error("Bad descriptor");
-                i++;
-            }
-            else {
-                throw std::runtime_error("Unknown type");
-            }
-
-            count++;
-            continue;
-        }
-
-        if (s[i] == 'I' || s[i] == 'B') {
-            i++;
-            if (s[i] != ';')
-                throw std::runtime_error("Bad descriptor");
-            i++;
-            count++;
-            continue;
-        }
-
-        throw std::runtime_error("Bad descriptor");
+static size_t CountParams(const std::string& s){
+    size_t i=0,c=0;
+    while(i<s.size()){
+        ParseType(s,i);
+        c++;
     }
-
-    return count;
+    return c;
 }
 
 void Interpreter::Execute(RuntimeFunction* entry) {
@@ -305,17 +295,18 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 std::string array_type = "[" + elem_type;
 
                 auto make_default = [&]() -> Value {
-                    if (elem_type == "U1;")  return uint8_t(0);
-                    if (elem_type == "U2;")  return uint16_t(0);
-                    if (elem_type == "U4;")  return uint32_t(0);
-                    if (elem_type == "I;")  return int32_t(0);
-                    if (elem_type == "U8;")  return uint64_t(0);
-                    if (elem_type == "I8;")  return int64_t(0);
+                    if (elem_type == "U1;") return uint8_t(0);
+                    if (elem_type == "I1;") return int8_t(0);
+                    if (elem_type == "U2;") return uint16_t(0);
+                    if (elem_type == "I2;") return int16_t(0);
+                    if (elem_type == "U;") return uint32_t(0);
+                    if (elem_type == "I;") return int32_t(0);
+                    if (elem_type == "U8;") return uint64_t(0);
+                    if (elem_type == "I8;") return int64_t(0);
                     if (elem_type == "U16;") return stdint128::uint128_t(0);
                     if (elem_type == "I16;") return stdint128::int128_t(0);
                     if (elem_type == "B;") return false;
-                    throw std::runtime_error("NEWARR: unknown element type");
-                };
+                    throw std::runtime_error("NEWARR: unknown element type"); };
 
                 Value def = make_default();
 

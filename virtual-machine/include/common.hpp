@@ -94,7 +94,9 @@ struct HeapRef {
 };
 
 using Value = std::variant<
+    int8_t,                     // I1
     uint8_t,                    // U1
+    int16_t,                    // I2
     uint16_t,                   // U2
     uint32_t,                   // U4
     int32_t,                    // I4
