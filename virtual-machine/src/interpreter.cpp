@@ -143,7 +143,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("STORE: Operand stack underflow");
                 }
-                f.locals.at(idx) = f.operand_stack.back();
+                f.locals.at(idx) = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
                 break;
             }
@@ -156,11 +156,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("ADD: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("ADD: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
@@ -184,7 +184,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("PRINT: Operand stack underflow");
                 }
-                Value v = f.operand_stack.back();
+                Value v = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 std::visit([](auto&& x) {
@@ -214,7 +214,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                         throw std::runtime_error("RET: missing return value");
                     }
 
-                    ret_value = f.operand_stack.back();
+                    ret_value = std::move(f.operand_stack.back());
                     f.operand_stack.pop_back();
 
                     if (!CheckReturnType(ret_type, *ret_value)) {
@@ -265,12 +265,12 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("SWAP: Operand stack underflow");
                 }
-                auto first = f.operand_stack.back();
+                auto first = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("SWAP: Operand stack underflow");
                 }
-                auto second = f.operand_stack.back();
+                auto second = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
                 
                 f.operand_stack.push_back(first);
@@ -278,7 +278,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 break;
             }
             case OperationCode::NEWARR: {
-                Value v_size = f.operand_stack.back();
+                Value v_size = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 uint32_t arr_size;
@@ -320,10 +320,10 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 break;
             }
             case OperationCode::STELEM: {
-                Value v_value = f.operand_stack.back();
+                Value v_value = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
-                Value v_index = f.operand_stack.back();
+                Value v_index = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 uint32_t index;
@@ -335,7 +335,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     throw std::runtime_error("STELEM: index must be integer");
                 }
 
-                Value v_arr = f.operand_stack.back();
+                Value v_arr = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 auto* ref = std::get_if<HeapRef>(&v_arr);
@@ -358,7 +358,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 break;
             }
             case OperationCode::LDELEM: {
-                Value v_index = f.operand_stack.back();
+                Value v_index = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 uint32_t index;
@@ -370,7 +370,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     throw std::runtime_error("LDELEM: index must be integer");
                 }
 
-                Value v_arr = f.operand_stack.back();
+                Value v_arr = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 auto* ref = std::get_if<HeapRef>(&v_arr);
@@ -395,11 +395,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("MUL: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("MUL: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
@@ -423,7 +423,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("MIN: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x) -> Value {
@@ -445,11 +445,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("SUB: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("SUB: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
@@ -473,11 +473,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("DIV: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("DIV: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
@@ -543,13 +543,13 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty())
                     throw std::runtime_error("EQ: Operand stack underflow");
 
-                Value b = f.operand_stack.back();
+                Value b = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 if (f.operand_stack.empty())
                     throw std::runtime_error("EQ: Operand stack underflow");
 
-                Value a = f.operand_stack.back();
+                Value a = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 auto result = std::visit(
@@ -575,13 +575,13 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty())
                     throw std::runtime_error("LT: Operand stack underflow");
 
-                Value b = f.operand_stack.back();
+                Value b = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 if (f.operand_stack.empty())
                     throw std::runtime_error("LT: Operand stack underflow");
 
-                Value a = f.operand_stack.back();
+                Value a = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 auto result = std::visit(
@@ -608,13 +608,13 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty())
                     throw std::runtime_error("LEQ: Operand stack underflow");
 
-                Value b = f.operand_stack.back();
+                Value b = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 if (f.operand_stack.empty())
                     throw std::runtime_error("LEQ: Operand stack underflow");
 
-                Value a = f.operand_stack.back();
+                Value a = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 auto result = std::visit(
@@ -655,7 +655,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     throw std::runtime_error("JZ: Operand stack underflow");
                 }
 
-                Value v = f.operand_stack.back();
+                Value v = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 bool cond = std::visit([](auto&& x) -> bool {
@@ -689,7 +689,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     throw std::runtime_error("JNZ: Operand stack underflow");
                 }
 
-                Value v = f.operand_stack.back();
+                Value v = std::move(f.operand_stack.back());
                 f.operand_stack.pop_back();
 
                 bool cond = std::visit([](auto&& x) -> bool {
@@ -720,7 +720,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("NEG: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 auto result = std::visit(
                     [](auto x) -> Value {
                         using X = std::decay_t<decltype(x)>;
@@ -741,11 +741,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("MOD: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("MOD: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
 
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
@@ -769,11 +769,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("LOR: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("LOR: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
                         using X = std::decay_t<decltype(x)>;
@@ -796,11 +796,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("LAND: Operand stack underflow");
                 }
-                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value b = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 if (f.operand_stack.empty()) {
                     throw std::runtime_error("LAND: Operand stack underflow");
                 }
-                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                Value a = std::move(f.operand_stack.back()); f.operand_stack.pop_back();
                 auto result = std::visit(
                     [](auto x, auto y) -> Value {
                         using X = std::decay_t<decltype(x)>;
