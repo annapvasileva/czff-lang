@@ -25,6 +25,7 @@ public enum TokenType
     IntegerLiteral,
     Integer64Literal,
     Integer128Literal,
+    StringLiteral,
     BoolLiteral,
 
     Plus,
@@ -54,6 +55,7 @@ public enum TokenType
     RightCurlyBracket,  // }
     LeftSquareBracket,  // [
     RightSquareBracket, // ]
+    QuotationMark,
     
     Eof,
 }

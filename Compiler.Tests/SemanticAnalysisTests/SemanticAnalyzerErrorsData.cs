@@ -612,6 +612,17 @@ public class SemanticAnalyzerErrorsData : IEnumerable<object[]>
               """,
               "Variable c: type - I8; does not match I;"
           };
+          
+          yield return new object[]
+          {
+              """
+              func void Main() {
+                  var int a = "abc";
+                  return;
+              }
+              """,
+              "Variable a: type - String; does not match I;"
+          };
     }
 
     IEnumerator IEnumerable.GetEnumerator () => GetEnumerator();

@@ -171,6 +171,14 @@ public class CompilerLexer
             return CreateNewToken(TokenType.RightSquareBracket, "]", startLine, startColumn);
         }
 
+        if (_currentChar == '"')
+        {
+            cursor.MoveNext();
+            SetCurrentChar();
+            var strLiteral = ReadStringLiteral();
+            return CreateNewToken(TokenType.StringLiteral, strLiteral, startLine, startColumn);
+        }
+
         if (_currentChar == '\0')
         {
             cursor.MoveNewLine();
@@ -370,6 +378,30 @@ public class CompilerLexer
         while (char.IsDigit(_currentChar));
 
         return number;
+    }
+
+    private string ReadStringLiteral()
+    {
+        var startLine = cursor.Line;
+        var startColumn = cursor.Column;
+        // считаем что кавычку уже прочитали
+        string word = "";
+        while (!(_currentChar == '"' || _currentChar == '\0'))
+        {
+            word += _currentChar;
+            cursor.MoveNext();
+            SetCurrentChar();
+        }
+
+        if (_currentChar == '\0')
+        {
+            throw new LexerException($"Unclosed \"", startLine, startColumn);
+        }
+        
+        cursor.MoveNext();
+        SetCurrentChar();
+        word = word.Replace("\\n", "\n").Replace("\\r", "\r").Replace("\\t", "\t");
+        return word;
     }
 
     private TokenType? GetKeywordType(string word)

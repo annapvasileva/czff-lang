@@ -479,7 +479,7 @@ public class SemanticAnalyzer(SymbolTable scope) : INodeVisitor
             case LiteralType.BooleanLiteral:
                 return "B;";
             case LiteralType.StringLiteral:
-                return "string;";
+                return "String;";
             default:
                 throw new SemanticException($"Unknown literal type {expressionNode.Type}");
         }

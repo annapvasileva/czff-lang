@@ -20,6 +20,9 @@ public class SimpleTypeNode : TypeAnnotationNode
             case "bool":
                 Name = "B";
                 break;
+            case "string":
+                Name = "String";
+                break;
             default:
                 Name = name;
                 break;

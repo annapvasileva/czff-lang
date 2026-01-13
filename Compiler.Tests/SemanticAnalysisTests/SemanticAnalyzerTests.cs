@@ -193,4 +193,34 @@ public class SemanticAnalyzerTests
         var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
         Assert.Null(exception);
     }
+
+    [Fact]
+    public void StringLiteralTestTest()
+    {
+        string source = """
+                        func void Main() {
+                            var int a = 10;
+                            var int b = 5;
+                            print "Hello, Anya!\n";
+                            print "This is a: ";
+                            print a;
+                            print "\nThis is b: ";
+                            print b;
+                            print "\nThis is sum: ";
+                            print a + b;
+                            print "\nHave a nice day!!!";
+                            return;
+                        }
+                        """;
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+        var ast = parser.Parse();
+        var builder = new SymbolTableBuilder();
+        ast.Root.Accept(builder);
+        var semanticAnalyzer = new SemanticAnalyzer(builder.SymbolTable);
+        
+        var exception = Record.Exception(() => ast.Root.Accept(semanticAnalyzer));
+        Assert.Null(exception);
+    }
 }

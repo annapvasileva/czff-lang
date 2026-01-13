@@ -288,6 +288,12 @@ public class OneLexemeTestData : IEnumerable<object[]>
             "int128",
             new Token(TokenType.Integer128, "int128", 1, 1) 
         };
+        
+        yield return new object[] 
+        { 
+            "\"abacaba;hello  fskdjnfd\"",
+            new Token(TokenType.StringLiteral, "abacaba;hello  fskdjnfd", 1, 1) 
+        };
     }
     
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
