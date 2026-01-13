@@ -37,6 +37,10 @@ enum class OperationCode : uint16_t {
     JMP = 0x0015,
     JZ = 0x0016,
     JNZ = 0x0017,
+    NEG = 0x0018,
+    MOD = 0x0019,
+    LOR = 0x001A,
+    LAND = 0x001B
 };
 
 struct Operation {

@@ -1,3 +1,4 @@
+#include <type_traits>
 #include <iostream>
 #include <optional>
 
@@ -712,6 +713,109 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     f.pc = target;
                 }
 
+                break;
+            }
+            case OperationCode::NEG: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("NEG: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                auto result = std::visit(
+                    [](auto x) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+
+                        if constexpr (std::is_same_v<X,bool>) {
+                            return !x;
+                        } else {
+                            throw std::runtime_error("NEG: cannot apply logical negation to non-boolean types");
+                        }
+                    },
+                    a
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::MOD: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("MOD: Operand stack underflow");
+                }
+                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("MOD: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_integral_v<X>)) {
+                            return x % y;
+                        } else {
+                            throw std::runtime_error("MOD: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::LOR: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("LOR: Operand stack underflow");
+                }
+                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("LOR: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_same_v<X,bool>)) {
+                            return x || y;
+                        } else {
+                            throw std::runtime_error("LOR: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
+                break;
+            }
+            case OperationCode::LAND: {
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("LAND: Operand stack underflow");
+                }
+                Value b = f.operand_stack.back(); f.operand_stack.pop_back();
+                if (f.operand_stack.empty()) {
+                    throw std::runtime_error("LAND: Operand stack underflow");
+                }
+                Value a = f.operand_stack.back(); f.operand_stack.pop_back();
+                auto result = std::visit(
+                    [](auto x, auto y) -> Value {
+                        using X = std::decay_t<decltype(x)>;
+                        using Y = std::decay_t<decltype(y)>;
+
+                        if constexpr (std::is_same_v<X, Y> &&
+                                    (std::is_same_v<X,bool>)) {
+                            return x && y;
+                        } else {
+                            throw std::runtime_error("LAND: incompatible types");
+                        }
+                    },
+                    a, b
+                );
+
+                f.operand_stack.push_back(result);
                 break;
             }
             default:
