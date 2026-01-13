@@ -5,3 +5,4 @@ virtual-machine/build*
 obj/
 bin/
 *.user
+build/
