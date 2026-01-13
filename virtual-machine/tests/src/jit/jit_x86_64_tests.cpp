@@ -176,7 +176,7 @@ TEST(BasicJITCompilationTestSuite, ArrayCreation) {
     func.code = {
         // --- new int[3] ---
         {czffvm::OperationCode::LDC,    {3}},        // size = 3
-        {czffvm::OperationCode::NEWARR, {0x00, 0x01}}, // type_idx
+        {czffvm::OperationCode::NEWARR, {0x00, 0x00}}, // type_idx
     };
 
     int32_t stack[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -185,7 +185,7 @@ TEST(BasicJITCompilationTestSuite, ArrayCreation) {
         rda,
         jit, 
         func, 
-        {{czffvm::ConstantTag::I4, {0x02, 0x00, 0x00, 0x00}}, {czffvm::ConstantTag::U1, {'I'}}},
+        {{czffvm::ConstantTag::U1, {'I'}}},
         stack
     ));
 
