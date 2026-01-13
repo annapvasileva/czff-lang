@@ -39,6 +39,30 @@ target_link_libraries(
 
 target_include_directories(tests PUBLIC ${PROJECT_SOURCE_DIR})
 
+
+if(JIT_ARCH STREQUAL "x86_64") # supported architectures
+    add_executable(
+        jit_tests
+        src/jit/jit_${JIT_ARCH}_tests.cpp
+        src/jit/jit_dummy_tests.cpp
+    )
+else()
+    add_library(
+        jit_tests
+        src/jit/jit_dummy_tests.cpp
+    )
+endif()
+
+target_link_libraries(
+    jit_tests
+    czff_virtual_machine_lib
+    czff_jit_${JIT_ARCH}
+    GTest::gtest_main
+)
+
+target_include_directories(jit_tests PUBLIC ${PROJECT_SOURCE_DIR})
+
+
 include(GoogleTest)
 
 gtest_discover_tests(tests)
