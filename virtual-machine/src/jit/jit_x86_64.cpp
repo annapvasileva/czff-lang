@@ -69,16 +69,23 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const R
     a.mov(stackBase, asmjit::x86::rcx);
     a.lea(stackPtr, ptr(stackBase, function.locals_count * 4));
     a.mov(heapPtr, asmjit::x86::rdx);
+
+    std::vector<asmjit::v1_21::Label> labels(function.code.size());
+    for (auto& l : labels)
+        l = a.new_label();
     
 #ifdef DEBUG_BUILD
     std::cout << "[JIT] Compiling operations..." << std::endl;
 #endif
 
+    size_t ip = 0;
     for (const auto& op : function.code) {
         std::cout << "[JIT-OP] Code: 0x" << std::hex << (uint16_t)op.code << std::dec 
                   << ", args: " << op.arguments.size() << std::endl;
         
-        CompileOperation(a, stackPtr, stackBase, heapPtr, op);
+        a.bind(labels[ip]);
+        CompileOperation(a, stackPtr, stackBase, heapPtr, op, labels);
+        ip += 1;
     }
 
     a.mov(asmjit::x86::eax, 0);
