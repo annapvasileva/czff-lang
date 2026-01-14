@@ -8,8 +8,8 @@
 #include <variant>
 #include <memory>
 
-#include "int128.hpp"
-#include "uint128.hpp"
+#include "util/int128.hpp"
+#include "util/uint128.hpp"
 
 namespace czffvm {
 const uint32_t kBytesInKiB = 1024;
