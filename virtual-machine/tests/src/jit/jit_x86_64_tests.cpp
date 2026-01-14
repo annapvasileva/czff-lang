@@ -270,46 +270,53 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
     // return arr[0] + arr[1] * arr[2]
 
     func.code = {
-        // --- new int[3] ---
-        {czffvm::OperationCode::LDC,    {3}},        // size = 3
-        {czffvm::OperationCode::NEWARR, {0x00, 0x01}}, // type_idx
+        // new int[3]
+        {czffvm::OperationCode::LDC,    {8}},
+        {czffvm::OperationCode::NEWARR, {0x00, 0x00}},   // arr
 
-        // --- arr[0] = a ---
-        {czffvm::OperationCode::DUP, {}},            // arr
-        {czffvm::OperationCode::LDC, {0}},            // index 0
-        {czffvm::OperationCode::LDV, {0}},            // a
-        {czffvm::OperationCode::STELEM, {}},
-
-        // --- arr[1] = b ---
-        {czffvm::OperationCode::DUP, {}},            // arr
-        {czffvm::OperationCode::LDC, {1}},            // index 1
-        {czffvm::OperationCode::LDV, {1}},            // b
-        {czffvm::OperationCode::STELEM, {}},
-
-        // --- arr[2] = c ---
-        {czffvm::OperationCode::DUP, {}},            // arr
-        {czffvm::OperationCode::LDC, {2}},            // index 2
-        {czffvm::OperationCode::LDV, {2}},            // c
-        {czffvm::OperationCode::STELEM, {}},
-
-        // --- arr[0] + arr[1] * arr[2] ---
-        {czffvm::OperationCode::DUP, {}},            // arr
+        // arr[0] = a
+        {czffvm::OperationCode::DUP, {}},
         {czffvm::OperationCode::LDC, {0}},
-        {czffvm::OperationCode::LDELEM, {}},          // arr[0]
+        {czffvm::OperationCode::LDV, {0}},
+        {czffvm::OperationCode::STELEM, {}},
 
-        {czffvm::OperationCode::DUP, {}},            // arr
+        // arr[1] = b
+        {czffvm::OperationCode::DUP, {}},
         {czffvm::OperationCode::LDC, {1}},
-        {czffvm::OperationCode::LDELEM, {}},          // arr[1]
+        {czffvm::OperationCode::LDV, {1}},
+        {czffvm::OperationCode::STELEM, {}},
 
-        {czffvm::OperationCode::DUP, {}},            // arr
+        // arr[2] = c
+        {czffvm::OperationCode::DUP, {}},
         {czffvm::OperationCode::LDC, {2}},
-        {czffvm::OperationCode::LDELEM, {}},          // arr[2]
+        {czffvm::OperationCode::LDV, {2}},
+        {czffvm::OperationCode::STELEM, {}},
 
-        {czffvm::OperationCode::MUL, {}},             // arr[1] * arr[2]
-        {czffvm::OperationCode::ADD, {}},             // arr[0] + (...)
+        // ===== ВЫЧИСЛЕНИЕ =====
+
+        // arr[1]
+        {czffvm::OperationCode::DUP, {}},
+        {czffvm::OperationCode::DUP, {}},        // arr arr
+        {czffvm::OperationCode::LDC, {1}},       // arr arr 1
+        {czffvm::OperationCode::LDELEM, {}},     // arr v1
+
+        // arr[2]
+        {czffvm::OperationCode::SWAP, {}},       // arr v1 arr
+        {czffvm::OperationCode::LDC, {2}},       // arr v1 arr 2
+        {czffvm::OperationCode::LDELEM, {}},     // arr v1 v2
+
+        {czffvm::OperationCode::MUL, {}},        // arr (v1*v2)
+
+        // arr[0]
+        {czffvm::OperationCode::SWAP, {}},       // arr (v1*v2) arr
+        {czffvm::OperationCode::LDC, {0}},       // arr (v1*v2) arr 0
+        {czffvm::OperationCode::LDELEM, {}},     // arr (v1*v2) v0
+
+        {czffvm::OperationCode::ADD, {}},        // arr result
 
         {czffvm::OperationCode::RET, {}}
     };
+
 
     int32_t stack[16] = {2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -317,7 +324,7 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
         rda,
         jit, 
         func, 
-        {{czffvm::ConstantTag::I4, {0x02, 0x00, 0x00, 0x00}}, {czffvm::ConstantTag::U1, {'I'}}},
+        {{czffvm::ConstantTag::U1, {'I'}}},
         stack
     ));
 
@@ -325,6 +332,13 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
     for (int i = 0; i < 16; i++) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
+
+    ASSERT_NO_THROW(rda.GetHeap().Get({1}));
+    auto array = rda.GetHeap().Get({1});
+
+    ASSERT_EQ(array.type, "[I");
+    ASSERT_EQ(array.fields.size(), 8);
+    ASSERT_EQ(stack[0], 14);
 }
 
 
