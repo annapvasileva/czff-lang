@@ -93,8 +93,12 @@ private:
     );
 };
 
-extern "C" void
-JIT_NewArray(X86JitHeapHelper* heap, uint32_t size, uint16_t type, HeapRef* out_ref);
+extern "C" uint32_t
+JIT_NewArray(
+    X86JitHeapHelper* heap,
+    uint32_t size,
+    uint16_t type
+);
 
 extern "C" void
 JIT_StoreElem(X86JitHeapHelper* heap,
