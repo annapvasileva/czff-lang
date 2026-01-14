@@ -237,27 +237,23 @@ void X86JitCompiler::CompileOperation(asmjit::x86::Assembler& a, asmjit::x86::Gp
             break;
         }
         case OperationCode::NEWARR: {
-            using namespace asmjit::x86;
-            // ─── pop size ─────────────
-            a.sub(stackPtr, 4);                 // stackPtr -= sizeof(uint32)
-            a.mov(edx, dword_ptr(stackPtr));    // size -> EDX
+            // ─── pop size (uint32) ─────────────
+            a.sub(stackPtr, 4);
+            a.mov(edx, dword_ptr(stackPtr));   // EDX = size
 
-            // ─── type_idx ─────────────
+            // ─── type_idx (uint16 -> uint32) ──
             uint16_t type_idx = (op.arguments[0] << 8) | op.arguments[1];
-            a.mov(r8d, type_idx);               // type -> R8D
+            a.mov(r8d, type_idx);              // R8D = type
 
-            // ─── allocate space для HeapRef ───
-            a.sub(stackPtr, 8);                  // место для HeapRef
-            a.lea(r9, ptr(stackPtr));            // r9 = HeapRef*
+            // ─── call helper ──────────────────
+            a.mov(rcx, heapPtr);               // RCX = heap
+            a.mov(rax, (uint64_t)&JIT_NewArray);
+            a.call(rax);                       // EAX = heapRef.id
 
-            // ─── call helper ─────────
-            a.mov(rcx, heapPtr);                 // RCX = heapHelper
-            a.mov(rax, (uint64_t)JIT_NewArray);
-            a.call(rax);
+            // ─── push heapRef.id onto VM stack ─
+            a.mov(dword_ptr(stackPtr), eax);   // store id
+            a.add(stackPtr, 4);                // push uint32
 
-            // ─── push HeapRef на стек VM ──
-            // HeapRef уже записан по stackPtr
-            a.add(stackPtr, 8); 
             break;
         }
         case OperationCode::STELEM: {
