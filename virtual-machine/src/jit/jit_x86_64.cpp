@@ -127,7 +127,14 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const R
     }
 }
 
-void X86JitCompiler::CompileOperation(asmjit::x86::Assembler& a, asmjit::x86::Gp& stackPtr, asmjit::x86::Gp stackBase, asmjit::x86::Gp heapPtr, const Operation& op) {
+void X86JitCompiler::CompileOperation(
+    asmjit::x86::Assembler& a, 
+    asmjit::x86::Gp& stackPtr, 
+    asmjit::x86::Gp stackBase, 
+    asmjit::x86::Gp heapPtr, 
+    const Operation& op,
+    const std::vector<asmjit::v1_21::Label>& labels
+) {
     using namespace asmjit::x86;
 
     switch (op.code) {
