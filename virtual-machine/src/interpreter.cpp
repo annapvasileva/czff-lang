@@ -72,7 +72,7 @@ static bool Match(const TypeDesc& t,const Value& v){
             return std::is_same_v<T,HeapRef>;
 
         if(t.kind==TypeDesc::STRING)
-            return std::is_same_v<T,HeapRef>;
+            return std::is_same_v<T,StringRef>;
 
         if(t.kind==TypeDesc::INT){
             if(t.is_signed){
@@ -192,8 +192,9 @@ void Interpreter::Execute(RuntimeFunction* entry) {
 
                     if constexpr (std::is_same_v<T, HeapRef>) {
                         std::cout << "<obj @" << x.id << ">";
-                    }
-                    else {
+                    } else if constexpr (std::is_same_v<T, StringRef>) {
+                        std::cout << *x;
+                    } else {
                         std::cout << x;
                     }
                 }, v);
@@ -307,7 +308,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     if (elem_type == "U16;") return stdint128::uint128_t(0);
                     if (elem_type == "I16;") return stdint128::int128_t(0);
                     if (elem_type == "B;") return false;
-                    if (elem_type == "String;") return std::string();
+                    if (elem_type == "String;") return std::make_shared<std::string>(std::string());
                     throw std::runtime_error("NEWARR: unknown element type"); };
 
                 Value def = make_default();

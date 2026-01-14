@@ -138,8 +138,8 @@ size_t Heap::EstimateSize(const std::string& type, const std::vector<Value>& fie
     size += fields.size() * sizeof(Value);
 
     for (auto& v : fields) {
-        if (auto* s = std::get_if<std::string>(&v))
-            size += s->size();
+        if (auto* s = std::get_if<StringRef>(&v))
+            size += (*s)->size();
     }
 
     return size;
@@ -153,8 +153,8 @@ size_t Heap::EstimateSize(const std::string& type, const std::vector<Value>&& fi
     size += fields.size() * sizeof(Value);
 
     for (auto& v : fields) {
-        if (auto* s = std::get_if<std::string>(&v))
-            size += s->size();
+        if (auto s = std::get_if<StringRef>(&v))
+            size += (*s)->size();
     }
 
     return size;

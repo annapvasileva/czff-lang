@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <variant>
+#include <memory>
 
 #include "int128.hpp"
 #include "uint128.hpp"
@@ -98,6 +99,8 @@ struct HeapRef {
     bool operator!=(const HeapRef& other) const;
 };
 
+using StringRef = std::shared_ptr<std::string>;
+
 using Value = std::variant<
     int8_t,                     // I1
     uint8_t,                    // U1
@@ -105,7 +108,7 @@ using Value = std::variant<
     uint16_t,                   // U2
     uint32_t,                   // U4
     int32_t,                    // I4
-    std::string,                // STRING
+    StringRef,                // STRING
     uint64_t,                   // U8
     int64_t,                    // I8
     stdint128::int128_t,        // I16

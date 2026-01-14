@@ -27,7 +27,7 @@ Value ConstantToValue(const Constant& c) {
             );
 
         case ConstantTag::STRING:
-            return std::string(c.data.begin(), c.data.end());
+            return std::make_shared<std::string>(std::string(c.data.begin(), c.data.end()));
 
         case ConstantTag::U8: {
             uint64_t v = 0;
@@ -84,7 +84,7 @@ std::string dump(const Value& v){
         if constexpr (std::is_same_v<T,uint16_t>)  return "U2";
         if constexpr (std::is_same_v<T,uint32_t>)  return "U4";
         if constexpr (std::is_same_v<T,int32_t>)   return "I4";
-        if constexpr (std::is_same_v<T,std::string>) return "STRING";
+        if constexpr (std::is_same_v<T,StringRef>) return "STRING";
         if constexpr (std::is_same_v<T,uint64_t>)  return "U8";
         if constexpr (std::is_same_v<T,int64_t>)   return "I8";
         if constexpr (std::is_same_v<T,stdint128::int128_t>)  return "I16";
