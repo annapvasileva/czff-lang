@@ -71,7 +71,7 @@ jobs:
             }
 
             $runTimer = [System.Diagnostics.Stopwatch]::StartNew()
-            $actualOutput = & "$vm" -p "$target" -mhs 102457600
+            $actualOutput = & "$vm" -p "$target" -mhs 102400
             $runTimer.Stop()
 
             Write-Host ""
