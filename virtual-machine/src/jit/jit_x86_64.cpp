@@ -257,27 +257,25 @@ void X86JitCompiler::CompileOperation(asmjit::x86::Assembler& a, asmjit::x86::Gp
             break;
         }
         case OperationCode::STELEM: {
-            using namespace asmjit::x86;
 
-            // pop value
-            a.sub(stackPtr, 8);
-            a.lea(r9, ptr(stackPtr));           // r9 = Value*
-
-            // pop index
+            // ─── pop VALUE (int32) ─────────────────────
             a.sub(stackPtr, 4);
-            a.mov(r8d, dword_ptr(stackPtr));    // uint32 index
+            a.mov(r9d, dword_ptr(stackPtr));   // value
 
-            // pop array ref
-            a.sub(stackPtr, 8);
-            a.lea(rcx, ptr(stackPtr));          // HeapRef*
+            // ─── pop INDEX (int32) ─────────────────────
+            a.sub(stackPtr, 4);
+            a.mov(r8d, dword_ptr(stackPtr));   // index
 
-            // RCX = HeapRef*, RDX = index, R8 = Value*, RAX = хелпер
-            a.mov(rdx, r8d);                    // аргументы хелпера
-            a.mov(r8, r9);
-            a.mov(rax, (uint64_t)JIT_StoreElem);
+            // ─── pop HeapRef.id (int32) ─────────────────
+            a.sub(stackPtr, 4);
+            a.mov(edx, dword_ptr(stackPtr));   // arrId
+
+            // RCX = heapPtr
             a.mov(rcx, heapPtr);
-            a.call(rax);
 
+            // ─── call helper ───────────────────────────
+            a.mov(rax, (uint64_t)&JIT_StoreElem_I4);
+            a.call(rax);
             break;
         }
         case OperationCode::LDELEM: {
