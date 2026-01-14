@@ -341,4 +341,165 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
     ASSERT_EQ(stack[0], 14);
 }
 
+TEST(BasicJITCompilationTestSuite, EqualTest) {
+    auto rda = czffvm::RuntimeDataArea(10000);
+    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
+
+    czffvm::RuntimeFunction func;
+    func.locals_count = 0;
+    func.max_stack = 4;
+    func.code = {
+        {czffvm::OperationCode::LDC, {5}},   // a
+        {czffvm::OperationCode::LDC, {5}},   // b
+        {czffvm::OperationCode::EQ,  {}},
+        {czffvm::OperationCode::RET, {}}
+    };
+
+    int32_t stack[4] = {};
+    CompileAndExecute(rda, jit, func, {}, stack);
+
+    ASSERT_EQ(stack[0], 1);
+}
+
+TEST(BasicJITCompilationTestSuite, LessThanTest) {
+    auto rda = czffvm::RuntimeDataArea(10000);
+    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
+
+    czffvm::RuntimeFunction func;
+    func.locals_count = 0;
+    func.max_stack = 4;
+    func.code = {
+        {czffvm::OperationCode::LDC, {3}},
+        {czffvm::OperationCode::LDC, {7}},
+        {czffvm::OperationCode::LT, {}},
+        {czffvm::OperationCode::RET, {}}
+    };
+
+    int32_t stack[4] = {};
+    CompileAndExecute(rda, jit, func, {}, stack);
+
+    ASSERT_EQ(stack[0], 1);
+}
+
+TEST(BasicJITCompilationTestSuite, LessOrEqualTest) {
+    auto rda = czffvm::RuntimeDataArea(10000);
+    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
+
+    czffvm::RuntimeFunction func;
+    func.locals_count = 0;
+    func.max_stack = 4;
+    func.code = {
+        {czffvm::OperationCode::LDC, {5}},
+        {czffvm::OperationCode::LDC, {5}},
+        {czffvm::OperationCode::LEQ, {}},
+        {czffvm::OperationCode::RET, {}}
+    };
+
+    int32_t stack[4] = {};
+    CompileAndExecute(rda, jit, func, {}, stack);
+
+    ASSERT_EQ(stack[0], 1);
+}
+
+TEST(BasicJITCompilationTestSuite, NegativeTest) {
+    auto rda = czffvm::RuntimeDataArea(10000);
+    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
+
+    czffvm::RuntimeFunction func;
+    func.locals_count = 0;
+    func.max_stack = 2;
+    func.code = {
+        {czffvm::OperationCode::LDC, {5}},
+        {czffvm::OperationCode::NEG, {}},
+        {czffvm::OperationCode::RET, {}}
+    };
+
+    int32_t stack[2] = {};
+    CompileAndExecute(rda, jit, func, {}, stack);
+
+    ASSERT_EQ(stack[0], -5);
+}
+
+TEST(BasicJITCompilationTestSuite, ModuloDivisionTest) {
+    auto rda = czffvm::RuntimeDataArea(10000);
+    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
+
+    czffvm::RuntimeFunction func;
+    func.locals_count = 0;
+    func.max_stack = 4;
+    func.code = {
+        {czffvm::OperationCode::LDC, {17}},
+        {czffvm::OperationCode::LDC, {5}},
+        {czffvm::OperationCode::MOD, {}},
+        {czffvm::OperationCode::RET, {}}
+    };
+
+    int32_t stack[4] = {};
+    CompileAndExecute(rda, jit, func, {}, stack);
+
+    ASSERT_EQ(stack[0], 2);
+}
+
+TEST(BasicJITCompilationTestSuite, LogicalOrTest) {
+    auto rda = czffvm::RuntimeDataArea(10000);
+    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
+
+    czffvm::RuntimeFunction func;
+    func.locals_count = 0;
+    func.max_stack = 4;
+    func.code = {
+        {czffvm::OperationCode::LDC, {0}},
+        {czffvm::OperationCode::LDC, {1}},
+        {czffvm::OperationCode::LOR, {}},
+        {czffvm::OperationCode::RET, {}}
+    };
+
+    int32_t stack[4] = {};
+    CompileAndExecute(rda, jit, func, {}, stack);
+
+    ASSERT_EQ(stack[0], 1);
+}
+
+TEST(BasicJITCompilationTestSuite, LogicalAndTest) {
+    auto rda = czffvm::RuntimeDataArea(10000);
+    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
+
+    czffvm::RuntimeFunction func;
+    func.locals_count = 0;
+    func.max_stack = 4;
+    func.code = {
+        {czffvm::OperationCode::LDC, {1}},
+        {czffvm::OperationCode::LDC, {1}},
+        {czffvm::OperationCode::LAND, {}},
+        {czffvm::OperationCode::RET, {}}
+    };
+
+    int32_t stack[4] = {};
+    CompileAndExecute(rda, jit, func, {}, stack);
+
+    ASSERT_EQ(stack[0], 1);
+}
+
+TEST(BasicJITCompilationTestSuite, ConditionalJumpTest) {
+    auto rda = czffvm::RuntimeDataArea(10000);
+    auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
+
+    czffvm::RuntimeFunction func;
+    func.locals_count = 0;
+    func.max_stack = 4;
+    func.code = {
+        {czffvm::OperationCode::LDC, {0}},          // cond
+        {czffvm::OperationCode::JZ,  {0x00, 0x04}}, // jump to LDC 42
+        {czffvm::OperationCode::LDC, {1}},          // skipped
+        {czffvm::OperationCode::RET, {}},
+        {czffvm::OperationCode::LDC, {42}},         // target
+        {czffvm::OperationCode::RET, {}}
+    };
+
+    int32_t stack[4] = {};
+    CompileAndExecute(rda, jit, func, {}, stack);
+
+    ASSERT_EQ(stack[0], 42);
+}
+
 
