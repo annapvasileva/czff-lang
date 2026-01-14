@@ -439,6 +439,16 @@ bool X86JitCompiler::CanCompile(czffvm::OperationCode opcode) {
         case OperationCode::LDELEM:
         case OperationCode::STELEM:
         case OperationCode::NEWARR:
+        case OperationCode::EQ:
+        case OperationCode::LT:
+        case OperationCode::LEQ:
+        case OperationCode::NEG:
+        case OperationCode::MOD:
+        case OperationCode::LOR:
+        case OperationCode::LAND:
+        case OperationCode::JMP:
+        case OperationCode::JZ:
+        case OperationCode::JNZ:
             return true;
     }
     return false;
