@@ -336,16 +336,18 @@ bool X86JitCompiler::CanCompile(czffvm::Operation op) {
 }
 
 
-void JIT_NewArray(X86JitHeapHelper* heap, uint32_t size, uint16_t type, HeapRef* out_ref) {
+uint32_t JIT_NewArray(X86JitHeapHelper* heap, uint32_t size, uint16_t type) {
     std::cout << "[NewArray] this=" << heap
             << " heap=" << &heap->rda_
             << " heap=" << &heap->rda_.GetHeap()
             << " index=" << size
             << " type=" << type
             << std::endl;
-    *out_ref = heap->NewArray(size, type);
-    std::cout << out_ref
+    HeapRef out_ref = heap->NewArray(size, type);
+    std::cout << out_ref.id
             << std::endl;
+
+    return out_ref.id;
 }
 
 void JIT_StoreElem(X86JitHeapHelper* heap, HeapRef* arr, uint32_t index, Value* value) {
@@ -360,9 +362,32 @@ void JIT_StoreElem(X86JitHeapHelper* heap, HeapRef* arr, uint32_t index, Value* 
     heap->StoreElem(*arr, index, value);
 }
 
-void JIT_LoadElem(X86JitHeapHelper* heap, HeapRef* arr, uint32_t index, Value* out_value) {
-    assert(out_value != nullptr);
-    *out_value = heap->LoadElem(*arr, index);
+extern "C" void __fastcall
+JIT_StoreElem_I4(
+    X86JitHeapHelper* heap,
+    uint32_t arrId,
+    uint32_t index,
+    int32_t value
+) {
+    HeapRef ref{arrId};
+    Value v(value);
+    JIT_StoreElem(heap, &ref, index, &v);
+}
+
+int32_t JIT_LoadElem(
+    X86JitHeapHelper* heap,
+    uint32_t refId,
+    uint32_t index
+) {
+    std::cout << "[LoadElem] this=" << heap
+        << " heap=" << &heap->rda_
+        << " heap=" << &heap->rda_.GetHeap()
+        << " ref=" << refId
+        << " index=" << index
+        << std::endl;
+    HeapRef ref{refId};
+    Value v = heap->LoadElem(ref, index);
+    return std::get<int32_t>(v);
 }
 
 
