@@ -103,9 +103,18 @@ JIT_StoreElem(X86JitHeapHelper* heap,
               Value* value);
 
 extern "C" void
-JIT_LoadElem(X86JitHeapHelper* heap,
-             HeapRef* arr,
-             uint32_t index,
-             Value* out_value);
+JIT_StoreElem_I4(
+    X86JitHeapHelper* heap,
+    uint32_t arrId,
+    uint32_t index,
+    int32_t value
+);
+
+extern "C" int32_t
+JIT_LoadElem(
+    X86JitHeapHelper* heap,
+    uint32_t refId,
+    uint32_t index
+);
 
 } // namespace czffvm_jit
