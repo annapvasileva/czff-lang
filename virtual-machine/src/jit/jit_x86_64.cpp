@@ -326,6 +326,9 @@ bool X86JitCompiler::CanCompile(czffvm::OperationCode opcode) {
         case OperationCode::DUP:
         case OperationCode::SWAP:
         case OperationCode::RET:
+        case OperationCode::LDELEM:
+        case OperationCode::STELEM:
+        case OperationCode::NEWARR:
             return true;
     }
     return false;
