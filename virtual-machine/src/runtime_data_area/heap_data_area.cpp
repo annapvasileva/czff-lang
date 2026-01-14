@@ -2,17 +2,17 @@
 
 namespace czffvm {
 
-Heap::Heap(StackDataArea& stack, uint32_t max_heap_size_in_bytes)
-    : stack_(stack), max_heap_size_in_bytes_(max_heap_size_in_bytes) {}
+Heap::Heap(StackDataArea& stack, uint32_t max_heap_size_in_kib)
+    : stack_(stack), max_heap_size_in_kib_(max_heap_size_in_kib) {}
 
 HeapRef Heap::Allocate(const std::string& type,
                        std::vector<Value>&& fields) {
     size_t approximate_size = EstimateSize(type, fields);
-    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+    if ((used_bytes_ + approximate_size) / kBytesInKiB > max_heap_size_in_kib_) {
         Collect();
     }
 
-    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+    if ((used_bytes_ + approximate_size) / kBytesInKiB > max_heap_size_in_kib_) {
         throw std::runtime_error("Heap memory limit exceeded");
     }
 
@@ -44,11 +44,11 @@ HeapRef Heap::Allocate(const std::string& type,
 HeapRef Heap::Allocate(const std::string& type,
                        std::vector<Value>& fields) {
     size_t approximate_size = EstimateSize(type, fields);
-    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+    if ((used_bytes_ + approximate_size) / kBytesInKiB > max_heap_size_in_kib_) {
         Collect();
     }
 
-    if (used_bytes_ + approximate_size > max_heap_size_in_bytes_) {
+    if ((used_bytes_ + approximate_size) / kBytesInKiB > max_heap_size_in_kib_) {
         throw std::runtime_error("Heap memory limit exceeded");
     }
 

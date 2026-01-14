@@ -7,8 +7,8 @@ VirtualMachine::VirtualMachine()
       loader_(runtime_data_area_),
       interpreter_(runtime_data_area_) {}
 
-VirtualMachine::VirtualMachine(uint32_t max_heap_size_in_bytes)
-    : runtime_data_area_(max_heap_size_in_bytes),
+VirtualMachine::VirtualMachine(uint32_t max_heap_size_in_kib)
+    : runtime_data_area_(max_heap_size_in_kib),
       loader_(runtime_data_area_),
       interpreter_(runtime_data_area_) {}
 

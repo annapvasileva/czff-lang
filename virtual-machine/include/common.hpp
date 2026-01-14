@@ -11,7 +11,8 @@
 #include "uint128.hpp"
 
 namespace czffvm {
-const uint32_t DEFAULT_MAX_HEAP_SIZE_IN_BYTES = 1024 * 1024 * 50;
+const uint32_t kBytesInKiB = 1024;
+const uint32_t kDefaultMaxHeapSizeInKiB = kBytesInKiB * 50; // 5 MiB
 
 enum class OperationCode : uint16_t {
     LDC = 0x0001,

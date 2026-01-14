@@ -9,7 +9,7 @@ namespace czffvm {
 class VirtualMachine {
 public:
     VirtualMachine();
-    VirtualMachine(uint32_t max_heap_size_in_bytes);
+    VirtualMachine(uint32_t max_heap_size_in_kib);
     ~VirtualMachine() = default;
 
     VirtualMachine(const VirtualMachine&) = delete;

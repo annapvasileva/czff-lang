@@ -16,7 +16,7 @@ struct HeapObject {
 
 class Heap {
 public:
-    Heap(StackDataArea& stack, uint32_t max_heap_size_in_bytes);
+    Heap(StackDataArea& stack, uint32_t max_heap_size_in_kib);
     HeapRef Allocate(const std::string& type,
                      std::vector<Value>&& fields);
     HeapRef Allocate(const std::string& type,
@@ -32,7 +32,7 @@ private:
     uint32_t next_id_ = 1;
     StackDataArea& stack_;
     uint64_t used_bytes_ = 0;
-    uint64_t max_heap_size_in_bytes_;
+    uint64_t max_heap_size_in_kib_;
 
     void MarkFromRoots();
     void Mark(const HeapRef& ref);
