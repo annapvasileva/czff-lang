@@ -502,4 +502,3 @@ TEST(BasicJITCompilationTestSuite, ConditionalJumpTest) {
     ASSERT_EQ(stack[0], 42);
 }
 
-

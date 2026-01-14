@@ -409,7 +409,6 @@ void X86JitCompiler::CompileOperation(
             break;
         }
 
-
         default: {
             std::cerr << "Some of this operations are unable to compile" << std::endl;
             throw std::runtime_error("Some of this operations are unable to compile");
