@@ -279,33 +279,26 @@ void X86JitCompiler::CompileOperation(asmjit::x86::Assembler& a, asmjit::x86::Gp
             break;
         }
         case OperationCode::LDELEM: {
-            using namespace asmjit::x86;
 
-            // резервируем место для Value
-            a.sub(stackPtr, 8);
-            a.lea(r9, ptr(stackPtr));           // Value* out
-
-            // pop index
+            // ─── pop INDEX (uint32) ─────────────
             a.sub(stackPtr, 4);
-            a.mov(r8d, dword_ptr(stackPtr));
+            a.mov(r8d, dword_ptr(stackPtr));    // R8D = index
 
-            // pop array ref
-            a.sub(stackPtr, 8);
-            a.lea(rdx, ptr(stackPtr));          // HeapRef*
+            // ─── pop HeapRef.id (uint32) ───────
+            a.sub(stackPtr, 4);
+            a.mov(edx, dword_ptr(stackPtr));    // EDX = refId
 
-            // RCX = heapPtr
-            a.mov(rax, (uint64_t)JIT_LoadElem);
-            a.mov(rcx, heapPtr);
-            a.call(rax);
+            // ─── call helper ───────────────────
+            a.mov(rcx, heapPtr);                // RCX = heap
+            a.mov(rax, (uint64_t)&JIT_LoadElem);
+            a.call(rax);                        // EAX = int32 value
 
-            // результат уже записан в *r9
-            a.add(stackPtr, 8); // push Value* на стек
+            // ─── push value back to VM stack ───
+            a.mov(dword_ptr(stackPtr), eax);
+            a.add(stackPtr, 4);
+
             break;
         }
-
-
-
-
 
         default: {
             std::cerr << "Some of this operations are unable to compile" << std::endl;
