@@ -240,7 +240,7 @@ TEST(BasicJITCompilationTestSuite, ArrayStore) {
     ASSERT_NO_THROW(rda.GetHeap().Get({1}));
     auto array = rda.GetHeap().Get({1});
 
-    ASSERT_EQ(array.type, "[I");
+    ASSERT_EQ(array.type, "[I;");
     ASSERT_EQ(array.fields.size(), 3);
 
     uint32_t arr_elem;
