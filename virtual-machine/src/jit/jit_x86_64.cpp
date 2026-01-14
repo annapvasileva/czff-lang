@@ -210,16 +210,18 @@ void X86JitCompiler::CompileOperation(asmjit::x86::Assembler& a, asmjit::x86::Gp
         }
         
         case OperationCode::DUP: {
-            a.mov(eax, dword_ptr(stackPtr, -4));
-            a.mov(dword_ptr(stackPtr), eax);
+            a.mov(eax, dword_ptr(stackPtr, -4)); // EAX = top
+            a.mov(dword_ptr(stackPtr), eax);     // push copy
             a.add(stackPtr, 4);
             break;
         }
         case OperationCode::SWAP: {
-            a.mov(eax, dword_ptr(stackPtr, -4));
-            a.mov(ecx, dword_ptr(stackPtr, -8));
-            a.mov(dword_ptr(stackPtr, -4), ecx);
-            a.mov(dword_ptr(stackPtr, -8), eax);
+            a.mov(eax, dword_ptr(stackPtr, -4)); // B
+            a.mov(edx, dword_ptr(stackPtr, -8)); // A
+
+            a.mov(dword_ptr(stackPtr, -8), eax); // A <- B
+            a.mov(dword_ptr(stackPtr, -4), edx); // B <- A
+
             break;
         }
         case OperationCode::RET: {
