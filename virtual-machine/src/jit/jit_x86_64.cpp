@@ -156,8 +156,7 @@ void X86JitCompiler::CompileOperation(
                 }
                 
                 a.mov(eax, constant);
-                a.mov(dword_ptr(stackPtr), eax);
-                a.add(stackPtr, 4);
+                push32(eax);
             }
             break;
         }
@@ -165,36 +164,24 @@ void X86JitCompiler::CompileOperation(
             if (!op.arguments.empty()) {
                 uint32_t varIndex = op.arguments[0];
                 a.mov(eax, dword_ptr(stackBase, varIndex * 4));
-                a.mov(dword_ptr(stackPtr), eax);
-                a.add(stackPtr, 4);
+                push32(eax);
             }
             break;
         }
         case OperationCode::STORE: {
             if (!op.arguments.empty()) {
                 uint32_t varIndex = op.arguments[0];
-                a.sub(stackPtr, 4);
-                a.mov(eax, dword_ptr(stackPtr));
+                pop32(eax);
                 a.mov(dword_ptr(stackBase, varIndex * 4), eax);
             }
             break;
         }
         
         case OperationCode::ADD: {
-            // pop rhs
-            a.sub(stackPtr, 4);
-            a.mov(ecx, dword_ptr(stackPtr));
-
-            // pop lhs
-            a.sub(stackPtr, 4);
-            a.mov(eax, dword_ptr(stackPtr));
-
-            // eax = lhs + rhs
-            a.add(eax, ecx);
-
-            // push result
-            a.mov(dword_ptr(stackPtr), eax);
-            a.add(stackPtr, 4);
+            pop32(ecx);       // pop rhs
+            pop32(eax);       // pop lhs
+            a.add(eax, ecx);  // eax = lhs + rhs
+            push32(eax);      // push result
             break;
         }
         
@@ -208,16 +195,10 @@ void X86JitCompiler::CompileOperation(
         }
         
         case OperationCode::MUL: {
-            a.sub(stackPtr, 4);
-            a.mov(ecx, dword_ptr(stackPtr));
-
-            a.sub(stackPtr, 4);
-            a.mov(eax, dword_ptr(stackPtr));
-
-            a.imul(eax, ecx);
-
-            a.mov(dword_ptr(stackPtr), eax);
-            a.add(stackPtr, 4);
+            pop32(ecx);       // pop rhs
+            pop32(eax);       // pop lhs
+            a.imul(eax, ecx); // eax = lhs * rhs
+            push32(eax);      // push result
             break;
         }
         
@@ -235,8 +216,7 @@ void X86JitCompiler::CompileOperation(
         
         case OperationCode::DUP: {
             a.mov(eax, dword_ptr(stackPtr, -4)); // EAX = top
-            a.mov(dword_ptr(stackPtr), eax);     // push copy
-            a.add(stackPtr, 4);
+            push32(eax);                         // push copy
             break;
         }
         case OperationCode::SWAP: {
@@ -245,29 +225,20 @@ void X86JitCompiler::CompileOperation(
 
             a.mov(dword_ptr(stackPtr, -8), eax); // A <- B
             a.mov(dword_ptr(stackPtr, -4), edx); // B <- A
-
             break;
         }
         case OperationCode::RET: {
-            // pop result
-            a.sub(stackPtr, 4);
-            a.mov(eax, dword_ptr(stackPtr));
-
-            // reset stackPtr to stackBase
-            a.mov(stackPtr, stackBase);
-
-            // store result at stack[0]
-            a.mov(dword_ptr(stackBase), eax);
+            pop32(eax);                       // pop result
+            a.mov(stackPtr, stackBase);       // reset stackPtr to stackBase
+            a.mov(dword_ptr(stackBase), eax); // store result at stack[0]
             break;
         }
         case OperationCode::NEWARR: {
-            // ─── pop size (uint32) ─────────────
-            a.sub(stackPtr, 4);
-            a.mov(edx, dword_ptr(stackPtr));   // EDX = size
-
-            // ─── type_idx (uint16 -> uint32) ──
             uint16_t type_idx = (op.arguments[0] << 8) | op.arguments[1];
-            a.mov(r8d, type_idx);              // R8D = type
+
+            // ─── pop size (uint32) ─────────────
+            pop32(edx);                        // EDX = size
+            a.mov(r8d, type_idx);              // R8D = type_idx
 
             // ─── call helper ──────────────────
             a.mov(rcx, heapPtr);               // RCX = heap
@@ -275,24 +246,14 @@ void X86JitCompiler::CompileOperation(
             a.call(rax);                       // EAX = heapRef.id
 
             // ─── push heapRef.id onto VM stack ─
-            a.mov(dword_ptr(stackPtr), eax);   // store id
-            a.add(stackPtr, 4);                // push uint32
+            push32(eax);                       // push uint32
 
             break;
         }
         case OperationCode::STELEM: {
-
-            // ─── pop VALUE (int32) ─────────────────────
-            a.sub(stackPtr, 4);
-            a.mov(r9d, dword_ptr(stackPtr));   // value
-
-            // ─── pop INDEX (int32) ─────────────────────
-            a.sub(stackPtr, 4);
-            a.mov(r8d, dword_ptr(stackPtr));   // index
-
-            // ─── pop HeapRef.id (int32) ─────────────────
-            a.sub(stackPtr, 4);
-            a.mov(edx, dword_ptr(stackPtr));   // arrId
+            pop32(r9d);                        // value
+            pop32(r8d);                        // index
+            pop32(edx);                        // arrId
 
             // RCX = heapPtr
             a.mov(rcx, heapPtr);
@@ -303,14 +264,8 @@ void X86JitCompiler::CompileOperation(
             break;
         }
         case OperationCode::LDELEM: {
-
-            // ─── pop INDEX (uint32) ─────────────
-            a.sub(stackPtr, 4);
-            a.mov(r8d, dword_ptr(stackPtr));    // R8D = index
-
-            // ─── pop HeapRef.id (uint32) ───────
-            a.sub(stackPtr, 4);
-            a.mov(edx, dword_ptr(stackPtr));    // EDX = refId
+            pop32(r8d);                        // index
+            pop32(edx);                        // arrId
 
             // ─── call helper ───────────────────
             a.mov(rcx, heapPtr);                // RCX = heap
@@ -318,8 +273,7 @@ void X86JitCompiler::CompileOperation(
             a.call(rax);                        // EAX = int32 value
 
             // ─── push value back to VM stack ───
-            a.mov(dword_ptr(stackPtr), eax);
-            a.add(stackPtr, 4);
+            push32(eax);
 
             break;
         }
