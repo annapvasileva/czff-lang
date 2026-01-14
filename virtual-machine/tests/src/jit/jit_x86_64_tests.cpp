@@ -194,8 +194,8 @@ TEST(BasicJITCompilationTestSuite, ArrayCreation) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
 
-    ASSERT_NO_THROW(rda.GetHeap().Get({1}));
-    auto array = rda.GetHeap().Get({1});
+    ASSERT_NO_THROW(rda.GetHeap().Get({0}));
+    auto array = rda.GetHeap().Get({0});
 
     ASSERT_EQ(array.type, "[I;");
     ASSERT_EQ(array.fields.size(), 3);
@@ -237,8 +237,8 @@ TEST(BasicJITCompilationTestSuite, ArrayStore) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
 
-    ASSERT_NO_THROW(rda.GetHeap().Get({1}));
-    auto array = rda.GetHeap().Get({1});
+    ASSERT_NO_THROW(rda.GetHeap().Get({0}));
+    auto array = rda.GetHeap().Get({0});
 
     ASSERT_EQ(array.type, "[I;");
     ASSERT_EQ(array.fields.size(), 3);
@@ -333,8 +333,8 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
 
-    ASSERT_NO_THROW(rda.GetHeap().Get({1}));
-    auto array = rda.GetHeap().Get({1});
+    ASSERT_NO_THROW(rda.GetHeap().Get({0}));
+    auto array = rda.GetHeap().Get({0});
 
     ASSERT_EQ(array.type, "[I");
     ASSERT_EQ(array.fields.size(), 8);
