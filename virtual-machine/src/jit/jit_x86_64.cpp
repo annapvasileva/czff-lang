@@ -137,6 +137,16 @@ void X86JitCompiler::CompileOperation(
 ) {
     using namespace asmjit::x86;
 
+    auto pop32 = [&](Gp dst) {
+        a.sub(stackPtr, 4);
+        a.mov(dst, dword_ptr(stackPtr));
+    };
+
+    auto push32 = [&](Gp src) {
+        a.mov(dword_ptr(stackPtr), src);
+        a.add(stackPtr, 4);
+    };
+
     switch (op.code) {
         case OperationCode::LDC: {
             if (!op.arguments.empty()) {
