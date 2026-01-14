@@ -89,7 +89,8 @@ private:
         asmjit::x86::Gp& stackPtr, 
         asmjit::x86::Gp stackBase, 
         asmjit::x86::Gp heapPtr, 
-        const Operation& op
+        const Operation& op,
+        const std::vector<asmjit::v1_21::Label>& labels
     );
 };
 
