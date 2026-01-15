@@ -89,6 +89,7 @@ int main(int argc, char* argv[]) {
             vm.LoadStdlib(opts.stdlib_path);
         }
         vm.LoadProgram(opts.ball_path);
+        vm.EnableJIT();
 
         vm.Run();
     } catch (const std::exception& e) {
