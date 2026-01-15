@@ -871,6 +871,7 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
         else if (auto p = std::get_if<int32_t>(&args[i]))  value = *p;
         else if (auto p = std::get_if<int64_t>(&args[i]))  value = *p;
         else if (auto p = std::get_if<bool>(&args[i]))  value = static_cast<bool>(*p);
+        else if (auto p = std::get_if<HeapRef>(&args[i]))  value = static_cast<int32_t>(p->id);
         else {
             throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
         }
