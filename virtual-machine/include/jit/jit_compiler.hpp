@@ -3,9 +3,33 @@
 #include <memory>
 #include "common.hpp"
 
-namespace czffvm_jit {
+namespace czffvm {
+    enum class OperationCode : uint16_t;
+    struct Operation;
+    struct RuntimeFunction;
+    
+    struct HeapRef;
+    
+    using StringRef = std::shared_ptr<std::string>;
 
-using namespace czffvm;
+    using Value = std::variant<
+        int8_t,                     // I1
+        uint8_t,                    // U1
+        int16_t,                    // I2
+        uint16_t,                   // U2
+        uint32_t,                   // U4
+        int32_t,                    // I4
+        StringRef,                  // STRING
+        uint64_t,                   // U8
+        int64_t,                    // I8
+        stdint128::int128_t,        // I16
+        stdint128::uint128_t,       // U16
+        bool,                       // BOOL
+        HeapRef
+    >;
+}
+
+namespace czffvm_jit {
 
 class CompiledRuntimeFunction {
 public:
@@ -31,7 +55,7 @@ public:
     virtual bool CanCompile(czffvm::OperationCode opcode) = 0;
     virtual bool CanCompile(czffvm::Operation op) = 0;
     virtual std::unique_ptr<CompiledRuntimeFunction> CompileFunction(
-        const RuntimeFunction& function) = 0;
+        const czffvm::RuntimeFunction& function) = 0;
     
     static std::unique_ptr<JitCompiler> create();
 };
