@@ -870,6 +870,7 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
         else if (auto p = std::get_if<int16_t>(&args[i]))  value = *p;
         else if (auto p = std::get_if<int32_t>(&args[i]))  value = *p;
         else if (auto p = std::get_if<int64_t>(&args[i]))  value = *p;
+        else if (auto p = std::get_if<bool>(&args[i]))  value = static_cast<bool>(*p);
         else {
             throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
         }
@@ -882,8 +883,41 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
     czffvm_jit::X86JitHeapHelper& hh = *heapHelper_;
 
     func_ptr(stack, &hh);
+        case TypeDesc::Kind::INT:
+        case TypeDesc::Kind::BOOL: {
+            switch (type_kind.size_bytes) {
+                case 1:
+                case 0: {
+                    c = {
+                        constant_tag, 
+                        {stack[0] & 0xFF}
+                    }
+                    break;
+                }
+                case 2: {
+                    c = {
+                        constant_tag, 
+                        {stack[0] >> 8, stack[0] & 0xFF}
+                    }
+                    break;
+                }
+                case 4: {
+                    c = {
+                        constant_tag, 
+                        {stack[0] >> 24, (stack[0] >> 16) & 0xFF, (stack[0] >> 8) & 0xFF, stack[0] & 0xFF, }
+                    }
+                    break;
+                }
+                default: 
+                    throw std::runtime_error("Wrong return type for JIT-compilation, only integers supported");
+            }
+            break;
+        }
+        default: 
+            throw std::runtime_error("Wrong return type for JIT-compilation, only integers supported");
+    }
 
-    caller_frame.operand_stack.emplace_back(stack[0]);
+    caller_frame.operand_stack.push_back(ConstantToValue(c));
 }
 
 bool Interpreter::CanCompile(const RuntimeFunction* function) {
