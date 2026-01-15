@@ -10,7 +10,9 @@
 namespace czffvm {
 
 Interpreter::Interpreter(RuntimeDataArea& rda)
-    : rda_(rda) {}
+    : rda_(rda) {
+    heapHelper_ = std::make_unique<czffvm_jit::X86JitHeapHelper>(rda_);
+}
 
 struct TypeDesc {
     enum Kind { INT, BOOL, ARRAY, STRING, VOID } kind;
@@ -501,7 +503,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
             case OperationCode::CALL: {
                 uint16_t fn_idx = (op.arguments[0] << 8) | op.arguments[1];
 
-                const RuntimeFunction* callee =
+                RuntimeFunction* callee =
                     rda_.GetMethodArea().GetFunction(fn_idx);
 
                 CallFrame& caller =
@@ -528,9 +530,30 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     caller.operand_stack.pop_back();
                 }
 
+                if (callee->call_count >= kJitThreshold && callee->compilable) {
+                    if (!CanCompile(callee)) {
+                        callee->compilable = false;
+                    } else {
+                        JitCompile(callee);
+                    } 
+                }
+
+                if (callee->jit_function && callee->compilable) {
+                    try {
+                        ExecuteJitFunction(callee, caller, args);
+                        break;
+                        
+                    } catch (const std::exception& e) {
+                        std::cerr << "Error: " << e.what() << std::endl;
+                        callee->compilable = false;
+                    }
+                }
+
                 rda_.GetStack().PushFrame(const_cast<RuntimeFunction*>(callee));
                 CallFrame& callee_frame =
                     rda_.GetStack().CurrentFrame();
+
+                callee->call_count++;
 
                 for (auto& v : args) {
                     callee_frame.operand_stack.push_back(v);
@@ -824,6 +847,49 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 throw std::runtime_error("Unknown opcode");
         }
     }
+}
+
+void Interpreter::JitCompile(RuntimeFunction* function) {
+    function->jit_function = jit_compiler_->CompileFunction(*function);
+}
+
+void Interpreter::SetJitCompiler(std::unique_ptr<czffvm_jit::JitCompiler> jit) {
+    jit_compiler_ = std::move(jit);
+}
+
+void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& caller_frame, std::vector<Value>& args) {
+    
+    int32_t stack[function->max_stack * 2];
+    for (size_t i = 0; i < args.size(); ++i) {
+        int32_t value;
+        if (auto p = std::get_if<uint8_t>(&args[i]))      value = static_cast<int32_t>(*p);
+        else if (auto p = std::get_if<uint16_t>(&args[i])) value = static_cast<int32_t>(*p);
+        else if (auto p = std::get_if<uint32_t>(&args[i])) value = static_cast<int32_t>(*p);
+        else if (auto p = std::get_if<int32_t>(&args[i]))  value = *p;
+        else {
+            throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
+        }
+        stack[i] = value;
+    }
+
+    using VMFunc = void(*)(int32_t*, czffvm_jit::X86JitHeapHelper*);
+    VMFunc func_ptr = function->jit_function->getFunction<VMFunc>();
+
+    czffvm_jit::X86JitHeapHelper& hh = *heapHelper_;
+
+    func_ptr(stack, &hh);
+
+    caller_frame.operand_stack.emplace_back(stack[0]);
+}
+
+bool Interpreter::CanCompile(const RuntimeFunction* function) {
+    for (const auto& op : function->code) {
+        if (!jit_compiler_->CanCompile(op)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 
