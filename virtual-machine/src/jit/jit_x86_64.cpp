@@ -69,16 +69,25 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const R
     a.mov(stackBase, asmjit::x86::rcx);
     a.lea(stackPtr, ptr(stackBase, function.locals_count * 4));
     a.mov(heapPtr, asmjit::x86::rdx);
+
+    std::vector<asmjit::v1_21::Label> labels(function.code.size());
+    for (auto& l : labels)
+        l = a.new_label();
     
 #ifdef DEBUG_BUILD
     std::cout << "[JIT] Compiling operations..." << std::endl;
 #endif
 
+    size_t ip = 0;
     for (const auto& op : function.code) {
+#ifdef DEBUG_BUILD
         std::cout << "[JIT-OP] Code: 0x" << std::hex << (uint16_t)op.code << std::dec 
                   << ", args: " << op.arguments.size() << std::endl;
-        
-        CompileOperation(a, stackPtr, stackBase, heapPtr, op);
+#endif
+
+        a.bind(labels[ip]);
+        CompileOperation(a, stackPtr, stackBase, heapPtr, op, labels);
+        ip += 1;
     }
 
     a.mov(asmjit::x86::eax, 0);
@@ -120,8 +129,25 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const R
     }
 }
 
-void X86JitCompiler::CompileOperation(asmjit::x86::Assembler& a, asmjit::x86::Gp& stackPtr, asmjit::x86::Gp stackBase, asmjit::x86::Gp heapPtr, const Operation& op) {
+void X86JitCompiler::CompileOperation(
+    asmjit::x86::Assembler& a, 
+    asmjit::x86::Gp& stackPtr, 
+    asmjit::x86::Gp stackBase, 
+    asmjit::x86::Gp heapPtr, 
+    const Operation& op,
+    const std::vector<asmjit::v1_21::Label>& labels
+) {
     using namespace asmjit::x86;
+
+    auto pop32 = [&](Gp dst) {
+        a.sub(stackPtr, 4);
+        a.mov(dst, dword_ptr(stackPtr));
+    };
+
+    auto push32 = [&](Gp src) {
+        a.mov(dword_ptr(stackPtr), src);
+        a.add(stackPtr, 4);
+    };
 
     switch (op.code) {
         case OperationCode::LDC: {
@@ -253,6 +279,91 @@ void X86JitCompiler::CompileOperation(asmjit::x86::Assembler& a, asmjit::x86::Gp
 
             break;
         }
+        case OperationCode::EQ: {
+            pop32(eax);   // b
+            pop32(edx);   // a
+            a.cmp(edx, eax);
+            a.sete(al);
+            a.movzx(eax, al);
+            push32(eax);
+            break;
+        }
+        case OperationCode::LT: {
+            pop32(eax);   // b
+            pop32(edx);   // a
+            a.cmp(edx, eax);
+            a.setl(al);
+            a.movzx(eax, al);
+            push32(eax);
+            break;
+        }
+        case OperationCode::LEQ: {
+            pop32(eax);
+            pop32(edx);
+            a.cmp(edx, eax);
+            a.setle(al);
+            a.movzx(eax, al);
+            push32(eax);
+            break;
+        }
+        case OperationCode::NEG: {
+            a.mov(eax, dword_ptr(stackPtr, -4));
+            a.neg(eax);
+            a.mov(dword_ptr(stackPtr, -4), eax);
+            break;
+        }
+        case OperationCode::MOD: {
+            pop32(ecx);     // b
+            pop32(eax);     // a
+            a.cdq();        // sign extend eax -> edx
+            a.idiv(ecx);    // eax = a/b, edx = a%b
+            push32(edx);
+            break;
+        }
+        case OperationCode::LOR: {
+            pop32(eax);
+            pop32(edx);
+            a.or_(eax, edx);
+            a.setne(al);
+            a.movzx(eax, al);
+            push32(eax);
+            break;
+        }
+        case OperationCode::LAND: {
+            pop32(eax);
+            pop32(edx);
+            a.and_(eax, edx);
+            a.setne(al);
+            a.movzx(eax, al);
+            push32(eax);
+            break;
+        }
+        case OperationCode::JMP: {
+            uint16_t target =
+                (op.arguments[0] << 8) | op.arguments[1];
+            a.jmp(labels[target]);
+            break;
+        }
+
+        case OperationCode::JZ: {
+            uint16_t target =
+                (op.arguments[0] << 8) | op.arguments[1];
+
+            pop32(eax);
+            a.test(eax, eax);
+            a.je(labels[target]);
+            break;
+        }
+
+        case OperationCode::JNZ: {
+            uint16_t target =
+                (op.arguments[0] << 8) | op.arguments[1];
+
+            pop32(eax);
+            a.test(eax, eax);
+            a.jne(labels[target]);
+            break;
+        }
 
         default: {
             std::cerr << "Some of this operations are unable to compile" << std::endl;
@@ -280,6 +391,19 @@ bool X86JitCompiler::CanCompile(czffvm::OperationCode opcode) {
         case OperationCode::DUP:
         case OperationCode::SWAP:
         case OperationCode::RET:
+        case OperationCode::LDELEM:
+        case OperationCode::STELEM:
+        case OperationCode::NEWARR:
+        case OperationCode::EQ:
+        case OperationCode::LT:
+        case OperationCode::LEQ:
+        case OperationCode::NEG:
+        case OperationCode::MOD:
+        case OperationCode::LOR:
+        case OperationCode::LAND:
+        case OperationCode::JMP:
+        case OperationCode::JZ:
+        case OperationCode::JNZ:
             return true;
     }
     return false;
