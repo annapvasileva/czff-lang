@@ -7,7 +7,7 @@
 using namespace czffvm;
 using namespace czffvm_jit;
 
-void CompileAndExecute(RuntimeDataArea& rda, std::unique_ptr<czffvm_jit::X86JitCompiler>& jit, RuntimeFunction func, std::vector<Constant> constants, int32_t* stack) {
+void CompileAndExecute(RuntimeDataArea& rda, std::unique_ptr<czffvm_jit::X86JitCompiler>& jit, RuntimeFunction& func, std::vector<Constant> constants, int32_t* stack) {
     for (auto con : constants) {
         rda.GetMethodArea().RegisterConstant(con);
     }
@@ -59,7 +59,7 @@ TEST(BasicJITCompilationTestSuite, BasicAddition) {
     auto rda = czffvm::RuntimeDataArea(10000);
     auto jit = std::make_unique<czffvm_jit::X86JitCompiler>();
 
-    czffvm_jit::RuntimeFunction func;
+    czffvm::RuntimeFunction func;
     func.locals_count = 2;
     func.max_stack = 16;
     
