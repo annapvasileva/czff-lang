@@ -882,30 +882,43 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
 
     czffvm_jit::X86JitHeapHelper& hh = *heapHelper_;
 
+    auto ret_c = rda_.GetMethodArea().GetConstant(function->return_type_index);
+
     func_ptr(stack, &hh);
+    std::string ret_type(ret_c.data.begin(), ret_c.data.end());
+
+    if (ret_type == "void;") {
+        return;
+    }
+    
+    size_t i = 0;
+    auto type_kind = ParseType(ret_type, i);
+
+    Constant c;
+    switch (type_kind.kind) {
         case TypeDesc::Kind::INT:
         case TypeDesc::Kind::BOOL: {
             switch (type_kind.size_bytes) {
                 case 1:
                 case 0: {
                     c = {
-                        constant_tag, 
+                        type_kind.kind == TypeDesc::Kind::BOOL ? ConstantTag::BOOL : type_kind.is_signed ? ConstantTag::I1 : ConstantTag::U1, 
                         {stack[0] & 0xFF}
-                    }
+                    };
                     break;
                 }
                 case 2: {
                     c = {
-                        constant_tag, 
+                        type_kind.is_signed ? ConstantTag::I2 : ConstantTag::U2, 
                         {stack[0] >> 8, stack[0] & 0xFF}
-                    }
+                    };
                     break;
                 }
                 case 4: {
                     c = {
-                        constant_tag, 
+                        type_kind.is_signed ? ConstantTag::I4 : ConstantTag::U4, 
                         {stack[0] >> 24, (stack[0] >> 16) & 0xFF, (stack[0] >> 8) & 0xFF, stack[0] & 0xFF, }
-                    }
+                    };
                     break;
                 }
                 default: 
