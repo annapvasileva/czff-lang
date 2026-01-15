@@ -45,10 +45,12 @@ TEST(BasicJITCompilationTestSuite, SimpleFunction) {
 
     ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, {}, stack));
 
+#ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
     for (int i = 0; i < 4; i++) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
+#endif
 
     ASSERT_EQ(stack[0], (((int32_t)0x32) << 8) + 0x67);
 }
@@ -72,10 +74,12 @@ TEST(BasicJITCompilationTestSuite, BasicAddition) {
 
     ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, {}, stack));
 
+#ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
     for (int i = 0; i < 4; i++) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
+#endif
 
     ASSERT_EQ(stack[0], 30);
 }
@@ -99,10 +103,12 @@ TEST(BasicJITCompilationTestSuite, ConstantAddition) {
 
     ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, {}, stack));
 
+#ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
     for (int i = 0; i < func.max_stack; i++) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
+#endif
 
     ASSERT_EQ(stack[0], 8);
 }
@@ -126,10 +132,12 @@ TEST(BasicJITCompilationTestSuite, Multiplication) {
 
     ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, {}, stack));
 
+#ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
     for (int i = 0; i < func.max_stack; i++) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
+#endif
 
     ASSERT_EQ(stack[0], 42);
 }
@@ -155,10 +163,12 @@ TEST(BasicJITCompilationTestSuite, ComplexExpression) {
 
     ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, {}, stack));
 
+#ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
     for (int i = 0; i < func.max_stack; i++) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
+#endif
 
     ASSERT_EQ(stack[0], 32);
 }
@@ -189,10 +199,12 @@ TEST(BasicJITCompilationTestSuite, ArrayCreation) {
         stack
     ));
 
+#ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
     for (int i = 0; i < 16; i++) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
+#endif
 
     ASSERT_NO_THROW(rda.GetHeap().Get({0}));
     auto array = rda.GetHeap().Get({0});
@@ -232,10 +244,12 @@ TEST(BasicJITCompilationTestSuite, ArrayStore) {
         stack
     ));
 
+#ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
     for (int i = 0; i < 16; i++) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
+#endif
 
     ASSERT_NO_THROW(rda.GetHeap().Get({0}));
     auto array = rda.GetHeap().Get({0});
@@ -328,10 +342,12 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
         stack
     ));
 
+#ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
     for (int i = 0; i < 16; i++) {
         std::cout << "  stack[" << i << "] = " << stack[i] << std::endl;
     }
+#endif
 
     ASSERT_NO_THROW(rda.GetHeap().Get({0}));
     auto array = rda.GetHeap().Get({0});

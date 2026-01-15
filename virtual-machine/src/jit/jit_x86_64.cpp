@@ -80,9 +80,11 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const R
 
     size_t ip = 0;
     for (const auto& op : function.code) {
+#ifdef DEBUG_BUILD
         std::cout << "[JIT-OP] Code: 0x" << std::hex << (uint16_t)op.code << std::dec 
                   << ", args: " << op.arguments.size() << std::endl;
-        
+#endif
+
         a.bind(labels[ip]);
         CompileOperation(a, stackPtr, stackBase, heapPtr, op, labels);
         ip += 1;
