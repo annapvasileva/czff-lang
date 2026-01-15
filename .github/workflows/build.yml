@@ -3,6 +3,7 @@ name: Build Compiler + VM (Windows + MinGW)
 on:
   workflow_dispatch:  # ручной запуск
 
+
 jobs:
   build:
     runs-on: windows-latest
