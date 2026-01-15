@@ -45,7 +45,7 @@
   }
 
   func void Main() {
-      var int n = 1000000;
+      var int n = 100;
       var array<int> arr = new int(n)[]; // create array with size n
       for (var int i = 0; i < n; i = i + 1) {
         arr[i] = n - i;

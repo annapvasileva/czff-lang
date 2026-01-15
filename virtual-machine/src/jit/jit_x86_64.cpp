@@ -60,9 +60,11 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const R
     // save non-volatiles
     a.push(asmjit::x86::rbp);
     a.mov(asmjit::x86::rbp, asmjit::x86::rsp);
+
     a.push(asmjit::x86::r12);
     a.push(asmjit::x86::r13);
     a.push(asmjit::x86::r14);
+    a.push(asmjit::x86::r15);
 
     a.sub(asmjit::x86::rsp, 32); // shadow space for windows x64
 
@@ -86,6 +88,8 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const R
 #endif
 
         a.bind(labels[ip]);
+        std::cout << "jit8664 89| " << static_cast<uint16_t>(op.code) << "\n";
+        
         CompileOperation(a, stackPtr, stackBase, heapPtr, op, labels);
         ip += 1;
     }
@@ -94,6 +98,7 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const R
     
     // epilogue
     a.add(asmjit::x86::rsp, 32);
+    a.pop(asmjit::x86::r15);
     a.pop(asmjit::x86::r14);
     a.pop(asmjit::x86::r13);
     a.pop(asmjit::x86::r12);
@@ -115,6 +120,7 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const R
     std::cout << "[JIT] Code size: " << code.code_size() << " bytes" << std::endl;
 #endif
 
+    std::cout << "jit8664 118| " << funcPtr << " " << code.code_size() << '\n';
     return std::make_unique<X86CompiledRuntimeFunction>(
         funcPtr,
         code.code_size(),
@@ -172,6 +178,7 @@ void X86JitCompiler::CompileOperation(
         }
         case OperationCode::STORE: {
             if (!op.arguments.empty()) {
+                std::cout << "jit8664 180| " << op.arguments[0] << '\n';
                 uint32_t varIndex = op.arguments[0];
                 pop32(eax);
                 a.mov(dword_ptr(stackBase, varIndex * 4), eax);
@@ -188,11 +195,10 @@ void X86JitCompiler::CompileOperation(
         }
         
         case OperationCode::SUB: {
-            a.sub(stackPtr, 4);
-            a.mov(eax, dword_ptr(stackPtr, -4));
-            a.sub(eax, dword_ptr(stackPtr));
-            a.mov(dword_ptr(stackPtr, -4), eax);
-            a.sub(stackPtr, 4);
+            pop32(ecx);    // rhs
+            pop32(eax);    // lhs
+            a.sub(eax, ecx);
+            push32(eax);
             break;
         }
         
@@ -205,14 +211,11 @@ void X86JitCompiler::CompileOperation(
         }
         
         case OperationCode::DIV: {
-            a.mov(r10d, edx);
-            a.sub(stackPtr, 4);
-            a.mov(eax, dword_ptr(stackPtr, -4));
-            a.cdq();
-            a.idiv(dword_ptr(stackPtr));
-            a.mov(dword_ptr(stackPtr, -4), eax);
-            a.mov(edx, r10d);
-            a.sub(stackPtr, 4);
+            pop32(ecx);   // divisor
+            pop32(eax);   // dividend
+            a.cdq();      // sign extend eax → edx
+            a.idiv(ecx);  // eax = eax/ecx
+            push32(eax);
             break;
         }
         
@@ -237,6 +240,7 @@ void X86JitCompiler::CompileOperation(
         }
         case OperationCode::NEWARR: {
             uint16_t type_idx = (op.arguments[0] << 8) | op.arguments[1];
+            std::cout << "jit8664 243| new arr " << ((op.arguments[0] << 8) | op.arguments[1]) << '\n';
 
             // ─── pop size (uint32) ─────────────
             pop32(edx);                        // EDX = size
@@ -244,6 +248,7 @@ void X86JitCompiler::CompileOperation(
 
             // ─── call helper ──────────────────
             a.mov(rcx, heapPtr);               // RCX = heap
+            std::cout << "hit8664 251| " << JIT_NewArray << "\n";   
             a.mov(rax, (uint64_t)&JIT_NewArray);
             a.call(rax);                       // EAX = heapRef.id
 
@@ -415,6 +420,7 @@ bool X86JitCompiler::CanCompile(czffvm::Operation op) {
 
 
 extern "C" uint32_t JIT_NewArray(X86JitHeapHelper* heap, uint32_t size, uint16_t type) {
+    std::cout << "jit8664| 419 " << heap << " " << size << " " << type << '\n';
     HeapRef out_ref = heap->NewArray(size, type);
 
     return out_ref.id;
@@ -450,6 +456,7 @@ extern "C" int32_t JIT_LoadElem(
 
 
 czffvm::HeapRef X86JitHeapHelper::NewArray(uint32_t arr_size, uint16_t type_idx) {
+    std::cout << "jit8664 458| new array " << arr_size << " " << type_idx << '\n';
     const Constant& type_c =
         rda_.GetMethodArea().GetConstant(type_idx);
 
@@ -457,10 +464,12 @@ czffvm::HeapRef X86JitHeapHelper::NewArray(uint32_t arr_size, uint16_t type_idx)
     std::string array_type = "[" + elem_type;
 
     std::vector<Value> elements(arr_size);
+    std::cout << "jit8664 458| new array end \n";
     return rda_.GetHeap().Allocate(array_type, std::move(elements));
 }
 
 void X86JitHeapHelper::StoreElem(czffvm::HeapRef ref, uint32_t index, czffvm::Value* value) {
+        std::cout << "jit8664 483| StoreElem end " << ref.id << " " << index << '\n';
     HeapObject& obj = rda_.GetHeap().Get(ref);
 
     if (obj.type.empty() || obj.type[0] != '[')
@@ -470,10 +479,13 @@ void X86JitHeapHelper::StoreElem(czffvm::HeapRef ref, uint32_t index, czffvm::Va
         throw std::runtime_error("STELEM: OOB");
 
     obj.fields[index] = *value;
+    std::cout << "jit8664 458| store elem end \n";
 }
 
 czffvm::Value X86JitHeapHelper::LoadElem(czffvm::HeapRef ref, uint32_t index) {
+        std::cout << "jit8664 483| LoadElem " << ref.id << " " << index << '\n';
     HeapObject& obj = rda_.GetHeap().Get(ref);
+    std::cout << "jit8664 458| load elem getref \n";
 
     if (obj.type.empty() || obj.type[0] != '[')
         throw std::runtime_error("LDELEM: not array");
@@ -481,6 +493,7 @@ czffvm::Value X86JitHeapHelper::LoadElem(czffvm::HeapRef ref, uint32_t index) {
     if (index >= obj.fields.size())
         throw std::runtime_error("LDELEM: OOB");
 
+    std::cout << "jit8664 458| load elem end \n";
     return obj.fields[index];
 }
 

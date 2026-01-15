@@ -52,6 +52,8 @@ enum class OperationCode : uint16_t {
     LAND = 0x001B
 };
 
+
+
 struct Operation {
     OperationCode code;
     std::vector<uint8_t> arguments;

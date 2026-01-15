@@ -78,6 +78,7 @@ HeapRef Heap::Allocate(const std::string& type,
 }
 
 HeapObject& Heap::Get(HeapRef ref) {
+    // std::cout << "hda 85| Get heap ref " << ref.id << " " << objects_.size() << '\n'; 
     if (ref.id >= objects_.size() || !objects_[ref.id]) {
         throw std::runtime_error("Invalid heap reference");
     }

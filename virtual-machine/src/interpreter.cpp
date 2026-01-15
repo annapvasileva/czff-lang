@@ -530,7 +530,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     caller.operand_stack.pop_back();
                 }
 
-                if (callee->call_count >= kJitThreshold && callee->compilable) {
+                if (callee->call_count >= kJitThreshold && callee->compilable && !callee->jit_function) {
                     if (!CanCompile(callee)) {
                         callee->compilable = false;
                     } else {
@@ -538,8 +538,10 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     } 
                 }
 
+                std::cout << "interpret 541| " << callee->jit_function << " " << callee -> compilable << '\n';  
                 if (callee->jit_function && callee->compilable) {
                     try {
+                std::cout << "interpret 544| " << '\n';  
                         ExecuteJitFunction(callee, caller, args);
                         break;
                         
@@ -859,7 +861,11 @@ void Interpreter::SetJitCompiler(std::unique_ptr<czffvm_jit::JitCompiler> jit) {
 
 void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& caller_frame, std::vector<Value>& args) {
     
-    int32_t stack[function->max_stack * 2];
+    int32_t stack[1000 * 2];
+    for (int i = 0; i < 1000*2; i++) {
+        stack[i] = 0;
+    }
+
     for (size_t i = 0; i < args.size(); ++i) {
         int32_t value;
         if (auto p = std::get_if<uint8_t>(&args[i]))      value = static_cast<int32_t>(*p);
@@ -885,6 +891,8 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
 
     auto ret_c = rda_.GetMethodArea().GetConstant(function->return_type_index);
 
+    std::cout << "interper 894| " << (void*)func_ptr << '\n';
+    
     func_ptr(stack, &hh);
     std::string ret_type(ret_c.data.begin(), ret_c.data.end());
 
