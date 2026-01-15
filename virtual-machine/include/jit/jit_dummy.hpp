@@ -12,7 +12,7 @@ public:
     bool CanCompile(czffvm::OperationCode opcode) override;
     bool CanCompile(czffvm::Operation op) override;
     std::unique_ptr<CompiledRuntimeFunction> CompileFunction(
-        const RuntimeFunction& function) override;
+        const czffvm::RuntimeFunction& function) override;
 };
 
 } // namespace czffvm_jit

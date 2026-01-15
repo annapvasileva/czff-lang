@@ -414,17 +414,17 @@ bool X86JitCompiler::CanCompile(czffvm::Operation op) {
 }
 
 
-uint32_t JIT_NewArray(X86JitHeapHelper* heap, uint32_t size, uint16_t type) {
+extern "C" uint32_t JIT_NewArray(X86JitHeapHelper* heap, uint32_t size, uint16_t type) {
     HeapRef out_ref = heap->NewArray(size, type);
 
     return out_ref.id;
 }
 
-void JIT_StoreElem(X86JitHeapHelper* heap, HeapRef* arr, uint32_t index, Value* value) {
+extern "C" void JIT_StoreElem(X86JitHeapHelper* heap, HeapRef* arr, uint32_t index, Value* value) {
     heap->StoreElem(*arr, index, value);
 }
 
-extern "C" void __fastcall
+extern "C" void
 JIT_StoreElem_I4(
     X86JitHeapHelper* heap,
     uint32_t arrId,
@@ -436,7 +436,7 @@ JIT_StoreElem_I4(
     JIT_StoreElem(heap, &ref, index, &v);
 }
 
-int32_t JIT_LoadElem(
+extern "C" int32_t JIT_LoadElem(
     X86JitHeapHelper* heap,
     uint32_t refId,
     uint32_t index
