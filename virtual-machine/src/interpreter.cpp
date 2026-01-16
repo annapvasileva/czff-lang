@@ -534,6 +534,11 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     if (!CanCompile(callee)) {
                         callee->compilable = false;
                     } else {
+                        #ifdef DEBUG_BUILD
+                            const Constant& name_data = rda_.GetMethodArea().GetConstant(callee->name_index);
+
+                            std::cout << "[JIT] Compilation of " << std::string(name_data.data.begin(), name_data.data.end()) << std::endl;
+                        #endif
                         JitCompile(callee);
                     } 
                 }
