@@ -530,7 +530,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     caller.operand_stack.pop_back();
                 }
 
-                if (callee->call_count >= kJitThreshold && callee->compilable) {
+                if (!callee->jit_function && callee->call_count >= kJitThreshold && callee->compilable) {
                     if (!CanCompile(callee)) {
                         callee->compilable = false;
                     } else {
