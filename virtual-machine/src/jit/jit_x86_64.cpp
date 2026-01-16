@@ -189,12 +189,10 @@ void X86JitCompiler::CompileOperation(
     switch (op.code) {
         case OperationCode::LDC: {
             if (!op.arguments.empty()) {
-                uint32_t constant = 0;
-                for (size_t i = 0; i < 4 && i < op.arguments.size(); ++i) {
-                    constant |= (op.arguments[i] << (i * 8));
-                }
-                
-                a.mov(eax, constant);
+                uint16_t idx = (op.arguments[0] << 8) | op.arguments[1];
+                const Constant& c = rda.GetMethodArea().GetConstant(idx);
+
+                a.mov(eax, ValueToInteger<int32_t>(ConstantToValue(c)));
                 push32(eax);
             }
             break;
