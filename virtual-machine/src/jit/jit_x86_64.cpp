@@ -223,11 +223,10 @@ void X86JitCompiler::CompileOperation(
         }
         
         case OperationCode::SUB: {
-            a.sub(stackPtr, 4);
-            a.mov(eax, dword_ptr(stackPtr, -4));
-            a.sub(eax, dword_ptr(stackPtr));
-            a.mov(dword_ptr(stackPtr, -4), eax);
-            a.sub(stackPtr, 4);
+            pop32(ecx);       // pop rhs
+            pop32(eax);       // pop lhs
+            a.sub(eax, ecx);  // eax = lhs + rhs
+            push32(eax);      // push result
             break;
         }
         
