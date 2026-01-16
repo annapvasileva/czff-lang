@@ -105,7 +105,7 @@ static bool CheckReturnType(const std::string& expected, const Value& v) {
     return Match(t,v);
 }
 
-static size_t CountParams(const std::string& s){
+size_t CountParams(const std::string& s){
     size_t i=0,c=0;
     while(i<s.size()){
         ParseType(s,i);
