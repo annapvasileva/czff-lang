@@ -5,6 +5,8 @@
 
 namespace czffvm {
 
+size_t CountParams(const std::string& s);
+
 class Interpreter {
 public:
     explicit Interpreter(RuntimeDataArea& rda);
