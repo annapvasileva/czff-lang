@@ -935,6 +935,9 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
 }
 
 bool Interpreter::CanCompile(const RuntimeFunction* function) {
+    if (!jit_compiler_) {
+        return false;
+    }
     for (const auto& op : function->code) {
         if (!jit_compiler_->CanCompile(op)) {
             return false;
