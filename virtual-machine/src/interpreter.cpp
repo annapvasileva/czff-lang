@@ -850,7 +850,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
 }
 
 void Interpreter::JitCompile(RuntimeFunction* function) {
-    function->jit_function = jit_compiler_->CompileFunction(*function);
+    function->jit_function = jit_compiler_->CompileFunction(*function, rda_);
 }
 
 void Interpreter::SetJitCompiler(std::unique_ptr<czffvm_jit::JitCompiler> jit) {
