@@ -117,7 +117,7 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
 #endif
 
         a.bind(labels[ip]);
-        CompileOperation(a, stackPtr, stackBase, heapPtr, op, labels);
+        CompileOperation(a, stackPtr, stackBase, heapPtr, op, labels, rda);
         ip += 1;
     }
 
@@ -167,7 +167,8 @@ void X86JitCompiler::CompileOperation(
     asmjit::x86::Gp stackBase, 
     asmjit::x86::Gp heapPtr, 
     const Operation& op,
-    const std::vector<asmjit::v1_21::Label>& labels
+    const std::vector<asmjit::v1_21::Label>& labels,
+    czffvm::RuntimeDataArea& rda
 ) {
     using namespace asmjit::x86;
 
