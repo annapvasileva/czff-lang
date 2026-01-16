@@ -46,6 +46,7 @@ public:
     ~CompiledRuntimeFunction() = default;
     virtual void* GetCode() const = 0;
     virtual size_t GetSize() const = 0;
+    virtual size_t GetArgumentCount() const = 0;
     virtual uint16_t GetNameIndex() const = 0;
     virtual uint16_t GetReturnTypeIndex() const = 0;
     
