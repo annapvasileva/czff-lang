@@ -239,14 +239,13 @@ void X86JitCompiler::CompileOperation(
         }
         
         case OperationCode::DIV: {
-            a.mov(r10d, edx);
-            a.sub(stackPtr, 4);
-            a.mov(eax, dword_ptr(stackPtr, -4));
-            a.cdq();
-            a.idiv(dword_ptr(stackPtr));
-            a.mov(dword_ptr(stackPtr, -4), eax);
-            a.mov(edx, r10d);
-            a.sub(stackPtr, 4);
+            pop32(ecx);        // rhs (divisor)
+            pop32(eax);        // lhs (dividend)
+
+            a.cdq();           // sign-extend EAX → EDX:EAX
+            a.idiv(ecx);       // EAX = lhs / rhs, EDX = lhs % rhs
+
+            push32(eax);       // push quotient
             break;
         }
         
