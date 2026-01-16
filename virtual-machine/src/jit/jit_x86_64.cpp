@@ -462,7 +462,8 @@ extern "C" int32_t JIT_LoadElem(
 ) {
     HeapRef ref{refId};
     Value v = heap->LoadElem(ref, index);
-    return std::get<int32_t>(v);
+
+    return ValueToInteger<int32_t>(v);
 }
 
 
