@@ -16,9 +16,10 @@ private:
     uint16_t name_index;
     uint16_t return_type_index;
     uint16_t max_stack;
+    size_t argument_count;
 public:
-    X86CompiledRuntimeFunction(void* code, size_t size, std::weak_ptr<asmjit::JitRuntime> runtime_) 
-        : compiled_code(code), code_size(size), runtime(runtime_) {}
+    X86CompiledRuntimeFunction(void* code, size_t size, std::weak_ptr<asmjit::JitRuntime> runtime_, size_t argument_count_) 
+        : compiled_code(code), code_size(size), runtime(runtime_), argument_count(argument_count_) {}
     
     ~X86CompiledRuntimeFunction() {
 #ifdef DEBUG_BUILD
@@ -34,6 +35,7 @@ public:
     
     void* GetCode() const override { return compiled_code; }
     size_t GetSize() const override { return code_size; }
+    size_t GetArgumentCount() const override { return argument_count; }
     
     uint16_t GetNameIndex() const override { return name_index; }
     uint16_t GetReturnTypeIndex() const override { return return_type_index; }
