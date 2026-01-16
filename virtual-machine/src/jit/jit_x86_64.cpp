@@ -30,7 +30,7 @@ X86JitCompiler::X86JitCompiler()
     auto env = runtime->environment();
 }
 
-std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const RuntimeFunction& function) {
+std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const czffvm::RuntimeFunction& function, czffvm::RuntimeDataArea& rda) {
     
 #ifdef DEBUG_BUILD
     std::cout << "[JIT] Starting compilation..." << std::endl;

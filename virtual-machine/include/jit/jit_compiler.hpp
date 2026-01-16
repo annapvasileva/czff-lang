@@ -55,7 +55,9 @@ public:
     virtual bool CanCompile(czffvm::OperationCode opcode) = 0;
     virtual bool CanCompile(czffvm::Operation op) = 0;
     virtual std::unique_ptr<CompiledRuntimeFunction> CompileFunction(
-        const czffvm::RuntimeFunction& function) = 0;
+        const czffvm::RuntimeFunction& function,
+        czffvm::RuntimeDataArea& rda
+    ) = 0;
     
     static std::unique_ptr<JitCompiler> create();
 };
