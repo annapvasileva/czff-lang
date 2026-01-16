@@ -859,7 +859,8 @@ void Interpreter::SetJitCompiler(std::unique_ptr<czffvm_jit::JitCompiler> jit) {
 
 void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& caller_frame, std::vector<Value>& args) {
     
-    int32_t stack[function->max_stack * 2];
+    int32_t stack[100000];
+    size_t lc = ((function->locals_count * 4) + 15) / 16 * 4;
     for (size_t i = 0; i < args.size(); ++i) {
         int32_t value;
         if (auto p = std::get_if<uint8_t>(&args[i]))      value = static_cast<int32_t>(*p);
@@ -875,7 +876,7 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
         else {
             throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
         }
-        stack[i] = value;
+        stack[i + lc] = value;
     }
 
     using VMFunc = void(*)(int32_t*, czffvm_jit::X86JitHeapHelper*);
@@ -895,6 +896,8 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
     size_t i = 0;
     auto type_kind = ParseType(ret_type, i);
 
+    size_t return_index = lc;
+
     Constant c;
     switch (type_kind.kind) {
         case TypeDesc::Kind::INT:
@@ -904,21 +907,21 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
                 case 0: {
                     c = {
                         type_kind.kind == TypeDesc::Kind::BOOL ? ConstantTag::BOOL : type_kind.is_signed ? ConstantTag::I1 : ConstantTag::U1, 
-                        {stack[0] & 0xFF}
+                        {stack[return_index] & 0xFF}
                     };
                     break;
                 }
                 case 2: {
                     c = {
                         type_kind.is_signed ? ConstantTag::I2 : ConstantTag::U2, 
-                        {stack[0] >> 8, stack[0] & 0xFF}
+                        {stack[return_index] >> 8, stack[return_index] & 0xFF}
                     };
                     break;
                 }
                 case 4: {
                     c = {
                         type_kind.is_signed ? ConstantTag::I4 : ConstantTag::U4, 
-                        {stack[0] >> 24, (stack[0] >> 16) & 0xFF, (stack[0] >> 8) & 0xFF, stack[0] & 0xFF, }
+                        {stack[return_index] >> 24, (stack[return_index] >> 16) & 0xFF, (stack[return_index] >> 8) & 0xFF, stack[return_index] & 0xFF, }
                     };
                     break;
                 }
