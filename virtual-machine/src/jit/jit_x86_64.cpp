@@ -11,6 +11,25 @@ namespace czffvm_jit {
 
 using namespace czffvm;
 
+template<typename T>
+T ValueToInteger(Value v) {
+    T value;
+    if (auto p = std::get_if<uint8_t>(&v))      value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint16_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint32_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint64_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int8_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int16_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int32_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int64_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<bool>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<HeapRef>(&v))  value = static_cast<T>(p->id);
+    else {
+        throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
+    }
+    return value;
+}
+
 X86JitCompiler::X86JitCompiler()
     : runtime(std::make_shared<asmjit::JitRuntime>()) {
 
