@@ -71,6 +71,18 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
     std::cout << "[JIT] Generating Windows x64 prologue..." << std::endl;
 #endif
 
+    const Constant& params_c =
+        rda.GetMethodArea().GetConstant(
+            function.params_descriptor_index
+        );
+
+    std::string sig(
+        params_c.data.begin(),
+        params_c.data.end()
+    );
+
+    size_t argc = czffvm::CountParams(sig);
+
     // prologue
     asmjit::x86::Gp stackBase = asmjit::x86::r13;
     asmjit::x86::Gp stackPtr  = asmjit::x86::r12;
@@ -86,7 +98,7 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
     a.sub(asmjit::x86::rsp, 32); // shadow space for windows x64
 
     a.mov(stackBase, asmjit::x86::rcx);
-    a.lea(stackPtr, ptr(stackBase, function.locals_count * 4));
+    a.lea(stackPtr, ptr(stackBase, ((function.locals_count * 4) + 15) / 16 * 16 + argc * 4));
     a.mov(heapPtr, asmjit::x86::rdx);
 
     std::vector<asmjit::v1_21::Label> labels(function.code.size());
@@ -137,7 +149,8 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
     return std::make_unique<X86CompiledRuntimeFunction>(
         funcPtr,
         code.code_size(),
-        runtime
+        runtime,
+        argc
     );
     } catch (const std::exception& e) {
         std::cerr << "[JIT] EXCEPTION in compileFunction: " << e.what() << std::endl;
