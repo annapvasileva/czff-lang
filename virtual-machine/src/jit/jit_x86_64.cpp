@@ -199,7 +199,7 @@ void X86JitCompiler::CompileOperation(
         }
         case OperationCode::LDV: {
             if (!op.arguments.empty()) {
-                uint32_t varIndex = op.arguments[0];
+                uint32_t varIndex = (op.arguments[0] << 8) + op.arguments[1];
                 a.mov(eax, dword_ptr(stackBase, varIndex * 4));
                 push32(eax);
             }
@@ -207,7 +207,7 @@ void X86JitCompiler::CompileOperation(
         }
         case OperationCode::STORE: {
             if (!op.arguments.empty()) {
-                uint32_t varIndex = op.arguments[0];
+                uint32_t varIndex = (op.arguments[0] << 8) + op.arguments[1];
                 pop32(eax);
                 a.mov(dword_ptr(stackBase, varIndex * 4), eax);
             }
