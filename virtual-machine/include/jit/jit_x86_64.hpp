@@ -70,7 +70,8 @@ public:
     bool CanCompile(czffvm::OperationCode opcode) override;
     bool CanCompile(czffvm::Operation op) override;
     std::unique_ptr<CompiledRuntimeFunction> CompileFunction(
-        const czffvm::RuntimeFunction& function) override;
+        const czffvm::RuntimeFunction& function,
+        czffvm::RuntimeDataArea& rda) override;
 private:
     std::shared_ptr<asmjit::JitRuntime> runtime;
 
@@ -90,7 +91,8 @@ private:
         asmjit::x86::Gp stackBase, 
         asmjit::x86::Gp heapPtr,
         const czffvm::Operation& op,
-        const std::vector<asmjit::v1_21::Label>& labels
+        const std::vector<asmjit::v1_21::Label>& labels,
+        czffvm::RuntimeDataArea& rda
     );
 };
 
