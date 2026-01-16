@@ -27,6 +27,10 @@ namespace czffvm {
         bool,                       // BOOL
         HeapRef
     >;
+
+    class RuntimeDataArea;
+
+    size_t CountParams(const std::string& s);
 }
 
 namespace czffvm_jit {
