@@ -20,7 +20,7 @@ namespace czffvm_jit {
 namespace czffvm {
 const uint32_t kBytesInKiB = 1024;
 const uint32_t kDefaultMaxHeapSizeInKiB = kBytesInKiB * 50; // 5 MiB
-constexpr uint32_t kJitThreshold = 50;
+constexpr uint32_t kJitThreshold = 5;
 
 enum class OperationCode : uint16_t {
     LDC = 0x0001,
