@@ -15,7 +15,7 @@ void CompileAndExecute(RuntimeDataArea& rda, std::unique_ptr<czffvm_jit::X86JitC
     czffvm_jit::X86JitHeapHelper heapHelper(rda);
 
     try {
-        auto compiled_func = jit->CompileFunction(func);
+        auto compiled_func = jit->CompileFunction(func, rda);
 
         if (compiled_func) {
             using VMFunc = void(*)(int32_t*, czffvm_jit::X86JitHeapHelper*);
@@ -36,14 +36,22 @@ TEST(BasicJITCompilationTestSuite, SimpleFunction) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 4;
+    func.params_descriptor_index = 1;
+    func.return_type_index = 2;
     func.code = {
-        {czffvm::OperationCode::LDC, {0x67, 0x32, 0, 0}},
+        {czffvm::OperationCode::LDC, {0, 0}},
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[4] = {0, 0, 0, 0};
 
-    ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, {}, stack));
+    ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, 
+        {
+            {czffvm::ConstantTag::I2, {0x67, 0x32}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack));
 
 #ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
@@ -52,7 +60,7 @@ TEST(BasicJITCompilationTestSuite, SimpleFunction) {
     }
 #endif
 
-    ASSERT_EQ(stack[0], (((int32_t)0x32) << 8) + 0x67);
+    ASSERT_EQ(stack[0], (((int32_t)0x67) << 8) + 0x32);
 }
 
 TEST(BasicJITCompilationTestSuite, BasicAddition) {
@@ -62,17 +70,26 @@ TEST(BasicJITCompilationTestSuite, BasicAddition) {
     czffvm::RuntimeFunction func;
     func.locals_count = 2;
     func.max_stack = 16;
+    func.params_descriptor_index = 0;
+    func.return_type_index = 1;
     
     func.code = {
-        {czffvm::OperationCode::LDV, {0}},  // LDV 0
-        {czffvm::OperationCode::LDV, {1}},  // LDV 1
+        {czffvm::OperationCode::LDV, {0, 0}},  // LDV 0
+        {czffvm::OperationCode::LDV, {0, 1}},  // LDV 1
         {czffvm::OperationCode::ADD, {}},   // ADD
         {czffvm::OperationCode::RET, {}}    // RET
     };
 
     int32_t stack[4] = {10, 20, 0, 0};
 
-    ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, {}, stack));
+    ASSERT_NO_THROW(CompileAndExecute(
+        rda, jit, func, 
+        {
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack
+    ));
 
 #ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
@@ -91,17 +108,26 @@ TEST(BasicJITCompilationTestSuite, ConstantAddition) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 8;
+    func.params_descriptor_index = 2;
+    func.return_type_index = 3;
     
     func.code = {
-        {czffvm::OperationCode::LDC, {5, 0, 0, 0}},
-        {czffvm::OperationCode::LDC, {3, 0, 0, 0}},
+        {czffvm::OperationCode::LDC, {0, 0}},
+        {czffvm::OperationCode::LDC, {0, 1}},
         {czffvm::OperationCode::ADD, {}},
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[func.max_stack] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-    ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, {}, stack));
+    ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, 
+        {
+            {czffvm::ConstantTag::I1, {5}},
+            {czffvm::ConstantTag::I1, {3}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack));
 
 #ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
@@ -120,17 +146,28 @@ TEST(BasicJITCompilationTestSuite, Multiplication) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 8;
+    func.params_descriptor_index = 2;
+    func.return_type_index = 3;
     
     func.code = {
-        {czffvm::OperationCode::LDC, {6, 0, 0, 0}},
-        {czffvm::OperationCode::LDC, {7, 0, 0, 0}},
+        {czffvm::OperationCode::LDC, {0, 0}},
+        {czffvm::OperationCode::LDC, {0, 1}},
         {czffvm::OperationCode::MUL, {}},
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[func.max_stack] = {10, 20, 0, 0, 0, 0, 0, 0};
 
-    ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, {}, stack));
+    ASSERT_NO_THROW(CompileAndExecute(
+        rda, jit, func, 
+        {
+            {czffvm::ConstantTag::I1, {6}},
+            {czffvm::ConstantTag::I1, {7}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack
+    ));
 
 #ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
@@ -149,19 +186,28 @@ TEST(BasicJITCompilationTestSuite, ComplexExpression) {
     czffvm::RuntimeFunction func;
     func.locals_count = 3;  // a, b, c
     func.max_stack = 16;
+    func.params_descriptor_index = 0;
+    func.return_type_index = 1;
     
     func.code = {
-        {czffvm::OperationCode::LDV, {0}},  // a
-        {czffvm::OperationCode::LDV, {1}},  // b
+        {czffvm::OperationCode::LDV, {0, 0}},  // a
+        {czffvm::OperationCode::LDV, {0, 1}},  // b
         {czffvm::OperationCode::ADD, {}},   // a + b
-        {czffvm::OperationCode::LDV, {2}},  // c
+        {czffvm::OperationCode::LDV, {0, 2}},  // c
         {czffvm::OperationCode::MUL, {}},   // (a+b) * c
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[func.max_stack] = {5, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    ASSERT_NO_THROW(CompileAndExecute(rda, jit, func, {}, stack));
+    ASSERT_NO_THROW(CompileAndExecute(
+        rda, jit, func, 
+        {
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack
+    ));
 
 #ifdef DEBUG_BUILD
     std::cout << "[TEST] After call:" << std::endl;
@@ -180,12 +226,14 @@ TEST(BasicJITCompilationTestSuite, ArrayCreation) {
     czffvm::RuntimeFunction func;
     func.locals_count = 2;  // a, b, c
     func.max_stack = 32;
+    func.params_descriptor_index = 2;
+    func.return_type_index = 3;
 
     // arr = new int[3]
 
     func.code = {
         // --- new int[3] ---
-        {czffvm::OperationCode::LDC,    {3}},        // size = 3
+        {czffvm::OperationCode::LDC,    {0, 1}},        // size = 3
         {czffvm::OperationCode::NEWARR, {0x00, 0x00}}, // type_idx
     };
 
@@ -195,7 +243,12 @@ TEST(BasicJITCompilationTestSuite, ArrayCreation) {
         rda,
         jit, 
         func, 
-        {{czffvm::ConstantTag::U1, {'I', ';'}}},
+        {
+            {czffvm::ConstantTag::STRING, {'I', ';'}},
+            {czffvm::ConstantTag::I1, {3}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
         stack
     ));
 
@@ -220,17 +273,19 @@ TEST(BasicJITCompilationTestSuite, ArrayStore) {
     czffvm::RuntimeFunction func;
     func.locals_count = 2;  // a, b, c
     func.max_stack = 32;
+    func.params_descriptor_index = 4;
+    func.return_type_index = 5;
 
     // arr = new int[3]
 
     func.code = {
         // --- new int[3] ---
-        {czffvm::OperationCode::LDC,    {3}},        // size = 3
+        {czffvm::OperationCode::LDC,    {0, 3}},        // size = 3
         {czffvm::OperationCode::NEWARR, {0x00, 0x00}}, // type_idx
 
         {czffvm::OperationCode::DUP, {}},            // arr
-        {czffvm::OperationCode::LDC, {0}},            // index 0
-        {czffvm::OperationCode::LDC, {12}},            // a
+        {czffvm::OperationCode::LDC, {0, 1}},            // index 0
+        {czffvm::OperationCode::LDC, {0, 2}},            // a
         {czffvm::OperationCode::STELEM, {}},
     };
 
@@ -240,7 +295,14 @@ TEST(BasicJITCompilationTestSuite, ArrayStore) {
         rda,
         jit, 
         func, 
-        {{czffvm::ConstantTag::U2, {'I', ';'}}},
+        {
+            {czffvm::ConstantTag::STRING, {'I', ';'}},
+            {czffvm::ConstantTag::I1, {0}},
+            {czffvm::ConstantTag::I1, {12}},
+            {czffvm::ConstantTag::I1, {3}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
         stack
     ));
 
@@ -276,6 +338,8 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
     czffvm::RuntimeFunction func;
     func.locals_count = 3;  // a, b, c
     func.max_stack = 32;
+    func.params_descriptor_index = 5;
+    func.return_type_index = 6;
 
     // arr = new int[3]
     // arr[0] = a
@@ -285,25 +349,25 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
 
     func.code = {
         // new int[3]
-        {czffvm::OperationCode::LDC,    {8}},
+        {czffvm::OperationCode::LDC,    {0, 4}},
         {czffvm::OperationCode::NEWARR, {0x00, 0x00}},   // arr
 
         // arr[0] = a
         {czffvm::OperationCode::DUP, {}},
-        {czffvm::OperationCode::LDC, {0}},
-        {czffvm::OperationCode::LDV, {0}},
+        {czffvm::OperationCode::LDC, {0, 1}},
+        {czffvm::OperationCode::LDV, {0, 0}},
         {czffvm::OperationCode::STELEM, {}},
 
         // arr[1] = b
         {czffvm::OperationCode::DUP, {}},
-        {czffvm::OperationCode::LDC, {1}},
-        {czffvm::OperationCode::LDV, {1}},
+        {czffvm::OperationCode::LDC, {0, 2}},
+        {czffvm::OperationCode::LDV, {0, 1}},
         {czffvm::OperationCode::STELEM, {}},
 
         // arr[2] = c
         {czffvm::OperationCode::DUP, {}},
-        {czffvm::OperationCode::LDC, {2}},
-        {czffvm::OperationCode::LDV, {2}},
+        {czffvm::OperationCode::LDC, {0, 3}},
+        {czffvm::OperationCode::LDV, {0, 2}},
         {czffvm::OperationCode::STELEM, {}},
 
         // ===== ВЫЧИСЛЕНИЕ =====
@@ -311,19 +375,19 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
         // arr[1]
         {czffvm::OperationCode::DUP, {}},
         {czffvm::OperationCode::DUP, {}},        // arr arr
-        {czffvm::OperationCode::LDC, {1}},       // arr arr 1
+        {czffvm::OperationCode::LDC, {0, 2}},       // arr arr 1
         {czffvm::OperationCode::LDELEM, {}},     // arr v1
 
         // arr[2]
         {czffvm::OperationCode::SWAP, {}},       // arr v1 arr
-        {czffvm::OperationCode::LDC, {2}},       // arr v1 arr 2
+        {czffvm::OperationCode::LDC, {0, 3}},       // arr v1 arr 2
         {czffvm::OperationCode::LDELEM, {}},     // arr v1 v2
 
         {czffvm::OperationCode::MUL, {}},        // arr (v1*v2)
 
         // arr[0]
         {czffvm::OperationCode::SWAP, {}},       // arr (v1*v2) arr
-        {czffvm::OperationCode::LDC, {0}},       // arr (v1*v2) arr 0
+        {czffvm::OperationCode::LDC, {0, 1}},       // arr (v1*v2) arr 0
         {czffvm::OperationCode::LDELEM, {}},     // arr (v1*v2) v0
 
         {czffvm::OperationCode::ADD, {}},        // arr result
@@ -338,7 +402,16 @@ TEST(BasicJITCompilationTestSuite, ArrayOperations) {
         rda,
         jit, 
         func, 
-        {{czffvm::ConstantTag::U1, {'I'}}},
+        {
+            {czffvm::ConstantTag::STRING, {'I'}},
+            {czffvm::ConstantTag::I1, {0}},
+            {czffvm::ConstantTag::I1, {1}},
+            {czffvm::ConstantTag::I1, {2}},
+            {czffvm::ConstantTag::I1, {8}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        
         stack
     ));
 
@@ -364,15 +437,23 @@ TEST(BasicJITCompilationTestSuite, EqualTest) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 4;
+    func.params_descriptor_index = 1;
+    func.return_type_index = 2;
     func.code = {
-        {czffvm::OperationCode::LDC, {5}},   // a
-        {czffvm::OperationCode::LDC, {5}},   // b
+        {czffvm::OperationCode::LDC, {0, 0}},   // a
+        {czffvm::OperationCode::LDC, {0, 0}},   // b
         {czffvm::OperationCode::EQ,  {}},
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
+    CompileAndExecute(rda, jit, func, 
+        {
+            {czffvm::ConstantTag::I1, {5}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack);
 
     ASSERT_EQ(stack[0], 1);
 }
@@ -384,15 +465,24 @@ TEST(BasicJITCompilationTestSuite, LessThanTest) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 4;
+    func.params_descriptor_index = 2;
+    func.return_type_index = 3;
     func.code = {
-        {czffvm::OperationCode::LDC, {3}},
-        {czffvm::OperationCode::LDC, {7}},
+        {czffvm::OperationCode::LDC, {0, 0}},
+        {czffvm::OperationCode::LDC, {0, 1}},
         {czffvm::OperationCode::LT, {}},
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
+    CompileAndExecute(rda, jit, func, 
+        {
+            {czffvm::ConstantTag::I1, {3}},
+            {czffvm::ConstantTag::I1, {7}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack);
 
     ASSERT_EQ(stack[0], 1);
 }
@@ -404,15 +494,23 @@ TEST(BasicJITCompilationTestSuite, LessOrEqualTest) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 4;
+    func.params_descriptor_index = 1;
+    func.return_type_index = 2;
     func.code = {
-        {czffvm::OperationCode::LDC, {5}},
-        {czffvm::OperationCode::LDC, {5}},
+        {czffvm::OperationCode::LDC, {0, 0}},
+        {czffvm::OperationCode::LDC, {0, 0}},
         {czffvm::OperationCode::LEQ, {}},
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
+    CompileAndExecute(rda, jit, func, 
+        {
+            {czffvm::ConstantTag::I1, {5}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack);
 
     ASSERT_EQ(stack[0], 1);
 }
@@ -424,14 +522,22 @@ TEST(BasicJITCompilationTestSuite, NegativeTest) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 2;
+    func.params_descriptor_index = 1;
+    func.return_type_index = 2;
     func.code = {
-        {czffvm::OperationCode::LDC, {5}},
+        {czffvm::OperationCode::LDC, {0, 0}},
         {czffvm::OperationCode::NEG, {}},
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[2] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
+    CompileAndExecute(rda, jit, func, 
+        {
+            {czffvm::ConstantTag::I1, {5}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack);
 
     ASSERT_EQ(stack[0], -5);
 }
@@ -443,15 +549,24 @@ TEST(BasicJITCompilationTestSuite, ModuloDivisionTest) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 4;
+    func.params_descriptor_index = 2;
+    func.return_type_index = 3;
     func.code = {
-        {czffvm::OperationCode::LDC, {17}},
-        {czffvm::OperationCode::LDC, {5}},
+        {czffvm::OperationCode::LDC, {0, 0}},
+        {czffvm::OperationCode::LDC, {0, 1}},
         {czffvm::OperationCode::MOD, {}},
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
+    CompileAndExecute(rda, jit, func, 
+        {
+            {czffvm::ConstantTag::I1, {17}},
+            {czffvm::ConstantTag::I1, {5}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack);
 
     ASSERT_EQ(stack[0], 2);
 }
@@ -463,15 +578,24 @@ TEST(BasicJITCompilationTestSuite, LogicalOrTest) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 4;
+    func.params_descriptor_index = 2;
+    func.return_type_index = 3;
     func.code = {
-        {czffvm::OperationCode::LDC, {0}},
-        {czffvm::OperationCode::LDC, {1}},
+        {czffvm::OperationCode::LDC, {0, 0}},
+        {czffvm::OperationCode::LDC, {0, 1}},
         {czffvm::OperationCode::LOR, {}},
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
+    CompileAndExecute(rda, jit, func, 
+        {
+            {czffvm::ConstantTag::I1, {0}},
+            {czffvm::ConstantTag::I1, {1}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack);
 
     ASSERT_EQ(stack[0], 1);
 }
@@ -483,15 +607,23 @@ TEST(BasicJITCompilationTestSuite, LogicalAndTest) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 4;
+    func.params_descriptor_index = 1;
+    func.return_type_index = 2;
     func.code = {
-        {czffvm::OperationCode::LDC, {1}},
-        {czffvm::OperationCode::LDC, {1}},
+        {czffvm::OperationCode::LDC, {0, 0}},
+        {czffvm::OperationCode::LDC, {0, 0}},
         {czffvm::OperationCode::LAND, {}},
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
+    CompileAndExecute(rda, jit, func, 
+        {
+            {czffvm::ConstantTag::BOOL, {1}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack);
 
     ASSERT_EQ(stack[0], 1);
 }
@@ -503,17 +635,30 @@ TEST(BasicJITCompilationTestSuite, ConditionalJumpTest) {
     czffvm::RuntimeFunction func;
     func.locals_count = 0;
     func.max_stack = 4;
+    
+    func.params_descriptor_index = 3;
+    func.return_type_index = 4;
     func.code = {
-        {czffvm::OperationCode::LDC, {0}},          // cond
+        {czffvm::OperationCode::LDC, {0, 0}},          // cond
         {czffvm::OperationCode::JZ,  {0x00, 0x04}}, // jump to LDC 42
-        {czffvm::OperationCode::LDC, {1}},          // skipped
+        {czffvm::OperationCode::LDC, {0, 1}},          // skipped
         {czffvm::OperationCode::RET, {}},
-        {czffvm::OperationCode::LDC, {42}},         // target
+        {czffvm::OperationCode::LDC, {0, 2}},         // target
         {czffvm::OperationCode::RET, {}}
     };
 
     int32_t stack[4] = {};
-    CompileAndExecute(rda, jit, func, {}, stack);
+    CompileAndExecute(
+        rda, jit, func, 
+        {
+            {czffvm::ConstantTag::I1, {0}},
+            {czffvm::ConstantTag::I1, {1}},
+            {czffvm::ConstantTag::I1, {42}},
+            {czffvm::ConstantTag::STRING, {'[', 'v', 'o', 'i', 'd', ';'}},
+            {czffvm::ConstantTag::STRING, {'v', 'o', 'i', 'd', ';'}},
+        }, 
+        stack
+    );
 
     ASSERT_EQ(stack[0], 42);
 }
