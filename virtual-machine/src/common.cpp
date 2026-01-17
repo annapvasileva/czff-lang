@@ -17,6 +17,12 @@ Value ConstantToValue(const Constant& c) {
                 (c.data[2] << 8)  |
                  c.data[3]
             );
+
+        case ConstantTag::I1:
+            return int8_t(c.data[0]);
+
+        case ConstantTag::I2:
+            return int16_t((c.data[0] << 8) | c.data[1]);
         
         case ConstantTag::I4:
             return int32_t(
