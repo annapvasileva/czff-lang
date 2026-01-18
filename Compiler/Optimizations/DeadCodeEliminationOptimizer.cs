@@ -13,6 +13,10 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
     private SymbolTable _scope = scope;
     private bool _terminated = false;
     private Stack<HashSet<string>> _usedStack = new();
+    private Dictionary<string, HashSet<string>> _callGraph = new();
+    private HashSet<string> _calledFunctions = new();
+    private HashSet<string> _reachableFunctions = new();
+    private string _currentFunction;
 
     public void Visit(LiteralExpressionNode literalExpressionNode)
     { }
@@ -53,6 +57,8 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
 
     public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
     {
+        _calledFunctions.Add(functionCallExpressionNode.Name);
+        _callGraph[_currentFunction].Add(functionCallExpressionNode.Name);
         foreach (ExpressionNode argument in functionCallExpressionNode.Arguments)
         {
             argument.Accept(this);
@@ -72,6 +78,8 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
     {
         _scope = functionDeclarationNode.Body.Scope;
         EnterScope();
+        _currentFunction = functionDeclarationNode.Name;
+        _callGraph[_currentFunction] = new HashSet<string>();
         functionDeclarationNode.ReturnType.Accept(this);
         functionDeclarationNode.Parameters.Accept(this);
         functionDeclarationNode.Body.Accept(this);
@@ -225,6 +233,12 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
         {
             func.Accept(this);
         }
+
+        MarkReachable("Main");
+        
+        programNode.Functions = programNode.Functions
+            .Where(f => _reachableFunctions.Contains(f.Name))
+            .ToList();
     }
     
     public void EnterScope()
@@ -235,5 +249,19 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
     public void ExitScope()
     {
         _usedStack.Pop();
+    }
+    
+    private void MarkReachable(string functionName)
+    {
+        if (_reachableFunctions.Contains(functionName))
+            return;
+
+        _reachableFunctions.Add(functionName);
+
+        if (!_callGraph.ContainsKey(functionName))
+            return;
+
+        foreach (var callee in _callGraph[functionName])
+            MarkReachable(callee);
     }
 }
