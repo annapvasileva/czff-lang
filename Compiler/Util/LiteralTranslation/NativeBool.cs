@@ -105,4 +105,14 @@ public class NativeBool(bool value) : INativeType
     {
         throw new NativeTypeException("Can't apply arithmetics to bool.");
     }
+
+    public void Minus()
+    {
+        throw new NativeTypeException("Can't apply arithmetics to bool.");
+    }
+
+    public void Negative()
+    {
+        _value = !_value;
+    }
 }

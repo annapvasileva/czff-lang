@@ -66,6 +66,16 @@ public class NativeInteger64(long value) : INativeType
         _value %= right._value;
     }
 
+    public void Minus()
+    {
+        _value = -_value;
+    }
+
+    public void Negative()
+    {
+        throw new NativeTypeException("Can't apply logics to int64.");
+    }
+
     public void Less(INativeType operand)
     {
         if (operand is not NativeInteger64 right)

@@ -69,6 +69,25 @@ public class ConstantFoldingOptimizer : INodeVisitor
         return left.GetExpressionView();
     }
     
+    private static LiteralExpressionNode MakeNewLiteral(LiteralExpressionNode literal,UnaryOperatorType type)
+    {
+        INativeType native = NativeTypeBuilder.Build(literal);
+        
+        switch (type)
+        {
+            case UnaryOperatorType.Minus:
+                native.Minus();
+                break;
+            case UnaryOperatorType.Negation:
+                native.Negative();
+                break;
+            default:
+                throw new GeneratorException("Unary operator not supported.");
+        }
+
+        return native.GetExpressionView();
+    }
+    
     public void Visit(LiteralExpressionNode literalExpressionNode)
     {
         _newExpression = literalExpressionNode;
@@ -100,19 +119,28 @@ public class ConstantFoldingOptimizer : INodeVisitor
         var left = binaryExpressionNode.LeftExpression;
         var right = binaryExpressionNode.RightExpression;
 
-        if (left is LiteralExpressionNode leftLiteral && right is LiteralExpressionNode rightLiteral)
-        {
-            _newExpression = MakeNewLiteral(leftLiteral, rightLiteral, binaryExpressionNode.BinaryOperatorType);
-        }
-        else
+        if (left is not LiteralExpressionNode leftLiteral || right is not LiteralExpressionNode rightLiteral)
         {
             _newExpression = binaryExpressionNode;
+            return;
         }
+
+        _newExpression = MakeNewLiteral(leftLiteral, rightLiteral, binaryExpressionNode.BinaryOperatorType);
+        
     }
 
     public void Visit(UnaryExpressionNode unaryExpressionNode)
     {
-        _newExpression = unaryExpressionNode;
+        unaryExpressionNode.Expression.Accept(this);
+        unaryExpressionNode.Expression = _newExpression;
+        
+        if (unaryExpressionNode.Expression is not LiteralExpressionNode literal)
+        {
+            _newExpression = unaryExpressionNode;
+            return;
+        }
+        
+        _newExpression = MakeNewLiteral(literal, unaryExpressionNode.UnaryOperatorType);
     }
 
     public void Visit(FunctionCallExpressionNode functionCallExpressionNode)

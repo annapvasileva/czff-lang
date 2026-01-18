@@ -48,6 +48,16 @@ public class NativeString(string value) : INativeType
         throw new NativeTypeException("Can't mod strings.");
     }
 
+    public void Minus()
+    {
+        throw new NativeTypeException("Can't apply arithmetics to strings");
+    }
+
+    public void Negative()
+    {
+        throw new NativeTypeException("Can't apply logics to strings.");
+    }
+
     public void Less(INativeType operand)
     {
         if (operand is not NativeString right)
