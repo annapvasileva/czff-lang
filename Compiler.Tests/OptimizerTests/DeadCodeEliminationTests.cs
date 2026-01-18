@@ -214,6 +214,61 @@ public class DeadCodeEliminationTests
         Assert.Equal(json1, json2);
     }
 
+    [Fact]
+    public void UnusedFunctionsTest()
+    {
+        string source = """
+                        func void Unused() {
+                            return;
+                        }
+                        
+                        func void f() {
+                            return;
+                        }
+                        
+                        func void A() {
+                            B();
+                            return;
+                        }
+                        
+                        func void B() {
+                            return;
+                        }
+                        
+                        func void Main() {
+                            f();
+                            return;
+                        }
+                        """;
+        
+
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+        var ast = parser.Parse();
+
+        var symbolTableBuilder = new SymbolTableBuilder();
+        var pipelineUnits = new List<INodeVisitor>()
+        {
+            symbolTableBuilder,
+            new SemanticAnalyzer(symbolTableBuilder.SymbolTable),
+            new DeadCodeEliminationOptimizer(symbolTableBuilder.SymbolTable),
+            new SymbolTableBuilder(),
+        };
+        Pipeline.Run(ast, pipelineUnits);
+        
+        var expectedAst = GetUnusedFunctionsTestTree();
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json2);
+
+        Assert.Equal(json1, json2);
+    }
+
     // test data
     private AstTree GetReturnTestTree()
     {
@@ -468,6 +523,47 @@ public class DeadCodeEliminationTests
                             new PrintStatementNode(new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
                             new PrintStatementNode(new IdentifierExpressionNode("flag2")),
                             new ReturnStatementNode(null),
+                        })
+                    {
+                        Scope = mainBodyTable,
+                    }
+                )
+            }));
+    }
+
+    public AstTree GetUnusedFunctionsTestTree()
+    {
+        var expectedTable = new SymbolTable(null);
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 0 });
+        expectedTable.Symbols.Add("f", new FunctionSymbol("f", "void;") { LocalsLength = 0 });
+        var mainBodyTable = new SymbolTable(expectedTable);
+        var fBodyTable = new SymbolTable(expectedTable);
+
+        return new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "f",
+                    new FunctionParametersNode() { },
+                    new BlockNode(
+                        new List<StatementNode>()
+                        {
+                            new ReturnStatementNode(null)
+                        })
+                    {
+                        Scope = fBodyTable,
+                    }
+                ),
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(
+                        new List<StatementNode>()
+                        {
+                            new ExpressionStatementNode(new FunctionCallExpressionNode("f", new List<ExpressionNode>())),
+                            new ReturnStatementNode(null)
                         })
                     {
                         Scope = mainBodyTable,
