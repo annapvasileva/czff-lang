@@ -1,0 +1,3 @@
+[submodule "virtual-machine/extern/asmjit"]
+	path = virtual-machine/extern/asmjit
+	url = https://github.com/asmjit/asmjit.git
