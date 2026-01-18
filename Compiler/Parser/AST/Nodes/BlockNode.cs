@@ -5,7 +5,7 @@ namespace Compiler.Parser.AST.Nodes;
 
 public class BlockNode : AstNode
 {
-    public IList<StatementNode> Statements { get; }
+    public IList<StatementNode> Statements { get; set; }
     public SymbolTable Scope { get; set; }
 
     public BlockNode(IList<StatementNode> statements)

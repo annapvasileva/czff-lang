@@ -4,54 +4,65 @@ using Compiler.Parser.AST.Nodes;
 using Compiler.Parser.AST.Nodes.Core;
 using Compiler.Parser.AST.Nodes.Expressions;
 using Compiler.Parser.AST.Nodes.Statements;
+using Compiler.SemanticAnalysis.Models;
 
 namespace Compiler.Optimizations;
 
-public class DeadCodeEliminationOptimizer : INodeVisitor
+public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
 {
+    private SymbolTable _scope = scope;
+    private bool _terminated = false;
+    
     public void Visit(LiteralExpressionNode literalExpressionNode)
-    {
-        throw new NotImplementedException();
-    }
+    { }
 
     public void Visit(IdentifierExpressionNode identifierExpressionNode)
-    {
-        throw new NotImplementedException();
-    }
+    { }
 
     public void Visit(SimpleTypeNode simpleTypeNode)
-    {
-        throw new NotImplementedException();
-    }
+    { }
 
     public void Visit(ArrayTypeNode arrayTypeNode)
     {
-        throw new NotImplementedException();
+        arrayTypeNode.ElementType.Accept(this);
     }
 
     public void Visit(BinaryExpressionNode binaryExpressionNode)
     {
-        throw new NotImplementedException();
+        binaryExpressionNode.LeftExpression.Accept(this);
+        binaryExpressionNode.RightExpression.Accept(this);
     }
 
     public void Visit(UnaryExpressionNode unaryExpressionNode)
     {
-        throw new NotImplementedException();
+        unaryExpressionNode.Expression.Accept(this);
     }
 
     public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
     {
-        throw new NotImplementedException();
+        foreach (ExpressionNode argument in functionCallExpressionNode.Arguments)
+        {
+            argument.Accept(this);
+        }
     }
 
     public void Visit(VariableDeclarationNode variableDeclarationNode)
     {
-        throw new NotImplementedException();
+        variableDeclarationNode.Type.Accept(this);
+        if (variableDeclarationNode.Expression != null)
+        {
+            variableDeclarationNode.Expression.Accept(this);
+        }
     }
 
     public void Visit(FunctionDeclarationNode functionDeclarationNode)
     {
-        throw new NotImplementedException();
+        _scope = functionDeclarationNode.Body.Scope;
+        functionDeclarationNode.ReturnType.Accept(this);
+        functionDeclarationNode.Parameters.Accept(this);
+        functionDeclarationNode.Body.Accept(this);
+        
+        _scope = _scope.Parent!;
     }
 
     public void Visit(ClassDeclarationNode classDeclarationNode)
@@ -61,37 +72,57 @@ public class DeadCodeEliminationOptimizer : INodeVisitor
 
     public void Visit(FunctionParametersNode functionParametersNode)
     {
-        throw new NotImplementedException();
+        foreach (var parameter in functionParametersNode.Parameters)
+        {
+            parameter.Type.Accept(this);
+        }
     }
 
     public void Visit(ExpressionStatementNode expressionStatementNode)
     {
-        throw new NotImplementedException();
+        expressionStatementNode.Expression.Accept(this);
     }
 
     public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
     {
-        throw new NotImplementedException();
+        assigmentStatementNode.Left.Accept(this);
+        assigmentStatementNode.Right.Accept(this);
     }
 
     public void Visit(ArrayAssignmentStatementNode assigmentStatementNode)
     {
-        throw new NotImplementedException();
+        assigmentStatementNode.Left.Accept(this);
+        assigmentStatementNode.Right.Accept(this);
     }
 
     public void Visit(BlockNode blockNode)
     {
-        throw new NotImplementedException();
+        var newStatements = new List<StatementNode>();
+        _terminated = false;
+        foreach (var statement in blockNode.Statements)
+        {
+            if (_terminated)
+            {
+                break;
+            }
+            statement.Accept(this);
+            newStatements.Add(statement);
+        }
+
+        blockNode.Statements = newStatements;
+        _terminated = false;
     }
 
     public void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode)
     {
-        throw new NotImplementedException();
+        arrayCreationExpressionNode.ElementType.Accept(this);
+        arrayCreationExpressionNode.Size.Accept(this);
     }
 
     public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
     {
-        throw new NotImplementedException();
+        arrayIndexExpressionNode.Array.Accept(this);
+        arrayIndexExpressionNode.Index.Accept(this);
     }
 
     public void Visit(MemberAccessNode memberAccessNode)
@@ -101,22 +132,31 @@ public class DeadCodeEliminationOptimizer : INodeVisitor
 
     public void Visit(BreakStatementNode breakStatementNode)
     {
-        throw new NotImplementedException();
+        _terminated = true;
     }
 
     public void Visit(ContinueStatementNode continueStatementNode)
     {
-        throw new NotImplementedException();
+        _terminated = true;
     }
 
     public void Visit(ReturnStatementNode returnStatementNode)
     {
-        throw new NotImplementedException();
+        _terminated = true;
     }
 
     public void Visit(IfStatementNode ifStatementNode)
     {
-        throw new NotImplementedException();
+        _scope = ifStatementNode.IfBlock.Scope;
+        ifStatementNode.Condition.Accept(this);
+        ifStatementNode.IfBlock.Accept(this);
+        _scope = _scope.Parent!;
+        if (ifStatementNode.ElseBlock != null)
+        {
+            _scope = ifStatementNode.ElseBlock.Scope;
+            ifStatementNode.ElseBlock.Accept(this);
+            _scope = _scope.Parent!;
+        }
     }
 
     public void Visit(ElifStatementNode elifStatementNode)
@@ -126,21 +166,32 @@ public class DeadCodeEliminationOptimizer : INodeVisitor
 
     public void Visit(WhileStatementNode whileStatementNode)
     {
-        throw new NotImplementedException();
+        _scope = whileStatementNode.Body.Scope;
+        whileStatementNode.Condition.Accept(this);
+        whileStatementNode.Body.Accept(this);
+        _scope = _scope.Parent!;
     }
 
     public void Visit(ForStatementNode forStatementNode)
     {
-        throw new NotImplementedException();
+        _scope = forStatementNode.Body.Scope;
+        forStatementNode.Init.Accept(this);
+        forStatementNode.Condition.Accept(this);
+        forStatementNode.Post.Accept(this);
+        forStatementNode.Body.Accept(this);
+        _scope = _scope.Parent!;
     }
 
     public void Visit(PrintStatementNode printStatementNode)
     {
-        throw new NotImplementedException();
+        printStatementNode.Expression.Accept(this);
     }
 
     public void Visit(ProgramNode programNode)
     {
-        throw new NotImplementedException();
+        foreach (var func in programNode.Functions)
+        {
+            func.Accept(this);
+        }
     }
 }
