@@ -3,7 +3,7 @@
 namespace czffvm {
 
 VirtualMachine::VirtualMachine(bool is_gc_off)
-    : runtime_data_area_(kDefaultMaxHeapSizeInKiB, is_gc_off),
+    : runtime_data_area_(is_gc_off),
       loader_(runtime_data_area_),
       interpreter_(runtime_data_area_) {}
 
