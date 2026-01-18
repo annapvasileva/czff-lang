@@ -41,44 +41,44 @@ public class NativeBool(bool value) : INativeType
         throw new NativeTypeException("Can't apply arithmetics to bool.");
     }
 
-    public bool Less(INativeType operand)
+    public void Less(INativeType operand)
     {  
         throw new NativeTypeException("Can't apply equations to bool.");
     }
 
-    public bool LessOrEqual(INativeType operand)
+    public void LessOrEqual(INativeType operand)
     {
         throw new NativeTypeException("Can't apply equations to bool.");
     }
 
-    public bool Equal(INativeType operand)
+    public void Equal(INativeType operand)
     {
         if (operand is not NativeBool right)
         {
             throw new NativeTypeException("Can't compare bool and not bool.");
         }
 
-        return _value;
+        _value = _value == right._value;
     }
 
-    public bool Greater(INativeType operand)
+    public void Greater(INativeType operand)
     {
         throw new NativeTypeException("Can't apply equations to bool.");
     }
 
-    public bool GreaterOrEqual(INativeType operand)
+    public void GreaterOrEqual(INativeType operand)
     {
         throw new NativeTypeException("Can't apply equations to bool.");
     }
 
-    public bool NotEqual(INativeType operand)
+    public void NotEqual(INativeType operand)
     {
         if (operand is not NativeBool right)
         {
             throw new NativeTypeException("Can't compare bool and not bool.");
         }
 
-        return _value;
+        _value = _value != right._value;
     }
 
     public void LogicalOr(INativeType operand)
@@ -104,15 +104,5 @@ public class NativeBool(bool value) : INativeType
     public void Mod(INativeType operand)
     {
         throw new NativeTypeException("Can't apply arithmetics to bool.");
-    }
-
-    public void Minus()
-    {
-        throw new NativeTypeException("Can't apply arithmetics to bool.");
-    }
-
-    public void Negative()
-    {
-        _value = !_value;
     }
 }

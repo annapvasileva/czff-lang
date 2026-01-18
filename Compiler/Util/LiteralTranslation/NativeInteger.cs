@@ -66,62 +66,52 @@ public class NativeInteger(int value) : INativeType
         _value %= right._value;
     }
 
-    public void Minus()
-    {
-        _value = -_value;
-    }
-
-    public void Negative()
-    {
-        throw new NativeTypeException("Can't apply logics to int.");
-    }
-
-    public bool Less(INativeType operand)
+    public void Less(INativeType operand)
     {
         if (operand is not NativeInteger right)
             throw new NativeTypeException("Can't compare int and not int.");
 
-        return _value < right._value;
+        _value = _value < right._value ? 1 : 0;
     }
 
-    public bool LessOrEqual(INativeType operand)
+    public void LessOrEqual(INativeType operand)
     {
         if (operand is not NativeInteger right)
             throw new NativeTypeException("Can't compare int and not int.");
 
-        return _value <= right._value;
+        _value = _value <= right._value ? 1 : 0;
     }
 
-    public bool Equal(INativeType operand)
+    public void Equal(INativeType operand)
     {
         if (operand is not NativeInteger right)
             throw new NativeTypeException("Can't compare int and not int.");
 
-        return _value == right._value;
+        _value = _value == right._value ? 1 : 0;
     }
 
-    public bool Greater(INativeType operand)
+    public void Greater(INativeType operand)
     {
         if (operand is not NativeInteger right)
             throw new NativeTypeException("Can't compare int and not int.");
 
-        return _value > right._value;
+        _value = _value > right._value ? 1 : 0;
     }
 
-    public bool GreaterOrEqual(INativeType operand)
+    public void GreaterOrEqual(INativeType operand)
     {
         if (operand is not NativeInteger right)
             throw new NativeTypeException("Can't compare int and not int.");
 
-        return _value >= right._value;
+        _value = _value >= right._value ? 1 : 0;
     }
 
-    public bool NotEqual(INativeType operand)
+    public void NotEqual(INativeType operand)
     {
         if (operand is not NativeInteger right)
             throw new NativeTypeException("Can't compare int and not int.");
 
-        return _value != right._value;
+        _value = _value != right._value ? 1 : 0;
     }
 
     public void LogicalOr(INativeType operand)
