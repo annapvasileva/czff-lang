@@ -166,11 +166,13 @@ public class DeadCodeEliminationTests
     {
         string source = """
                         func void Main() {
+                            var bool flag = false;
                             var bool flag2 = false;
                             var int x = 9;
                             for (var int i = 0; i < 10; i = i + 1) {
                                 for (var int j = 0; j < 10; j = j + 1) {
                                     if (j > i) {
+                                        flag = true;
                                         flag2 = true;
                                         break;
                                         var int c = 10;
@@ -198,6 +200,7 @@ public class DeadCodeEliminationTests
             symbolTableBuilder,
             new SemanticAnalyzer(symbolTableBuilder.SymbolTable),
             new DeadCodeEliminationOptimizer(symbolTableBuilder.SymbolTable),
+            new DeadCodeEliminationSecondStage(symbolTableBuilder.SymbolTable),
             new SymbolTableBuilder(),
         };
         Pipeline.Run(ast, pipelineUnits);
