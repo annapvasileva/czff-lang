@@ -12,12 +12,25 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
 {
     private SymbolTable _scope = scope;
     private bool _terminated = false;
-    
+    private Stack<HashSet<string>> _usedStack = new();
+
     public void Visit(LiteralExpressionNode literalExpressionNode)
     { }
 
     public void Visit(IdentifierExpressionNode identifierExpressionNode)
-    { }
+    {
+        var current = _scope;
+        foreach (var used in _usedStack)
+        {
+            if (current.Symbols.ContainsKey(identifierExpressionNode.Name))
+            {
+                used.Add(identifierExpressionNode.Name);
+                break;
+            }
+            
+            current = current.Parent;
+        }
+    }
 
     public void Visit(SimpleTypeNode simpleTypeNode)
     { }
@@ -58,10 +71,11 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
     public void Visit(FunctionDeclarationNode functionDeclarationNode)
     {
         _scope = functionDeclarationNode.Body.Scope;
+        EnterScope();
         functionDeclarationNode.ReturnType.Accept(this);
         functionDeclarationNode.Parameters.Accept(this);
         functionDeclarationNode.Body.Accept(this);
-        
+        ExitScope();
         _scope = _scope.Parent!;
     }
 
@@ -97,8 +111,8 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
 
     public void Visit(BlockNode blockNode)
     {
-        var newStatements = new List<StatementNode>();
         _terminated = false;
+        var reachableStatements = new List<StatementNode>();
         foreach (var statement in blockNode.Statements)
         {
             if (_terminated)
@@ -106,9 +120,19 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
                 break;
             }
             statement.Accept(this);
-            newStatements.Add(statement);
+            reachableStatements.Add(statement);
         }
 
+        var newStatements = new List<StatementNode>();
+        foreach (var statement in reachableStatements)
+        {
+            if (statement is VariableDeclarationNode variableDeclarationNode &&
+                !_usedStack.Peek().Contains(variableDeclarationNode.Name))
+            {
+                continue;
+            }
+            newStatements.Add(statement);
+        }
         blockNode.Statements = newStatements;
         _terminated = false;
     }
@@ -148,13 +172,17 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
     public void Visit(IfStatementNode ifStatementNode)
     {
         _scope = ifStatementNode.IfBlock.Scope;
+        EnterScope();
         ifStatementNode.Condition.Accept(this);
         ifStatementNode.IfBlock.Accept(this);
+        ExitScope();
         _scope = _scope.Parent!;
         if (ifStatementNode.ElseBlock != null)
         {
             _scope = ifStatementNode.ElseBlock.Scope;
+            EnterScope();
             ifStatementNode.ElseBlock.Accept(this);
+            ExitScope();
             _scope = _scope.Parent!;
         }
     }
@@ -167,18 +195,22 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
     public void Visit(WhileStatementNode whileStatementNode)
     {
         _scope = whileStatementNode.Body.Scope;
+        EnterScope();
         whileStatementNode.Condition.Accept(this);
         whileStatementNode.Body.Accept(this);
+        ExitScope();
         _scope = _scope.Parent!;
     }
 
     public void Visit(ForStatementNode forStatementNode)
     {
         _scope = forStatementNode.Body.Scope;
+        EnterScope();
         forStatementNode.Init.Accept(this);
         forStatementNode.Condition.Accept(this);
         forStatementNode.Post.Accept(this);
         forStatementNode.Body.Accept(this);
+        ExitScope();
         _scope = _scope.Parent!;
     }
 
@@ -193,5 +225,15 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
         {
             func.Accept(this);
         }
+    }
+    
+    public void EnterScope()
+    {
+        _usedStack.Push(new HashSet<string>());
+    }
+
+    public void ExitScope()
+    {
+        _usedStack.Pop();
     }
 }

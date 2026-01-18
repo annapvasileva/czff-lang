@@ -61,6 +61,7 @@ public class DeadCodeEliminationTests
 
         var json2 = JsonSerializer.Serialize(ast,
             new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json2);
 
         Assert.Equal(json1, json2);
     }
@@ -156,6 +157,59 @@ public class DeadCodeEliminationTests
 
         var json2 = JsonSerializer.Serialize(ast,
             new JsonSerializerOptions { WriteIndented = true });
+
+        Assert.Equal(json1, json2);
+    }
+    
+    [Fact]
+    public void UnusedVariablesTest()
+    {
+        string source = """
+                        func void Main() {
+                            var bool flag2 = false;
+                            var int x = 9;
+                            for (var int i = 0; i < 10; i = i + 1) {
+                                for (var int j = 0; j < 10; j = j + 1) {
+                                    if (j > i) {
+                                        flag2 = true;
+                                        break;
+                                        var int c = 10;
+                                        print c;
+                                    }
+                                }
+                                print i;
+                            }
+                            var int c = 9;
+                            print 1;
+                            print flag2;
+                            return;
+                        }
+                        """;
+        
+
+        var lexer = new CompilerLexer(source);
+        var tokens = lexer.GetTokens().ToList();
+        var parser = new CompilerParser(tokens);
+        var ast = parser.Parse();
+
+        var symbolTableBuilder = new SymbolTableBuilder();
+        var pipelineUnits = new List<INodeVisitor>()
+        {
+            symbolTableBuilder,
+            new SemanticAnalyzer(symbolTableBuilder.SymbolTable),
+            new DeadCodeEliminationOptimizer(symbolTableBuilder.SymbolTable),
+            new SymbolTableBuilder(),
+        };
+        Pipeline.Run(ast, pipelineUnits);
+        
+        var expectedAst = GetUnusedVariablesTestTree();
+        var json1 = JsonSerializer.Serialize(expectedAst,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json1);
+
+        var json2 = JsonSerializer.Serialize(ast,
+            new JsonSerializerOptions { WriteIndented = true });
+        _output.WriteLine(json2);
 
         Assert.Equal(json1, json2);
     }
@@ -316,6 +370,103 @@ public class DeadCodeEliminationTests
                                     Scope = firstForBodyTable,
                                 }),
                             new PrintStatementNode(new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
+                            new ReturnStatementNode(null),
+                        })
+                    {
+                        Scope = mainBodyTable,
+                    }
+                )
+            }));
+    }
+    
+    private AstTree GetUnusedVariablesTestTree()
+    {
+        var expectedTable = new SymbolTable(null);
+        expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 3 });
+        var mainBodyTable = new SymbolTable(expectedTable);
+        mainBodyTable.Symbols.Add("flag2", new VariableSymbol("flag2", "B;", 0));
+        var firstForBodyTable = new SymbolTable(mainBodyTable);
+        firstForBodyTable.Symbols.Add("i", new VariableSymbol("i", "I;", 1));
+        var secondForBodyTable = new SymbolTable(firstForBodyTable);
+        secondForBodyTable.Symbols.Add("j", new VariableSymbol("j", "I;", 2));
+        var ifBodyTable = new SymbolTable(secondForBodyTable);
+
+         return new AstTree(new ProgramNode(
+            new List<FunctionDeclarationNode>()
+            {
+                new(
+                    new SimpleTypeNode("void"),
+                    "Main",
+                    new FunctionParametersNode() { },
+                    new BlockNode(
+                        new List<StatementNode>()
+                        {
+                            new VariableDeclarationNode(
+                                new SimpleTypeNode("bool"),
+                                "flag2",
+                                new LiteralExpressionNode("false", LiteralType.BooleanLiteral)),
+                            new ForStatementNode(
+                                new VariableDeclarationNode(
+                                    new SimpleTypeNode("int"),
+                                    "i",
+                                    new LiteralExpressionNode("0", LiteralType.IntegerLiteral)),
+                                new BinaryExpressionNode(
+                                    new IdentifierExpressionNode("i"),
+                                    new LiteralExpressionNode("10", LiteralType.IntegerLiteral),
+                                    BinaryOperatorType.Less),
+                                new IdentifierAssignmentStatementNode(
+                                    new IdentifierExpressionNode("i"),
+                                    new BinaryExpressionNode(
+                                        new IdentifierExpressionNode("i"),
+                                        new LiteralExpressionNode("1", LiteralType.IntegerLiteral),
+                                        BinaryOperatorType.Addition)),
+                                new BlockNode(new  List<StatementNode>()
+                                {
+                                    new ForStatementNode(
+                                        new VariableDeclarationNode(
+                                            new SimpleTypeNode("int"),
+                                            "j",
+                                            new LiteralExpressionNode("0", LiteralType.IntegerLiteral)),
+                                        new BinaryExpressionNode(
+                                            new IdentifierExpressionNode("j"),
+                                            new LiteralExpressionNode("10", LiteralType.IntegerLiteral),
+                                            BinaryOperatorType.Less),
+                                        new IdentifierAssignmentStatementNode(
+                                            new IdentifierExpressionNode("j"),
+                                            new BinaryExpressionNode(
+                                                new IdentifierExpressionNode("j"),
+                                                new LiteralExpressionNode("1", LiteralType.IntegerLiteral),
+                                                BinaryOperatorType.Addition)),
+                                        new BlockNode(new  List<StatementNode>()
+                                        {
+                                            new IfStatementNode(
+                                                new BinaryExpressionNode(
+                                                    new IdentifierExpressionNode("j"),
+                                                    new IdentifierExpressionNode("i"),
+                                                    BinaryOperatorType.Greater),
+                                                new BlockNode(new  List<StatementNode>()
+                                                {
+                                                    new IdentifierAssignmentStatementNode(
+                                                        new IdentifierExpressionNode("flag2"),
+                                                        new LiteralExpressionNode("true", LiteralType.BooleanLiteral)),
+                                                    new BreakStatementNode(),
+                                                })
+                                                {
+                                                    Scope = ifBodyTable,
+                                                },
+                                                new List<ElifStatementNode>(),
+                                                null)
+                                        })
+                                        {
+                                            Scope = secondForBodyTable,
+                                        }),
+                                    new PrintStatementNode(new IdentifierExpressionNode("i")),
+                                })
+                                {
+                                    Scope = firstForBodyTable,
+                                }),
+                            new PrintStatementNode(new LiteralExpressionNode("1", LiteralType.IntegerLiteral)),
+                            new PrintStatementNode(new IdentifierExpressionNode("flag2")),
                             new ReturnStatementNode(null),
                         })
                     {
