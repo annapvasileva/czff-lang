@@ -10,13 +10,25 @@ project(czff_virtual_machine
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_BUILD_TYPE Release)
 
 # ===== Options =====
 option(CZFF_ENABLE_WARNINGS "Enable compiler warnings" ON)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "[CZFF] CMAKE_BUILD_TYPE is not set! Setting it to Release")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_CONFIGURATION_TYPES MATCHES "Debug")
+    message(STATUS "[CZFF] Debug build configuration detected")
+
     add_compile_definitions(DEBUG_BUILD)
+
+    if(MSVC)
+        add_compile_options(/Zi /EHsc /W4 /DEBUG)
+    else()
+        add_compile_options(-g3 -O0 -Wall -Wextra -pedantic)
+    endif()
 endif()
 
 # ===== Library =====
