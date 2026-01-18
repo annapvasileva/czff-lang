@@ -6,6 +6,7 @@ using Compiler.SourceFiles;
 
 using Newtonsoft.Json;
 using CommandLine;
+using Compiler.CompilerPipeline;
 using Compiler.Lexer;
 using Compiler.Parser;
 using Compiler.Parser.AST;
@@ -78,13 +79,15 @@ internal abstract class Program
         var parser = new CompilerParser(tokens.ToList());
         AstTree ast = parser.Parse();
 
-        var analyzer = new SymbolTableBuilder();
-        ast.Root.Accept(analyzer);
+        
+        var symbolTableBuilder = new SymbolTableBuilder();
+        var pipelineUnits = new List<INodeVisitor>()
+        {
+            symbolTableBuilder, new SemanticAnalyzer(symbolTableBuilder.SymbolTable),
+        };
+        Pipeline.Run(ast, pipelineUnits);
 
-        var analyzerSecondStage = new SemanticAnalyzer(analyzer.SymbolTable);
-        ast.Root.Accept(analyzerSecondStage);
-
-        SymbolTable scope = analyzer.SymbolTable;
+        SymbolTable scope = symbolTableBuilder.SymbolTable;
         
         var generator = new Generator(compilerSettings);
         
