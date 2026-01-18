@@ -28,7 +28,6 @@ public class PipelineTests
         {
             symbolTableBuilder,
             new SemanticAnalyzer(symbolTableBuilder.SymbolTable),
-            new ConstantFoldingOptimizer(),
             new DeadCodeEliminationOptimizer(symbolTableBuilder.SymbolTable),
             new DeadCodeEliminationSecondStage(symbolTableBuilder.SymbolTable),
             new SymbolTableBuilder(),
