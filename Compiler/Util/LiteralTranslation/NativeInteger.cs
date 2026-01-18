@@ -66,6 +66,16 @@ public class NativeInteger(int value) : INativeType
         _value %= right._value;
     }
 
+    public void Minus()
+    {
+        _value = -_value;
+    }
+
+    public void Negative()
+    {
+        throw new NativeTypeException("Can't apply logics to int.");
+    }
+
     public void Less(INativeType operand)
     {
         if (operand is not NativeInteger right)

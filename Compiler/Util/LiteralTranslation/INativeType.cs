@@ -21,4 +21,6 @@ public interface INativeType
     public void LogicalOr(INativeType operand);
     public void LogicalAnd(INativeType operand);
     public void Mod(INativeType operand);
+    public void Minus();
+    public void Negative();
 }
