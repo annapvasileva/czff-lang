@@ -2,13 +2,13 @@
 
 namespace czffvm {
 
-VirtualMachine::VirtualMachine()
-    : runtime_data_area_(),
+VirtualMachine::VirtualMachine(bool is_gc_off)
+    : runtime_data_area_(is_gc_off),
       loader_(runtime_data_area_),
       interpreter_(runtime_data_area_) {}
 
-VirtualMachine::VirtualMachine(uint32_t max_heap_size_in_kib)
-    : runtime_data_area_(max_heap_size_in_kib),
+VirtualMachine::VirtualMachine(uint32_t max_heap_size_in_kib, bool is_gc_off)
+    : runtime_data_area_(max_heap_size_in_kib, is_gc_off),
       loader_(runtime_data_area_),
       interpreter_(runtime_data_area_) {}
 

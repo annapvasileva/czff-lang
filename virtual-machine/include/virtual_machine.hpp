@@ -8,8 +8,8 @@ namespace czffvm {
 
 class VirtualMachine {
 public:
-    VirtualMachine();
-    VirtualMachine(uint32_t max_heap_size_in_kib);
+    VirtualMachine(bool is_gc_off = false);
+    VirtualMachine(uint32_t max_heap_size_in_kib, bool is_gc_off = false);
     ~VirtualMachine() = default;
 
     VirtualMachine(const VirtualMachine&) = delete;
