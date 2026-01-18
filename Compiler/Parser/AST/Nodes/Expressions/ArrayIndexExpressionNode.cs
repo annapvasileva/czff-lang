@@ -3,7 +3,7 @@ namespace Compiler.Parser.AST.Nodes.Expressions;
 public class ArrayIndexExpressionNode : ExpressionNode
 {
     public ExpressionNode Array { get; }
-    public ExpressionNode Index { get; }
+    public ExpressionNode Index { get; set; }
 
     public ArrayIndexExpressionNode(ExpressionNode array, ExpressionNode index)
     {

@@ -5,7 +5,7 @@ namespace Compiler.Parser.AST.Nodes.Statements;
 public class ForStatementNode : StatementNode
 {
     public VariableDeclarationNode Init { get; }
-    public ExpressionNode Condition { get; }
+    public ExpressionNode Condition { get; set; }
     public StatementNode Post { get; }
     public BlockNode Body { get; }
 

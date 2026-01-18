@@ -5,7 +5,7 @@ namespace Compiler.Parser.AST.Nodes.Expressions;
 public class ArrayCreationExpressionNode : ExpressionNode
 {
     public TypeAnnotationNode ElementType { get; set; }
-    public ExpressionNode Size { get; }
+    public ExpressionNode Size { get; set; }
 
     public ArrayCreationExpressionNode(TypeAnnotationNode elementType, ExpressionNode size)
     {
