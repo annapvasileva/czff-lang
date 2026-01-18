@@ -1,8 +1,6 @@
 using System.Data;
-using System.Linq.Expressions;
 using Compiler.Generation;
 using Compiler.Parser;
-using Compiler.Parser.AST;
 using Compiler.Parser.AST.Nodes;
 using Compiler.Parser.AST.Nodes.Core;
 using Compiler.Parser.AST.Nodes.Expressions;
@@ -185,7 +183,6 @@ public class ConstantFoldingOptimizer : INodeVisitor
     public void Visit(ExpressionStatementNode expressionStatementNode)
     {
         expressionStatementNode.Expression.Accept(this);
-        
     }
 
     public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
@@ -221,12 +218,16 @@ public class ConstantFoldingOptimizer : INodeVisitor
     {
         arrayCreationExpressionNode.Size.Accept(this);
         arrayCreationExpressionNode.Size = _newExpression;
+
+        _newExpression = arrayCreationExpressionNode;
     }
 
     public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
     {
         arrayIndexExpressionNode.Index.Accept(this);
         arrayIndexExpressionNode.Index = _newExpression;
+
+        _newExpression = arrayIndexExpressionNode;
     }
 
     public void Visit(MemberAccessNode memberAccessNode)
@@ -236,12 +237,10 @@ public class ConstantFoldingOptimizer : INodeVisitor
 
     public void Visit(BreakStatementNode breakStatementNode)
     {
-        return;
     }
 
     public void Visit(ContinueStatementNode continueStatementNode)
     {
-        return;
     }
 
     public void Visit(ReturnStatementNode returnStatementNode)
