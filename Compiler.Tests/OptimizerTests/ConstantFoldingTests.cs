@@ -65,7 +65,7 @@ public class ConstantFoldingTests
         string source = """
                         func void Main() {
                             var bool flag = false;
-                            flag = !((1 > 3) && (5 == 5) || false && (2 <= 3) || (5 != 5));
+                            flag = !((1 > 3) && (5 == 5) || flag && (2 <= 3) || (5 != 5));
                             return;
                         }
                         """;
@@ -172,7 +172,6 @@ public class ConstantFoldingTests
         var expectedTable = new SymbolTable(null);
         expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 0 });
         var mainBodyTable = new SymbolTable(expectedTable);
-        mainBodyTable.Symbols.Add("flag", new VariableSymbol("flag", "B;", 0));
 
         return new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
@@ -206,8 +205,7 @@ public class ConstantFoldingTests
         expectedTable.Symbols.Add("Main", new FunctionSymbol("Main", "void;") { LocalsLength = 2 });
         var mainBodyTable = new SymbolTable(expectedTable);
         mainBodyTable.Symbols.Add("a", new VariableSymbol("a", "I8;", 0));
-        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I8;", 1));
-        var ifBodyTable = new SymbolTable(mainBodyTable);
+        mainBodyTable.Symbols.Add("b", new VariableSymbol("b", "I8;", 0));
 
         return new AstTree(new ProgramNode(
             new List<FunctionDeclarationNode>()
@@ -240,7 +238,7 @@ public class ConstantFoldingTests
                                 new BlockNode(new  List<StatementNode>()
                                 {
                                     new PrintStatementNode(new LiteralExpressionNode("0", LiteralType.IntegerLiteral)),
-                                }) { Scope = ifBodyTable },
+                                }),
                                 new List<ElifStatementNode>(),
                                 null),
                             new IdentifierAssignmentStatementNode(
