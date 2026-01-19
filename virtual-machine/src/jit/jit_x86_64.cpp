@@ -503,7 +503,18 @@ void X86JitHeapHelper::StoreElem(czffvm::HeapRef ref, uint32_t index, czffvm::Va
     if (index >= obj.fields.size())
         throw std::runtime_error("STELEM: OOB");
 
-    obj.fields[index] = *value;
+    switch (obj.type[1]) {
+        case 'B': {
+            obj.fields[index] = (bool)(ValueToInteger<int32_t>(*value));
+            break;
+        }
+        case 'I': {
+            obj.fields[index] = *value;
+            break;
+        }
+        default: 
+            throw std::runtime_error("[STELEM] Wrong type for JIT-compilation, only integers supported");
+    }
 }
 
 czffvm::Value X86JitHeapHelper::LoadElem(czffvm::HeapRef ref, uint32_t index) {
