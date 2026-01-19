@@ -28,17 +28,7 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
         {
             return;
         }
-        var current = _scope;
-        foreach (var used in _usedStack)
-        {
-            if (current.Symbols.ContainsKey(identifierExpressionNode.Name))
-            {
-                used.Add(identifierExpressionNode.Name);
-                break;
-            }
-            
-            current = current.Parent;
-        }
+        MarkUsed(identifierExpressionNode.Name);
     }
 
     public void Visit(SimpleTypeNode simpleTypeNode)
@@ -102,6 +92,7 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
         foreach (var parameter in functionParametersNode.Parameters)
         {
             parameter.Type.Accept(this);
+            // MarkUsed(parameter.Name);
         }
     }
 
@@ -272,5 +263,20 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
 
         foreach (var callee in _callGraph[functionName])
             MarkReachable(callee);
+    }
+
+    private void MarkUsed(string name)
+    {
+        var current = _scope;
+        foreach (var used in _usedStack)
+        {
+            if (current.Symbols.ContainsKey(name))
+            {
+                used.Add(name);
+                break;
+            }
+            
+            current = current.Parent;
+        }
     }
 }

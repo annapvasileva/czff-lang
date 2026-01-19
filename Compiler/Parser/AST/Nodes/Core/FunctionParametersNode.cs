@@ -1,10 +1,15 @@
+using System.Text.Json.Serialization;
+
 namespace Compiler.Parser.AST.Nodes.Core;
 
 public class FunctionParametersNode : AstNode
 {
-    public record Variable(string Name, TypeAnnotationNode Type);
+    public record Variable(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("type")] TypeAnnotationNode Type);
 
-    public List<Variable> Parameters;
+    [JsonPropertyName("parameters")]
+    public List<Variable> Parameters { get; }
     
     public FunctionParametersNode(List<Variable> parameters)
     {

@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Text.Json;
 using Compiler.Util;
 using Compiler.Generation;
 using Compiler.Serialization;
@@ -8,6 +9,7 @@ using Newtonsoft.Json;
 using CommandLine;
 using Compiler.CompilerPipeline;
 using Compiler.Lexer;
+using Compiler.Optimizations;
 using Compiler.Parser;
 using Compiler.Parser.AST;
 using Compiler.SemanticAnalysis;
@@ -83,9 +85,16 @@ internal abstract class Program
         var symbolTableBuilder = new SymbolTableBuilder();
         var pipelineUnits = new List<INodeVisitor>()
         {
-            symbolTableBuilder, new SemanticAnalyzer(symbolTableBuilder.SymbolTable),
+            symbolTableBuilder,
+            new SemanticAnalyzer(symbolTableBuilder.SymbolTable),
+            // new ConstantFoldingOptimizer(),
+            new DeadCodeEliminationOptimizer(symbolTableBuilder.SymbolTable),
+            new DeadCodeEliminationSecondStage(symbolTableBuilder.SymbolTable),
+            new SymbolTableBuilder(),
         };
         Pipeline.Run(ast, pipelineUnits);
+        var js = System.Text.Json.JsonSerializer.Serialize(ast, new JsonSerializerOptions { WriteIndented = true });
+        Console.WriteLine(js);
 
         SymbolTable scope = symbolTableBuilder.SymbolTable;
         
