@@ -93,8 +93,6 @@ internal abstract class Program
             new SymbolTableBuilder(),
         };
         Pipeline.Run(ast, pipelineUnits);
-        var js = System.Text.Json.JsonSerializer.Serialize(ast, new JsonSerializerOptions { WriteIndented = true });
-        Console.WriteLine(js);
 
         SymbolTable scope = symbolTableBuilder.SymbolTable;
         
