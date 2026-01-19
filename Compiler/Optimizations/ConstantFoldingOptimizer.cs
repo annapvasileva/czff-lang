@@ -19,6 +19,7 @@ public class ConstantFoldingOptimizer : INodeVisitor
         INativeType left = NativeTypeBuilder.Build(leftLiteral);
         INativeType right = NativeTypeBuilder.Build(rightLiteral);
 
+        INativeType result;
         switch (type)
         {
             case BinaryOperatorType.Addition:
@@ -34,22 +35,22 @@ public class ConstantFoldingOptimizer : INodeVisitor
                 left.Divide(right);
                 break;
             case BinaryOperatorType.Less:
-                left.Less(right);
+                left = new NativeBool(left.Less(right));
                 break;
             case BinaryOperatorType.LessOrEqual:
-                left.LessOrEqual(right);
+                left = new NativeBool(left.LessOrEqual(right));
                 break;
             case BinaryOperatorType.Equal:
-                left.Equal(right);
+                left = new NativeBool(left.Equal(right));
                 break;
             case BinaryOperatorType.Greater:
-                left.Greater(right);
+                left = new NativeBool(left.Greater(right));
                 break;
             case BinaryOperatorType.GreaterOrEqual:
-                left.GreaterOrEqual(right);
+                left = new NativeBool(left.GreaterOrEqual(right));
                 break;
             case BinaryOperatorType.NotEqual:
-                left.NotEqual(right);
+                left = new NativeBool(left.NotEqual(right));
                 break;
             case BinaryOperatorType.LogicalOr:
                 left.LogicalOr(right);

@@ -12,12 +12,12 @@ public interface INativeType
     public void Subtract(INativeType operand);
     public void Multiply(INativeType operand);
     public void Divide(INativeType operand);
-    public void Less(INativeType operand);
-    public void LessOrEqual(INativeType operand);
-    public void Equal(INativeType operand);
-    public void Greater(INativeType operand);
-    public void GreaterOrEqual(INativeType operand);
-    public void NotEqual(INativeType operand);
+    public bool Less(INativeType operand);
+    public bool LessOrEqual(INativeType operand);
+    public bool Equal(INativeType operand);
+    public bool Greater(INativeType operand);
+    public bool GreaterOrEqual(INativeType operand);
+    public bool NotEqual(INativeType operand);
     public void LogicalOr(INativeType operand);
     public void LogicalAnd(INativeType operand);
     public void Mod(INativeType operand);
