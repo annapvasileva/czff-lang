@@ -76,52 +76,52 @@ public class NativeInteger64(long value) : INativeType
         throw new NativeTypeException("Can't apply logics to int64.");
     }
 
-    public void Less(INativeType operand)
+    public bool Less(INativeType operand)
     {
         if (operand is not NativeInteger64 right)
             throw new NativeTypeException("Can't compare int64 and not int64.");
 
-        _value = _value < right._value ? 1 : 0;
+        return _value < right._value;
     }
 
-    public void LessOrEqual(INativeType operand)
+    public bool LessOrEqual(INativeType operand)
     {
         if (operand is not NativeInteger64 right)
             throw new NativeTypeException("Can't compare int64 and not int64.");
 
-        _value = _value <= right._value ? 1 : 0;
+        return _value <= right._value;
     }
 
-    public void Equal(INativeType operand)
+    public bool Equal(INativeType operand)
     {
         if (operand is not NativeInteger64 right)
             throw new NativeTypeException("Can't compare int64 and not int64.");
 
-        _value = _value == right._value ? 1 : 0;
+        return _value == right._value;
     }
 
-    public void Greater(INativeType operand)
+    public bool Greater(INativeType operand)
     {
         if (operand is not NativeInteger64 right)
             throw new NativeTypeException("Can't compare int64 and not int64.");
 
-        _value = _value > right._value ? 1 : 0;
+        return _value > right._value;
     }
 
-    public void GreaterOrEqual(INativeType operand)
+    public bool GreaterOrEqual(INativeType operand)
     {
         if (operand is not NativeInteger64 right)
             throw new NativeTypeException("Can't compare int64 and not int64.");
 
-        _value = _value >= right._value ? 1 : 0;
+        return _value >= right._value;
     }
 
-    public void NotEqual(INativeType operand)
+    public bool NotEqual(INativeType operand)
     {
         if (operand is not NativeInteger64 right)
             throw new NativeTypeException("Can't compare int64 and not int64.");
 
-        _value = _value != right._value ? 1 : 0;
+        return _value != right._value;
     }
 
     public void LogicalOr(INativeType operand)

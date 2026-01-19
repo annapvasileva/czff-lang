@@ -58,52 +58,52 @@ public class NativeString(string value) : INativeType
         throw new NativeTypeException("Can't apply logics to strings.");
     }
 
-    public void Less(INativeType operand)
+    public bool Less(INativeType operand)
     {
         if (operand is not NativeString right)
             throw new NativeTypeException("Can't compare string and not string.");
 
-        _value = string.Compare(_value, right._value) < 0 ? "true" : "false";
+        return string.Compare(_value, right._value) < 0;
     }
 
-    public void LessOrEqual(INativeType operand)
+    public bool LessOrEqual(INativeType operand)
     {
         if (operand is not NativeString right)
             throw new NativeTypeException("Can't compare string and not string.");
 
-        _value = string.Compare(_value, right._value) <= 0 ? "true" : "false";
+        return string.Compare(_value, right._value) <= 0;
     }
 
-    public void Equal(INativeType operand)
+    public bool Equal(INativeType operand)
     {
         if (operand is not NativeString right)
             throw new NativeTypeException("Can't compare string and not string.");
 
-        _value = _value == right._value ? "true" : "false";
+        return _value == right._value;
     }
 
-    public void Greater(INativeType operand)
+    public bool Greater(INativeType operand)
     {
         if (operand is not NativeString right)
             throw new NativeTypeException("Can't compare string and not string.");
 
-        _value = string.Compare(_value, right._value) > 0 ? "true" : "false";
+        return string.Compare(_value, right._value) > 0;
     }
 
-    public void GreaterOrEqual(INativeType operand)
+    public bool GreaterOrEqual(INativeType operand)
     {
         if (operand is not NativeString right)
             throw new NativeTypeException("Can't compare string and not string.");
 
-        _value = string.Compare(_value, right._value) >= 0 ? "true" : "false";
+        return string.Compare(_value, right._value) >= 0;
     }
 
-    public void NotEqual(INativeType operand)
+    public bool NotEqual(INativeType operand)
     {
         if (operand is not NativeString right)
             throw new NativeTypeException("Can't compare string and not string.");
 
-        _value = _value != right._value ? "true" : "false";
+        return _value != right._value;
     }
 
     public void LogicalOr(INativeType operand)
