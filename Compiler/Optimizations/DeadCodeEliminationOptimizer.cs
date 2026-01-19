@@ -92,7 +92,7 @@ public class DeadCodeEliminationOptimizer(SymbolTable scope) : INodeVisitor
         foreach (var parameter in functionParametersNode.Parameters)
         {
             parameter.Type.Accept(this);
-            // MarkUsed(parameter.Name);
+            MarkUsed(parameter.Name);
         }
     }
 
