@@ -4,7 +4,7 @@ namespace Compiler.Parser.AST.Nodes.Statements;
 
 public class WhileStatementNode : StatementNode
 {
-    public ExpressionNode Condition { get; }
+    public ExpressionNode Condition { get; set; }
     public BlockNode Body { get; }
 
     public WhileStatementNode(ExpressionNode condition, BlockNode body)
