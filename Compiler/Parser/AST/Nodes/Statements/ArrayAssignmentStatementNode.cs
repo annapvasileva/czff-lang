@@ -6,9 +6,9 @@ public class ArrayAssignmentStatementNode : StatementNode
 {
     // мб потом конкретизировать, что тут Identifier или ArrayAccess или MemberAccess
     // либо же на этапе какой-нибудь проверки, надо подумать
-    public ArrayIndexExpressionNode Left { get; }
+    public ArrayIndexExpressionNode Left { get; set; }
     
-    public ExpressionNode Right { get; }
+    public ExpressionNode Right { get; set;  }
 
     public ArrayAssignmentStatementNode(ArrayIndexExpressionNode left, ExpressionNode right)
     {

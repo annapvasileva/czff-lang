@@ -4,7 +4,7 @@ namespace Compiler.Parser.AST.Nodes;
 
 public class ProgramNode : AstNode
 {
-    public IList<FunctionDeclarationNode> Functions { get; }
+    public IList<FunctionDeclarationNode> Functions { get; set; }
 
     public ProgramNode(IList<FunctionDeclarationNode> functions)
     {
