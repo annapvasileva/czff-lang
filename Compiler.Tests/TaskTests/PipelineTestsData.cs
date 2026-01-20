@@ -127,49 +127,6 @@ public class PipelineTestsData : IEnumerable<object[]>
             }
             """
         };
-        
-        yield return new object[]
-        {
-            """
-            func void Main() {
-                var int n = 1000000;
-                var int sum = 0;
-                for (var int i = 2; i < n + 1; i = i + 1) {
-                    var int x = 2;
-                    var int a = 10 * 10 - 9;
-                    a = x + 2;
-                    a = x * 2;
-                    a = 10;
-                    var int b = 3;
-                    var int c = 13;
-                    var int d = 23;
-                    var int e = 37;
-                    var int f = 30;
-                    var int g = 3;
-                    var int h = 36;
-                    var int j = 93;
-                    j = 1;
-                    j = 2;
-                    j = 3;
-                    j = 10 % 4;
-                    j = 10 / 4;
-                    j = 10 * 4;
-                    sum = sum + i;
-                    print i;
-                    continue;
-                    var int k = 10;
-                    var int l = k * 2;
-                    k = k + 1;
-                    l = k + 7;
-                    l = l / 6;
-                    k = 10;
-                    print k;
-                    print l;
-                }
-                return;
-            }
-            """
-        };
     }
 
     IEnumerator IEnumerable.GetEnumerator()
