@@ -131,6 +131,44 @@ using Value = std::variant<
 
 Value ConstantToValue(const Constant& c);
 
+template<typename T>
+T ValueToInteger(czffvm::Value v) {
+    T value;
+    if (auto p = std::get_if<uint8_t>(&v))      value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint16_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint32_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint64_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int8_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int16_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int32_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int64_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<bool>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<czffvm::HeapRef>(&v))  value = static_cast<T>(p->id);
+    else {
+        throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
+    }
+    return value;
+}
+
+template<typename T>
+std::optional<T> SafeValueToInteger(czffvm::Value v) {
+    T value;
+    if (auto p = std::get_if<uint8_t>(&v))      value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint16_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint32_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint64_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int8_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int16_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int32_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int64_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<bool>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<czffvm::HeapRef>(&v))  value = static_cast<T>(p->id);
+    else {
+        return std::nullopt;
+    }
+    return value;
+}
+
 std::string dump(const Value& v);
 
 }
