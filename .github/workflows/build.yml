@@ -62,7 +62,7 @@ jobs:
             $expectedOutputFile = Join-Path $file.Directory "$($file.BaseName).out"
 
             $compileTimer = [System.Diagnostics.Stopwatch]::StartNew()
-            & "$compiler" -s "$($file.FullName)" -c "Compiler\CompilerConfig.json" -t "$target"
+            & "$compiler" -s "$($file.FullName)" -c "CompilerConfig.json" -t "$target"
             $compileTimer.Stop()
             
             Write-Host "Compilation time: $($compileTimer.Elapsed.TotalMilliseconds) ms" -ForegroundColor Yellow

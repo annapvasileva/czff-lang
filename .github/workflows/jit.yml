@@ -52,7 +52,7 @@ jobs:
 
         $source = Join-Path $PWD "test_files\merge_sort.szzff"
         $target = Join-Path $PWD "build\merge_sort.ball"
-        $config = Join-Path $PWD "Compiler\CompilerConfig.json"
+        $config = Join-Path $PWD "CompilerConfig.json"
 
         if (!(Test-Path $source)) {
             Write-Host "Test file not found: $source" -ForegroundColor Red
