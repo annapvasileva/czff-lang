@@ -1,5 +1,6 @@
 param (
-    [string]$Configuration = "Release"
+    [string]$Configuration = "Release",
+    [string]$Generator = "Ninja"
 )
 
 Write-Host "=== Building C# Compiler ===" -ForegroundColor Cyan
@@ -11,10 +12,14 @@ dotnet publish Compiler/Compiler.csproj -c $Configuration -o build/compiler
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
 Write-Host "=== Building C++ VM ===" -ForegroundColor Cyan
+Write-Host "Configuration: $Configuration"
+Write-Host "Generator: $Generator"
 
-cmake -S vitrual-machine -B build/vm -DCMAKE_BUILD_TYPE=$Configuration
+# Configure
+cmake -G "$Generator" -S virtual-machine -B build/vm -DCMAKE_BUILD_TYPE=$Configuration
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
+# Build
 cmake --build build/vm --config $Configuration
 if ($LASTEXITCODE -ne 0) { exit 1 }
 

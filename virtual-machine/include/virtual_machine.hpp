@@ -3,6 +3,8 @@
 #include "runtime_data_area.hpp"
 #include "class_loader.hpp"
 #include "interpreter.hpp"
+#include "jit/jit_compiler.hpp"
+#include "jit/jit_x86_64.hpp"
 
 namespace czffvm {
 
@@ -17,6 +19,7 @@ public:
 
     void LoadStdlib(const std::string& path);
     void LoadProgram(const std::string& path);
+    void EnableJIT();
     void Run();
 
 private:

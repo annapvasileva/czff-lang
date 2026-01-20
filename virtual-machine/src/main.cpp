@@ -11,6 +11,7 @@ struct CmdOptions {
     bool is_set_max_heap_size = false;
     bool is_set_stdlib = false;
     bool is_set_debug_mode = false;
+    bool no_jit = false;
     bool is_set_gc_off = false;
 };
 
@@ -18,7 +19,7 @@ CmdOptions parseArguments(int argc, char* argv[]) {
     CmdOptions options;
 
     if (argc < 2) {
-        throw std::runtime_error("Missing arguments. Use -p <file> [-mhs <number>] [--debug]");
+        throw std::runtime_error("Missing arguments. Use -p <file> [-mhs <number>] [--debug] [--no-jit]");
     }
 
     bool debug = false;
@@ -61,6 +62,8 @@ CmdOptions parseArguments(int argc, char* argv[]) {
             }
         } else if (arg == "--debug") {
             debug = true;
+        } else if (arg == "--no-jit") {
+            options.no_jit = true;
         } else if (arg == "--gcoff") {
             is_gc_off = true;
         } else {
@@ -94,6 +97,9 @@ int main(int argc, char* argv[]) {
             vm.LoadStdlib(opts.stdlib_path);
         }
         vm.LoadProgram(opts.ball_path);
+        if (!opts.no_jit) {
+            vm.EnableJIT();
+        }
 
         vm.Run();
     } catch (const std::exception& e) {

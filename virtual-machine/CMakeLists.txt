@@ -15,6 +15,23 @@ set(CMAKE_BUILD_TYPE Release)
 # ===== Options =====
 option(CZFF_ENABLE_WARNINGS "Enable compiler warnings" ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "[CZFF] CMAKE_BUILD_TYPE is not set! Setting it to Release")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_CONFIGURATION_TYPES MATCHES "Debug")
+    message(STATUS "[CZFF] Debug build configuration detected")
+
+    add_compile_definitions(DEBUG_BUILD)
+
+    if(MSVC)
+        add_compile_options(/Zi /EHsc /W4 /DEBUG)
+    else()
+        add_compile_options(-g3 -O0 -Wall -Wextra -pedantic)
+    endif()
+endif()
+
 # ===== Library =====
 add_library(czff_virtual_machine_lib
     src/virtual_machine.cpp
@@ -31,11 +48,22 @@ add_library(czff_virtual_machine_lib
     src/util/ball_disassembler.cpp
 )
 
+# ===== AsmJit Library =====
+set(ASMJIT_STATIC ON CACHE BOOL "Build AsmJit as static library" FORCE)
+set(ASMJIT_EMBED OFF CACHE BOOL "Don't embed AsmJit" FORCE)
+
+if(WIN32)
+    add_definitions(-DASMJIT_STATIC)
+endif()
+
+add_subdirectory(extern/asmjit)
+
 target_include_directories(czff_virtual_machine_lib
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/include/runtime_data_area
         ${PROJECT_SOURCE_DIR}/include/util
+        ${PROJECT_SOURCE_DIR}/extern/asmjit
 )
 
 # ===== Warnings =====
@@ -75,7 +103,9 @@ if(JIT_ARCH STREQUAL "x86_64") # supported architectures
     message(STATUS "[CZFF] Selected JIT architecture: ${JIT_ARCH}")
 
     add_library(czff_jit_${JIT_ARCH}
+        src/jit/jit_compiler.cpp
         src/jit/jit_${JIT_ARCH}.cpp
+        src/jit/jit_dummy.cpp
     )
 
     string(TOUPPER "${JIT_ARCH}" DEF_JIT_ARCH)
@@ -83,6 +113,18 @@ if(JIT_ARCH STREQUAL "x86_64") # supported architectures
     target_compile_definitions(czff_jit_${JIT_ARCH}
         PUBLIC
             CZFF_JIT_${DEF_JIT_ARCH}
+    )
+
+    target_include_directories(czff_jit_${JIT_ARCH}
+        PUBLIC
+            ${PROJECT_SOURCE_DIR}/include
+            ${PROJECT_SOURCE_DIR}/extern/asmjit
+    )
+
+    target_link_libraries(czff_jit_${JIT_ARCH}
+        PRIVATE
+            asmjit
+            czff_virtual_machine_lib
     )
 else()
     if (JIT_ARCH STREQUAL "none")
@@ -94,6 +136,7 @@ else()
     endif()
 
     add_library(czff_jit_${JIT_ARCH}
+        src/jit/jit_compiler.cpp
         src/jit/jit_dummy.cpp
     )
     
@@ -101,13 +144,17 @@ else()
         PUBLIC
             CZFF_JIT_DISABLED
     )
+    
+    target_include_directories(czff_jit_${JIT_ARCH}
+        PUBLIC
+            ${PROJECT_SOURCE_DIR}/include
+    )
 
+    target_link_libraries(czff_jit_${JIT_ARCH}
+        PRIVATE
+            czff_virtual_machine_lib
+    )
 endif()
-
-target_include_directories(czff_jit_${JIT_ARCH}
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-)
 
 # ===== Executable =====
 add_executable(czffvm
@@ -116,8 +163,8 @@ add_executable(czffvm
 
 target_link_libraries(czffvm
     PRIVATE
-        czff_jit_${JIT_ARCH}
         czff_virtual_machine_lib
+        czff_jit_${JIT_ARCH}
 )
 
 # ===== Tests =====

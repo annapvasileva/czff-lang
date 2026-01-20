@@ -3,6 +3,7 @@ name: Build Compiler + VM (Windows + MinGW)
 on:
   workflow_dispatch:  # ручной запуск
 
+
 jobs:
   build:
     runs-on: windows-latest
@@ -10,6 +11,8 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -59,7 +62,7 @@ jobs:
             $expectedOutputFile = Join-Path $file.Directory "$($file.BaseName).out"
 
             $compileTimer = [System.Diagnostics.Stopwatch]::StartNew()
-            & "$compiler" -s "$($file.FullName)" -c "Compiler\CompilerConfig.json" -t "$target"
+            & "$compiler" -s "$($file.FullName)" -c "CompilerConfig.json" -t "$target"
             $compileTimer.Stop()
             
             Write-Host "Compilation time: $($compileTimer.Elapsed.TotalMilliseconds) ms" -ForegroundColor Yellow

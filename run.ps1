@@ -9,11 +9,14 @@ param (
     [string]$Target,
     
     [Parameter(Mandatory=$false)]
-    [int]$Memory
+    [int]$Memory,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$NoJit
 )
 
 $compilerPath = ".\build\Compiler\Compiler.exe"
-$vmPath = ".\build\VM\czffvm.exe"
+$vmPath = ".\build\vm\czffvm.exe"
 
 if (!(Test-Path $compilerPath)) {
     Write-Host "Compiler not found: $compilerPath" -ForegroundColor Red
@@ -61,14 +64,22 @@ if (!(Test-Path $Target)) {
 
 $runTimer = [System.Diagnostics.Stopwatch]::StartNew()
 
+$vmArgs = @("-p", $Target)
+
 if ($PSBoundParameters.ContainsKey("Memory")) {
     Write-Host "Running VM with memory limit: $Memory bytes"
-    & $vmPath -p $Target -mhs $Memory
+    $vmArgs += @("-mhs", $Memory)
 }
 else {
     Write-Host "Running VM with auto memory limit"
-    & $vmPath -p $Target
 }
+
+if ($NoJit) {
+    Write-Host "Running VM with JIT disabled"
+    $vmArgs += "--no-jit"
+}
+
+& $vmPath $vmArgs
 
 $runTimer.Stop()
 
