@@ -18,7 +18,7 @@ public:
     uint16_t RegisterConstant(const Constant& c);
 
     const RuntimeClass* GetClass(uint16_t) const;
-    const RuntimeFunction* GetFunction(uint16_t index) const;
+    RuntimeFunction* GetFunction(uint16_t index) const;
     const Constant& GetConstant(uint16_t index) const;
 
     const std::vector<RuntimeClass*>& Classes() const;

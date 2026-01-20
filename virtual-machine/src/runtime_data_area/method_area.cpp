@@ -44,7 +44,7 @@ const RuntimeClass* MethodArea::GetClass(uint16_t index) const {
     return classes_[index];
 }
 
-const RuntimeFunction* MethodArea::GetFunction(uint16_t index) const {
+RuntimeFunction* MethodArea::GetFunction(uint16_t index) const {
     if (index >= functions_.size()) {
         throw std::out_of_range("MethodArea: function pool index out of range");
     }

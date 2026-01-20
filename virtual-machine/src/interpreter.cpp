@@ -10,7 +10,9 @@
 namespace czffvm {
 
 Interpreter::Interpreter(RuntimeDataArea& rda)
-    : rda_(rda) {}
+    : rda_(rda) {
+    heapHelper_ = std::make_unique<czffvm_jit::X86JitHeapHelper>(rda_);
+}
 
 struct TypeDesc {
     enum Kind { INT, BOOL, ARRAY, STRING, VOID } kind;
@@ -103,7 +105,7 @@ static bool CheckReturnType(const std::string& expected, const Value& v) {
     return Match(t,v);
 }
 
-static size_t CountParams(const std::string& s){
+size_t CountParams(const std::string& s){
     size_t i=0,c=0;
     while(i<s.size()){
         ParseType(s,i);
@@ -501,7 +503,7 @@ void Interpreter::Execute(RuntimeFunction* entry) {
             case OperationCode::CALL: {
                 uint16_t fn_idx = (op.arguments[0] << 8) | op.arguments[1];
 
-                const RuntimeFunction* callee =
+                RuntimeFunction* callee =
                     rda_.GetMethodArea().GetFunction(fn_idx);
 
                 CallFrame& caller =
@@ -528,9 +530,35 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                     caller.operand_stack.pop_back();
                 }
 
+                if (!callee->jit_function && callee->call_count >= kJitThreshold && callee->compilable) {
+                    if (!CanCompile(callee)) {
+                        callee->compilable = false;
+                    } else {
+                        #ifdef DEBUG_BUILD
+                            const Constant& name_data = rda_.GetMethodArea().GetConstant(callee->name_index);
+
+                            std::cout << "[JIT] Compilation of " << std::string(name_data.data.begin(), name_data.data.end()) << std::endl;
+                        #endif
+                        JitCompile(callee);
+                    } 
+                }
+
+                if (callee->jit_function && callee->compilable) {
+                    try {
+                        ExecuteJitFunction(callee, caller, args);
+                        break;
+                        
+                    } catch (const std::exception& e) {
+                        std::cerr << "Error: " << e.what() << std::endl;
+                        callee->compilable = false;
+                    }
+                }
+
                 rda_.GetStack().PushFrame(const_cast<RuntimeFunction*>(callee));
                 CallFrame& callee_frame =
                     rda_.GetStack().CurrentFrame();
+
+                callee->call_count++;
 
                 for (auto& v : args) {
                     callee_frame.operand_stack.push_back(v);
@@ -824,6 +852,107 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 throw std::runtime_error("Unknown opcode");
         }
     }
+}
+
+void Interpreter::JitCompile(RuntimeFunction* function) {
+    function->jit_function = jit_compiler_->CompileFunction(*function, rda_);
+}
+
+void Interpreter::SetJitCompiler(std::unique_ptr<czffvm_jit::JitCompiler> jit) {
+    jit_compiler_ = std::move(jit);
+}
+
+void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& caller_frame, std::vector<Value>& args) {
+    
+    int32_t stack[100000];
+    size_t lc = ((function->locals_count * 4) + 15) / 16 * 4;
+    for (size_t i = 0; i < args.size(); ++i) {
+        int32_t value;
+        if (auto p = std::get_if<uint8_t>(&args[i]))      value = static_cast<int32_t>(*p);
+        else if (auto p = std::get_if<uint16_t>(&args[i])) value = static_cast<int32_t>(*p);
+        else if (auto p = std::get_if<uint32_t>(&args[i])) value = static_cast<int32_t>(*p);
+        else if (auto p = std::get_if<uint64_t>(&args[i])) value = static_cast<int32_t>(*p);
+        else if (auto p = std::get_if<int8_t>(&args[i]))  value = *p;
+        else if (auto p = std::get_if<int16_t>(&args[i]))  value = *p;
+        else if (auto p = std::get_if<int32_t>(&args[i]))  value = *p;
+        else if (auto p = std::get_if<int64_t>(&args[i]))  value = *p;
+        else if (auto p = std::get_if<bool>(&args[i]))  value = static_cast<bool>(*p);
+        else if (auto p = std::get_if<HeapRef>(&args[i]))  value = static_cast<int32_t>(p->id);
+        else {
+            throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
+        }
+        stack[i + lc] = value;
+    }
+
+    using VMFunc = void(*)(int32_t*, czffvm_jit::X86JitHeapHelper*);
+    VMFunc func_ptr = function->jit_function->getFunction<VMFunc>();
+
+    czffvm_jit::X86JitHeapHelper& hh = *heapHelper_;
+
+    auto ret_c = rda_.GetMethodArea().GetConstant(function->return_type_index);
+
+    func_ptr(stack, &hh);
+    std::string ret_type(ret_c.data.begin(), ret_c.data.end());
+
+    if (ret_type == "void;") {
+        return;
+    }
+    
+    size_t i = 0;
+    auto type_kind = ParseType(ret_type, i);
+
+    size_t return_index = lc;
+
+    Constant c;
+    switch (type_kind.kind) {
+        case TypeDesc::Kind::INT:
+        case TypeDesc::Kind::BOOL: {
+            switch (type_kind.size_bytes) {
+                case 1:
+                case 0: {
+                    c = {
+                        type_kind.kind == TypeDesc::Kind::BOOL ? ConstantTag::BOOL : type_kind.is_signed ? ConstantTag::I1 : ConstantTag::U1, 
+                        {stack[return_index] & 0xFF}
+                    };
+                    break;
+                }
+                case 2: {
+                    c = {
+                        type_kind.is_signed ? ConstantTag::I2 : ConstantTag::U2, 
+                        {stack[return_index] >> 8, stack[return_index] & 0xFF}
+                    };
+                    break;
+                }
+                case 4: {
+                    c = {
+                        type_kind.is_signed ? ConstantTag::I4 : ConstantTag::U4, 
+                        {stack[return_index] >> 24, (stack[return_index] >> 16) & 0xFF, (stack[return_index] >> 8) & 0xFF, stack[return_index] & 0xFF, }
+                    };
+                    break;
+                }
+                default: 
+                    throw std::runtime_error("Wrong return type for JIT-compilation, only integers supported");
+            }
+            break;
+        }
+        default: 
+            throw std::runtime_error("Wrong return type for JIT-compilation, only integers supported");
+    }
+
+    caller_frame.operand_stack.push_back(ConstantToValue(c));
+}
+
+bool Interpreter::CanCompile(const RuntimeFunction* function) {
+    if (!jit_compiler_) {
+        return false;
+    }
+    for (const auto& op : function->code) {
+        if (!jit_compiler_->CanCompile(op)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 

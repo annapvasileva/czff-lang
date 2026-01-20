@@ -3,6 +3,7 @@ name: Build Compiler + VM (Windows + MinGW)
 on:
   workflow_dispatch:  # ручной запуск
 
+
 jobs:
   build:
     runs-on: windows-latest
@@ -10,6 +11,8 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4

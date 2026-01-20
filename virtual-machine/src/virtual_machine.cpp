@@ -24,4 +24,12 @@ void VirtualMachine::Run() {
     interpreter_.Execute(loader_.EntryPoint());
 }
 
+void VirtualMachine::EnableJIT() {
+#ifdef CZFF_JIT_DISABLED
+    throw std::runtime_error("JIT is disabled on this platform");
+#else
+    interpreter_.SetJitCompiler(czffvm_jit::JitCompiler::create());
+#endif
+}
+
 } // namespace czffvm

@@ -8,12 +8,19 @@
 #include <variant>
 #include <memory>
 
-#include "int128.hpp"
-#include "uint128.hpp"
+#include "util/int128.hpp"
+#include "util/uint128.hpp"
+
+#include "jit/jit_compiler.hpp"
+
+namespace czffvm_jit {
+    class CompiledRuntimeFunction;
+}
 
 namespace czffvm {
 const uint32_t kBytesInKiB = 1024;
 const uint32_t kDefaultMaxHeapSizeInKiB = kBytesInKiB * 50; // 5 MiB
+constexpr uint32_t kJitThreshold = 5;
 
 enum class OperationCode : uint16_t {
     LDC = 0x0001,
@@ -89,6 +96,10 @@ struct RuntimeFunction {
     uint16_t max_stack;
     uint16_t locals_count;
     std::vector<Operation> code;
+
+    uint32_t call_count = 0;
+    bool compilable = true;
+    std::unique_ptr<czffvm_jit::CompiledRuntimeFunction> jit_function; 
 };
 
 struct HeapRef {

@@ -55,7 +55,10 @@ std::string ByteReader::ReadString() {
         );
     }
 
-    std::string s(reinterpret_cast<const char*>(&data_[offset_]), len);
+    std::string s;
+    if (len > 0) {
+        s = std::string(reinterpret_cast<const char*>(&data_[offset_]), len);
+    }
     offset_ += len;
 
     return s;
