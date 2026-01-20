@@ -60,10 +60,7 @@ public class MVPGeneratorTest
         
         var expectedBall = BallStore.ReturnBall("SimpleBall");
 
-        var generator = new Generator(new CompilerSettings()
-        {
-            Version = [0, 0, 0]
-        });
+        var generator = new Generator([0, 0, 0]);
         
         // Act
 
@@ -194,10 +191,7 @@ public class MVPGeneratorTest
 
         var expectedBall = BallStore.ReturnBall("ArrayBall");
 
-        var generator = new Generator(new CompilerSettings()
-        {
-            Version = [0, 0, 0]
-        });
+        var generator = new Generator([0, 0, 0]);
         
         // Act
 
@@ -321,10 +315,7 @@ public class MVPGeneratorTest
 
         var expectedBall = BallStore.ReturnBall("CyclesBall");
 
-        var generator = new Generator(new CompilerSettings()
-        {
-            Version = [0, 0, 0]
-        });
+        var generator = new Generator([0, 0, 0]);
         
         // Act
 

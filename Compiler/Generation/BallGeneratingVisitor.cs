@@ -400,6 +400,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
         forStatementNode.Body.Accept(this);
         
+        var postIndex = _currentFunction.Operations.Count;
         forStatementNode.Post.Accept(this);
         
         _currentFunction.Operations.Add(new Jmp(startIndex));
@@ -419,7 +420,7 @@ public class BallGeneratingVisitor(Ball target, SymbolTable scope) : INodeVisito
 
                 if (jmp.JumpIndex == -2)
                 {
-                    jmp.JumpIndex = startIndex;
+                    jmp.JumpIndex = postIndex;
                 }
             }
         }

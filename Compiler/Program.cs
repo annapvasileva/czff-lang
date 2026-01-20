@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Data;
-using System.Text.Json;
+﻿
 using Compiler.Util;
 using Compiler.Generation;
 using Compiler.Serialization;
@@ -18,15 +16,13 @@ using Compiler.SemanticAnalysis.Models;
 
 namespace Compiler;
 
+
 internal class Options
 {
     [Option('s', "source", Required = true, HelpText = "Path to file with code," +
                                                        " that will be compiled into bytecode")]
     public string Source { get; set; } = null!;
-
-    [Option('c', "config", Required = true, HelpText = "Path to config file")]
-    public string PathToConfig { get; set; } = null!;
-
+    
     [Option('t', "target", Required = true, HelpText = "Path to the source file")]
     public string Target { get; set; } = null!;
 
@@ -34,15 +30,13 @@ internal class Options
     public bool ConstantFolding { get; set; } = false;
     
     [Option('d', "use-dce", Required=false, HelpText = "Do not use dead code elimination optimization")]
-    public bool Dce { get; set; } = false;
-
-    [Option('m', "multiple-files", Required = false, Default = false, HelpText = "Search all" +
-        " .szff files in the directory of the target. Option for code with dependencies from external source.")] 
-    public bool MultipleFiles { get; set; }
+    public bool DeadCodeElimination { get; set; } = false;
 }
 
 internal abstract class Program
 {
+    private static readonly byte[] Version = [0, 0, 5];
+
     public static void Main(string[] args)
     {
         //------------------------------------------------------------------------------------------
@@ -61,17 +55,9 @@ internal abstract class Program
         //                                   Configuration Part
         //------------------------------------------------------------------------------------------
         
-        if (!File.Exists(options.PathToConfig) || !File.Exists(options.Source) || !Directory.Exists(Path.GetDirectoryName(options.Target)))
+        if (!File.Exists(options.Source) || !Directory.Exists(Path.GetDirectoryName(options.Target)))
         {
             throw new Exception("The specified file or directory doesn't exist");
-        }
-        
-        string json = File.ReadAllText(options.PathToConfig);
-
-        CompilerSettings? compilerSettings = JsonConvert.DeserializeObject<CompilerSettings>(json);
-        if (compilerSettings == null) {
-            Console.WriteLine("No generator settings found");
-            return 1;
         }
         
         string sourceText = File.ReadAllText(options.Source);
@@ -100,18 +86,21 @@ internal abstract class Program
             pipelineUnits.Add(new ConstantFoldingOptimizer());
         }
 
-        if (options.Dce)
+        if (options.DeadCodeElimination)
         {
+            
             pipelineUnits.Add(new DeadCodeEliminationOptimizer(symbolTableBuilder.SymbolTable));
             pipelineUnits.Add(new DeadCodeEliminationSecondStage(symbolTableBuilder.SymbolTable));
-            pipelineUnits.Add(new SymbolTableBuilder());
+            
+            symbolTableBuilder = new SymbolTableBuilder();
+            pipelineUnits.Add(symbolTableBuilder);
         }
         
         Pipeline.Run(ast, pipelineUnits);
 
         SymbolTable scope = symbolTableBuilder.SymbolTable;
         
-        var generator = new Generator(compilerSettings);
+        var generator = new Generator(Version);
         
         Ball ball = generator.Generate(ast, scope);
         
