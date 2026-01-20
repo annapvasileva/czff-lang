@@ -1,7 +1,7 @@
 ﻿{
   "ConstantFolding": true,
   "DeadCodeElimination": true,
-  "BallFilePath": "./temp.ball",
+  "BallFilePath": "",
   "MemoryLimit": 0,
   "EnableGC": true,
   "EnableJIT": true
