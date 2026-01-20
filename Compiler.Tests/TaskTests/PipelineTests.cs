@@ -37,7 +37,7 @@ public class PipelineTests
 
         SymbolTable scope = symbolTableBuilder.SymbolTable;
         
-        var generator = new Generator(new CompilerSettings());
+        var generator = new Generator([0, 0, 0]);
         
         Ball ball = generator.Generate(ast, scope);
         var serializer = new Serializer();
