@@ -10,7 +10,6 @@ project(czff_virtual_machine
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_BUILD_TYPE Release)
 
 # ===== Options =====
 option(CZFF_ENABLE_WARNINGS "Enable compiler warnings" ON)
@@ -104,6 +103,7 @@ if(JIT_ARCH STREQUAL "x86_64") # supported architectures
 
     add_library(czff_jit_${JIT_ARCH}
         src/jit/jit_compiler.cpp
+        src/jit/generic_jit_optimizer.cpp
         src/jit/jit_${JIT_ARCH}.cpp
         src/jit/jit_dummy.cpp
     )
@@ -137,6 +137,7 @@ else()
 
     add_library(czff_jit_${JIT_ARCH}
         src/jit/jit_compiler.cpp
+        src/jit/generic_jit_optimizer.cpp
         src/jit/jit_dummy.cpp
     )
     
