@@ -44,7 +44,7 @@ jobs:
         cmake -S virtual-machine -B build/vm -G Ninja -DCMAKE_BUILD_TYPE=Release
         cmake --build build/vm
 
-    - name: Benchmark merge_sort (JIT vs no-JIT)
+    - name: Benchmarks (JIT vs no-JIT)
       shell: pwsh
       run: |
         $compiler = Join-Path $PWD "build\compiler\Compiler.exe"
@@ -107,7 +107,7 @@ jobs:
 
           Remove-Item $target -Force
         }
-    - name: Benchmark merge_sort (JIT vs no-JIT)
+    - name: Benchmarks (Opts vs no-Opts)
       shell: pwsh
       run: |
         $compiler = Join-Path $PWD "build\compiler\Compiler.exe"
