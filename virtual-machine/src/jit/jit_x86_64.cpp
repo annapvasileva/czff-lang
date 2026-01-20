@@ -95,7 +95,7 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
     a.push(asmjit::x86::r13);
     a.push(asmjit::x86::r14);
 
-    a.sub(asmjit::x86::rsp, 32); // shadow space for windows x64
+    a.sub(asmjit::x86::rsp, 40); // shadow space for windows x64
 
     a.mov(stackBase, asmjit::x86::rcx);
     a.lea(stackPtr, ptr(stackBase, ((function.locals_count * 4) + 15) / 16 * 16 + argc * 4));
@@ -128,7 +128,7 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
     a.mov(asmjit::x86::eax, 0);
     
     // epilogue
-    a.add(asmjit::x86::rsp, 32);
+    a.add(asmjit::x86::rsp, 40);
     a.pop(asmjit::x86::r14);
     a.pop(asmjit::x86::r13);
     a.pop(asmjit::x86::r12);
