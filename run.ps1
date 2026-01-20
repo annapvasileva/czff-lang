@@ -13,7 +13,7 @@ param (
 )
 
 $compilerPath = ".\build\Compiler\Compiler.exe"
-$vmPath = ".\build\VM\czffvm.exe"
+$vmPath = ".\build\vm\czffvm.exe"
 
 if (!(Test-Path $compilerPath)) {
     Write-Host "Compiler not found: $compilerPath" -ForegroundColor Red

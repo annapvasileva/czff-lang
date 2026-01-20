@@ -12,7 +12,7 @@ if ($LASTEXITCODE -ne 0) { exit 1 }
 
 Write-Host "=== Building C++ VM ===" -ForegroundColor Cyan
 
-cmake -S vitrual-machine -B build/vm -DCMAKE_BUILD_TYPE=$Configuration
+cmake -G "MinGW Makefiles" -S virtual-machine -B build/vm -DCMAKE_BUILD_TYPE=$Configuration
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
 cmake --build build/vm --config $Configuration
