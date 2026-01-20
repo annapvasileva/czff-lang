@@ -41,16 +41,17 @@ target_link_libraries(
 target_include_directories(tests PUBLIC ${PROJECT_SOURCE_DIR})
 
 
-if(JIT_ARCH STREQUAL "x86_64") # supported architectures
-    add_executable(
+add_executable(
+    jit_tests
+    src/jit/jit_optimizer_tests.cpp
+    src/jit/jit_dummy_tests.cpp
+)
+
+if(JIT_ARCH STREQUAL "x86_64")
+    target_sources(
         jit_tests
+        PRIVATE
         src/jit/jit_${JIT_ARCH}_tests.cpp
-        src/jit/jit_dummy_tests.cpp
-    )
-else()
-    add_library(
-        jit_tests
-        src/jit/jit_dummy_tests.cpp
     )
 endif()
 
@@ -61,9 +62,12 @@ target_link_libraries(
     GTest::gtest_main
 )
 
+target_link_options(jit_tests PRIVATE -Wl,--allow-multiple-definition)
+
 target_include_directories(jit_tests PUBLIC ${PROJECT_SOURCE_DIR})
 
 
 include(GoogleTest)
 
 gtest_discover_tests(tests)
+gtest_discover_tests(jit_tests)
