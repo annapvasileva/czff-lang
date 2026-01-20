@@ -1,4 +1,6 @@
-﻿using System.Data;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Text.Json;
 using Compiler.Util;
 using Compiler.Generation;
 using Compiler.Serialization;
@@ -6,7 +8,9 @@ using Compiler.SourceFiles;
 
 using Newtonsoft.Json;
 using CommandLine;
+using Compiler.CompilerPipeline;
 using Compiler.Lexer;
+using Compiler.Optimizations;
 using Compiler.Parser;
 using Compiler.Parser.AST;
 using Compiler.SemanticAnalysis;
@@ -25,6 +29,12 @@ internal class Options
 
     [Option('t', "target", Required = true, HelpText = "Path to the source file")]
     public string Target { get; set; } = null!;
+
+    [Option('f', "use-cf", Required=false, HelpText = "Do not use constant folding optimization")]
+    public bool ConstantFolding { get; set; } = false;
+    
+    [Option('d', "use-dce", Required=false, HelpText = "Do not use dead code elimination optimization")]
+    public bool Dce { get; set; } = false;
 
     [Option('m', "multiple-files", Required = false, Default = false, HelpText = "Search all" +
         " .szff files in the directory of the target. Option for code with dependencies from external source.")] 
@@ -78,13 +88,28 @@ internal abstract class Program
         var parser = new CompilerParser(tokens.ToList());
         AstTree ast = parser.Parse();
 
-        var analyzer = new SymbolTableBuilder();
-        ast.Root.Accept(analyzer);
+        
+        var symbolTableBuilder = new SymbolTableBuilder();
+        var pipelineUnits = new List<INodeVisitor>()
+        {
+            symbolTableBuilder,
+            new SemanticAnalyzer(symbolTableBuilder.SymbolTable),
+        };
+        if (options.ConstantFolding)
+        {
+            pipelineUnits.Add(new ConstantFoldingOptimizer());
+        }
 
-        var analyzerSecondStage = new SemanticAnalyzer(analyzer.SymbolTable);
-        ast.Root.Accept(analyzerSecondStage);
+        if (options.Dce)
+        {
+            pipelineUnits.Add(new DeadCodeEliminationOptimizer(symbolTableBuilder.SymbolTable));
+            pipelineUnits.Add(new DeadCodeEliminationSecondStage(symbolTableBuilder.SymbolTable));
+            pipelineUnits.Add(new SymbolTableBuilder());
+        }
+        
+        Pipeline.Run(ast, pipelineUnits);
 
-        SymbolTable scope = analyzer.SymbolTable;
+        SymbolTable scope = symbolTableBuilder.SymbolTable;
         
         var generator = new Generator(compilerSettings);
         

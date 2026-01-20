@@ -4,7 +4,7 @@ namespace Compiler.Parser.AST.Nodes.Statements;
 
 public class IfStatementNode : StatementNode
 {
-    public ExpressionNode Condition { get; }
+    public ExpressionNode Condition { get; set; }
     public BlockNode IfBlock { get; }
     public IList<ElifStatementNode> Elifs { get; }
     public BlockNode? ElseBlock { get; }

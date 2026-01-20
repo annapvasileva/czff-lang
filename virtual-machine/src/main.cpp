@@ -12,6 +12,7 @@ struct CmdOptions {
     bool is_set_stdlib = false;
     bool is_set_debug_mode = false;
     bool no_jit = false;
+    bool is_set_gc_off = false;
 };
 
 CmdOptions parseArguments(int argc, char* argv[]) {
@@ -22,6 +23,7 @@ CmdOptions parseArguments(int argc, char* argv[]) {
     }
 
     bool debug = false;
+    bool is_gc_off = false;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -62,6 +64,8 @@ CmdOptions parseArguments(int argc, char* argv[]) {
             debug = true;
         } else if (arg == "--no-jit") {
             options.no_jit = true;
+        } else if (arg == "--gcoff") {
+            is_gc_off = true;
         } else {
             throw std::runtime_error("Unknown argument: " + arg);
         }
@@ -71,6 +75,7 @@ CmdOptions parseArguments(int argc, char* argv[]) {
         throw std::runtime_error("Parameter -p is required");
     }
     options.is_set_debug_mode = debug;
+    options.is_set_gc_off = is_gc_off;
 
     return options;
 }
@@ -86,8 +91,8 @@ int main(int argc, char* argv[]) {
 
         czffvm::VirtualMachine vm = 
             (opts.is_set_max_heap_size)
-            ? czffvm::VirtualMachine(opts.max_heap_size)
-            : czffvm::VirtualMachine();
+            ? czffvm::VirtualMachine(opts.max_heap_size, opts.is_set_gc_off)
+            : czffvm::VirtualMachine(opts.is_set_gc_off);
         if (opts.is_set_stdlib) {
             vm.LoadStdlib(opts.stdlib_path);
         }

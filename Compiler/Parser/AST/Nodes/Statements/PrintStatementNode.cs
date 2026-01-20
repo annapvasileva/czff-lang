@@ -4,7 +4,7 @@ namespace Compiler.Parser.AST.Nodes.Statements;
 
 public class PrintStatementNode : StatementNode
 {
-    public ExpressionNode Expression { get; }
+    public ExpressionNode Expression { get; set; }
 
     public PrintStatementNode(ExpressionNode expression)
     {

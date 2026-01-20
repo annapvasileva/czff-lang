@@ -8,7 +8,7 @@ public class IdentifierAssignmentStatementNode : StatementNode
     // либо же на этапе какой-нибудь проверки, надо подумать
     public IdentifierExpressionNode Left { get; }
     
-    public ExpressionNode Right { get; }
+    public ExpressionNode Right { get; set; }
 
     public IdentifierAssignmentStatementNode(IdentifierExpressionNode left, ExpressionNode right)
     {
