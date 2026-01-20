@@ -2,7 +2,7 @@
   "ConstantFolding": true,
   "DeadCodeElimination": true,
   "BallFilePath": "./temp.ball",
-  "MemoryLimit": 102400,
+  "MemoryLimit": 0,
   "EnableGC": true,
   "EnableJIT": true
 }
