@@ -50,7 +50,7 @@ jobs:
         $compiler = Join-Path $PWD "build\compiler\Compiler.exe"
         $vm = Join-Path $PWD "build\vm\czffvm.exe"
 
-        $source = Join-Path $PWD "test_files\merge_sort.szzff"
+        $source = Join-Path $PWD "test_files\merge_sort.czff"
         $target = Join-Path $PWD "build\merge_sort.ball"
         $config = Join-Path $PWD "CompilerConfig.json"
 
