@@ -23,6 +23,7 @@ const uint32_t kDefaultMaxHeapSizeInKiB = kBytesInKiB * 50; // 5 MiB
 constexpr uint32_t kJitThreshold = 5;
 
 enum class OperationCode : uint16_t {
+    NOP = 0x0000,
     LDC = 0x0001,
     DUP = 0x0002,
     SWAP = 0x0003,

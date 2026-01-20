@@ -848,6 +848,9 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 f.operand_stack.push_back(result);
                 break;
             }
+            case OperationCode::NOP: {
+                break;
+            }
             default:
                 throw std::runtime_error("Unknown opcode");
         }

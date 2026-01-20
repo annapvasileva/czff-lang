@@ -397,6 +397,8 @@ void X86JitCompiler::CompileOperation(
             a.jne(labels[target]);
             break;
         }
+        case OperationCode::NOP:
+            break;
 
         default: {
             std::cerr << "Some of this operations are unable to compile" << std::endl;
@@ -414,6 +416,7 @@ X86JitCompiler::~X86JitCompiler() {
 
 bool X86JitCompiler::CanCompile(czffvm::OperationCode opcode) {
     switch (opcode) {
+        case OperationCode::NOP:
         case OperationCode::LDC:
         case OperationCode::LDV:
         case OperationCode::STORE:
