@@ -1,4 +1,4 @@
-name: Benchmark merge_sort (JIT vs no-JIT)
+name: Optimizations and JIT Benchmarks
 
 on:
   workflow_dispatch:
@@ -50,53 +50,147 @@ jobs:
         $compiler = Join-Path $PWD "build\compiler\Compiler.exe"
         $vm = Join-Path $PWD "build\vm\czffvm.exe"
 
-        $source = Join-Path $PWD "test_files\merge_sort.czff"
-        $target = Join-Path $PWD "build\merge_sort.ball"
-        $config = Join-Path $PWD "config.json"
+        $sources = @(
+          Join-Path $PWD "test_files\merge_sort.czff"
+          Join-Path $PWD "test_files\sieve_w_func.czff"
+        )
+        
+        foreach ($source in $sources) {
+          $name = [System.IO.Path]::GetFileNameWithoutExtension($source)
+          $target = Join-Path $PWD "build\$name.ball"
 
-        if (!(Test-Path $source)) {
-            Write-Host "Test file not found: $source" -ForegroundColor Red
-            exit 1
+          if (!(Test-Path $source)) {
+              Write-Host "Test file not found: $source" -ForegroundColor Red
+              exit 1
+          }
+
+          Write-Host ""
+          Write-Host "=== Compiling $name ===" -ForegroundColor Cyan
+
+          & $compiler -s "$source" -t "$target"
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "Compilation failed for $name" -ForegroundColor Red
+              exit 1
+          }
+
+          Write-Host ""
+          Write-Host "=== Running $name with JIT ===" -ForegroundColor Cyan
+
+          $jitTimer = [System.Diagnostics.Stopwatch]::StartNew()
+          & $vm -p "$target"
+          $jitTimer.Stop()
+
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "JIT run failed for $name" -ForegroundColor Red
+              exit 1
+          }
+
+          Write-Host ""
+          Write-Host "=== Running $name without JIT ===" -ForegroundColor Cyan
+
+          $nojitTimer = [System.Diagnostics.Stopwatch]::StartNew()
+          & $vm -p "$target" --no-jit
+          $nojitTimer.Stop()
+
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "no-JIT run failed for $name" -ForegroundColor Red
+              exit 1
+          }
+
+          Write-Host ""
+          Write-Host "=== Benchmark results for $name ===" -ForegroundColor Green
+          Write-Host "JIT time:     $([math]::Round($jitTimer.Elapsed.TotalMilliseconds, 2)) ms" -ForegroundColor Yellow
+          Write-Host "no-JIT time:  $([math]::Round($nojitTimer.Elapsed.TotalMilliseconds, 2)) ms" -ForegroundColor Yellow
+
+          $speedup = $nojitTimer.Elapsed.TotalMilliseconds / $jitTimer.Elapsed.TotalMilliseconds
+          Write-Host "Speedup:     x$([math]::Round($speedup, 2))" -ForegroundColor Cyan
+
+          Remove-Item $target -Force
+        }
+    - name: Benchmark merge_sort (JIT vs no-JIT)
+      shell: pwsh
+      run: |
+        $compiler = Join-Path $PWD "build\compiler\Compiler.exe"
+        $vm = Join-Path $PWD "build\vm\czffvm.exe"
+
+        $sources = @(
+            Join-Path $PWD "test_files\optimizations.czff"
+        )
+
+        foreach ($source in $sources) {
+            $name = [System.IO.Path]::GetFileNameWithoutExtension($source)
+            $target = Join-Path $PWD "build\$name.ball"
+
+            if (!(Test-Path $source)) {
+                Write-Host "Test file not found: $source" -ForegroundColor Red
+                exit 1
+            }
+
+            # ============================
+            # Compile WITHOUT optimizations
+            # ============================
+
+            Write-Host ""
+            Write-Host "=== Compiling $name (no optimizations) ===" -ForegroundColor Cyan
+
+            & $compiler -s "$source" -t "$target"
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "Compilation failed for $name (no opts)" -ForegroundColor Red
+                exit 1
+            }
+
+            Write-Host "=== Running $name (no optimizations) ===" -ForegroundColor Cyan
+
+            $noOptsTimer = [System.Diagnostics.Stopwatch]::StartNew()
+            & $vm -p "$target" --no-jit
+            $noOptsTimer.Stop()
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "VM run failed for $name (no opts)" -ForegroundColor Red
+                exit 1
+            }
+
+            Remove-Item $target -Force
+
+
+            # ============================
+            # Compile WITH optimizations
+            # ============================
+
+            Write-Host ""
+            Write-Host "=== Compiling $name (CF + DCE) ===" -ForegroundColor Cyan
+
+            & $compiler -s "$source" -t "$target" --use-cf --use-dce
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "Compilation failed for $name (CF+DCE)" -ForegroundColor Red
+                exit 1
+            }
+
+            Write-Host "=== Running $name (CF + DCE) ===" -ForegroundColor Cyan
+
+            $optTimer = [System.Diagnostics.Stopwatch]::StartNew()
+            & $vm -p "$target" --no-jit
+            $optTimer.Stop()
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "VM run failed for $name (CF+DCE)" -ForegroundColor Red
+                exit 1
+            }
+
+            Remove-Item $target -Force
+
+
+            # ============================
+            # Results
+            # ============================
+
+            Write-Host ""
+            Write-Host "=== Optimization benchmark for $name ===" -ForegroundColor Green
+            Write-Host "No optimizations: $([math]::Round($noOptsTimer.Elapsed.TotalMilliseconds, 2)) ms" -ForegroundColor Yellow
+            Write-Host "CF + DCE:        $([math]::Round($optTimer.Elapsed.TotalMilliseconds, 2)) ms" -ForegroundColor Yellow
+
+            $speedup = $noOptsTimer.Elapsed.TotalMilliseconds / $optTimer.Elapsed.TotalMilliseconds
+            Write-Host "Speedup:         x$([math]::Round($speedup, 2))" -ForegroundColor Cyan
         }
 
-        Write-Host "=== Compiling merge_sort ===" -ForegroundColor Cyan
 
-        & $compiler -s "$source" -c "$config" -t "$target"
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Compilation failed" -ForegroundColor Red
-            exit 1
-        }
-
-        Write-Host ""
-        Write-Host "=== Running with JIT ===" -ForegroundColor Cyan
-
-        $jitTimer = [System.Diagnostics.Stopwatch]::StartNew()
-        $jitOutput = & $vm -p "$target" -mhs 102400
-        $jitTimer.Stop()
-
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "JIT run failed" -ForegroundColor Red
-            exit 1
-        }
-
-        Write-Host ""
-        Write-Host "=== Running without JIT ===" -ForegroundColor Cyan
-
-        $nojitTimer = [System.Diagnostics.Stopwatch]::StartNew()
-        $nojitOutput = & $vm -p "$target" -mhs 102400 --no-jit
-        $nojitTimer.Stop()
-
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "no-JIT run failed" -ForegroundColor Red
-            exit 1
-        }
-
-        Write-Host ""
-        Write-Host "=== Benchmark results ===" -ForegroundColor Green
-        Write-Host "JIT time:     $([math]::Round($jitTimer.Elapsed.TotalMilliseconds, 2)) ms" -ForegroundColor Yellow
-        Write-Host "no-JIT time:  $([math]::Round($nojitTimer.Elapsed.TotalMilliseconds, 2)) ms" -ForegroundColor Yellow
-
-        $speedup = $nojitTimer.Elapsed.TotalMilliseconds / $jitTimer.Elapsed.TotalMilliseconds
-        Write-Host "Speedup:     x$([math]::Round($speedup, 2))" -ForegroundColor Cyan
-
-        Remove-Item $target -Force
