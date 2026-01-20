@@ -1,0 +1,102 @@
+name: Benchmark merge_sort (JIT vs no-JIT)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Setup MSYS2 (MinGW + Ninja)
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-ninja
+
+    - name: Add MinGW to PATH
+      shell: bash
+      run: |
+        echo "$MINGW_PREFIX/bin" >> $GITHUB_PATH
+
+    - name: Build C# Compiler
+      shell: pwsh
+      run: |
+        dotnet restore Compiler/Compiler.csproj
+        dotnet publish Compiler/Compiler.csproj -c Release -o build/compiler
+
+    - name: Build C++ VM
+      shell: bash
+      run: |
+        cmake -S virtual-machine -B build/vm -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake --build build/vm
+
+    - name: Benchmark merge_sort (JIT vs no-JIT)
+      shell: pwsh
+      run: |
+        $compiler = Join-Path $PWD "build\compiler\Compiler.exe"
+        $vm = Join-Path $PWD "build\vm\czffvm.exe"
+
+        $source = Join-Path $PWD "test_files\merge_sort.szzff"
+        $target = Join-Path $PWD "build\merge_sort.ball"
+        $config = Join-Path $PWD "Compiler\CompilerConfig.json"
+
+        if (!(Test-Path $source)) {
+            Write-Host "Test file not found: $source" -ForegroundColor Red
+            exit 1
+        }
+
+        Write-Host "=== Compiling merge_sort ===" -ForegroundColor Cyan
+
+        & $compiler -s "$source" -c "$config" -t "$target"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Compilation failed" -ForegroundColor Red
+            exit 1
+        }
+
+        Write-Host ""
+        Write-Host "=== Running with JIT ===" -ForegroundColor Cyan
+
+        $jitTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        $jitOutput = & $vm -p "$target" -mhs 102400
+        $jitTimer.Stop()
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "JIT run failed" -ForegroundColor Red
+            exit 1
+        }
+
+        Write-Host ""
+        Write-Host "=== Running without JIT ===" -ForegroundColor Cyan
+
+        $nojitTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        $nojitOutput = & $vm -p "$target" -mhs 102400 --no-jit
+        $nojitTimer.Stop()
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "no-JIT run failed" -ForegroundColor Red
+            exit 1
+        }
+
+        Write-Host ""
+        Write-Host "=== Benchmark results ===" -ForegroundColor Green
+        Write-Host "JIT time:     $([math]::Round($jitTimer.Elapsed.TotalMilliseconds, 2)) ms" -ForegroundColor Yellow
+        Write-Host "no-JIT time:  $([math]::Round($nojitTimer.Elapsed.TotalMilliseconds, 2)) ms" -ForegroundColor Yellow
+
+        $speedup = $nojitTimer.Elapsed.TotalMilliseconds / $jitTimer.Elapsed.TotalMilliseconds
+        Write-Host "Speedup:     x$([math]::Round($speedup, 2))" -ForegroundColor Cyan
+
+        Remove-Item $target -Force
