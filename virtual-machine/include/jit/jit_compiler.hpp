@@ -1,12 +1,17 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include "common.hpp"
 
 namespace czffvm {
     enum class OperationCode : uint16_t;
     struct Operation;
     struct RuntimeFunction;
+    enum class ConstantTag : uint8_t;
+    struct Constant;
+
+    class MethodArea;
     
     struct HeapRef;
     
