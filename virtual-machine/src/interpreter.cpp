@@ -848,6 +848,9 @@ void Interpreter::Execute(RuntimeFunction* entry) {
                 f.operand_stack.push_back(result);
                 break;
             }
+            case OperationCode::NOP: {
+                break;
+            }
             default:
                 throw std::runtime_error("Unknown opcode");
         }
@@ -878,7 +881,11 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
         else if (auto p = std::get_if<int64_t>(&args[i]))  value = *p;
         else if (auto p = std::get_if<bool>(&args[i]))  value = static_cast<bool>(*p);
         else if (auto p = std::get_if<HeapRef>(&args[i]))  value = static_cast<int32_t>(p->id);
-        else {
+        else if (auto p = std::get_if<StringRef>(&args[i])) {
+            Constant c{ConstantTag::STRING, std::vector<uint8_t>((*p)->begin(), (*p)->end())};
+            int idx = rda_.GetMethodArea().RegisterConstant(c);
+            value = static_cast<int32_t>(idx | 0xbf600000); // magic number
+        } else {
             throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
         }
         stack[i + lc] = value;
@@ -912,21 +919,29 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
                 case 0: {
                     c = {
                         type_kind.kind == TypeDesc::Kind::BOOL ? ConstantTag::BOOL : type_kind.is_signed ? ConstantTag::I1 : ConstantTag::U1, 
-                        {stack[return_index] & 0xFF}
+                        {static_cast<uint8_t>(stack[return_index] & 0xFF)}
                     };
                     break;
                 }
                 case 2: {
                     c = {
                         type_kind.is_signed ? ConstantTag::I2 : ConstantTag::U2, 
-                        {stack[return_index] >> 8, stack[return_index] & 0xFF}
+                        {
+                            static_cast<uint8_t>(stack[return_index] >> 8), 
+                            static_cast<uint8_t>(stack[return_index] & 0xFF)
+                        }
                     };
                     break;
                 }
                 case 4: {
                     c = {
                         type_kind.is_signed ? ConstantTag::I4 : ConstantTag::U4, 
-                        {stack[return_index] >> 24, (stack[return_index] >> 16) & 0xFF, (stack[return_index] >> 8) & 0xFF, stack[return_index] & 0xFF, }
+                        {
+                            static_cast<uint8_t>(stack[return_index] >> 24),
+                            static_cast<uint8_t>((stack[return_index] >> 16) & 0xFF),
+                            static_cast<uint8_t>((stack[return_index] >> 8) & 0xFF),
+                            static_cast<uint8_t>(stack[return_index] & 0xFF)
+                        }
                     };
                     break;
                 }

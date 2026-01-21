@@ -4,31 +4,13 @@
 #include <iostream>
 #include <asmjit/x86.h>
 
-#include "jit/jit_x86_64.hpp"
 #include "common.hpp"
+#include "jit/generic_jit_optimizer.hpp"
+#include "jit/jit_x86_64.hpp"
 
 namespace czffvm_jit {
 
 using namespace czffvm;
-
-template<typename T>
-T ValueToInteger(Value v) {
-    T value;
-    if (auto p = std::get_if<uint8_t>(&v))      value = static_cast<T>(*p);
-    else if (auto p = std::get_if<uint16_t>(&v)) value = static_cast<T>(*p);
-    else if (auto p = std::get_if<uint32_t>(&v)) value = static_cast<T>(*p);
-    else if (auto p = std::get_if<uint64_t>(&v)) value = static_cast<T>(*p);
-    else if (auto p = std::get_if<int8_t>(&v))  value = static_cast<T>(*p);
-    else if (auto p = std::get_if<int16_t>(&v))  value = static_cast<T>(*p);
-    else if (auto p = std::get_if<int32_t>(&v))  value = static_cast<T>(*p);
-    else if (auto p = std::get_if<int64_t>(&v))  value = static_cast<T>(*p);
-    else if (auto p = std::get_if<bool>(&v))  value = static_cast<T>(*p);
-    else if (auto p = std::get_if<HeapRef>(&v))  value = static_cast<T>(p->id);
-    else {
-        throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
-    }
-    return value;
-}
 
 X86JitCompiler::X86JitCompiler()
     : runtime(std::make_shared<asmjit::JitRuntime>()) {
@@ -56,7 +38,23 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
     std::cout << "[JIT] Function has " << function.code.size() << " operations" << std::endl;
 #endif
 
-    try {
+    std::vector<czffvm::Operation> func_code = function.code;
+
+    GenericJitOptimizer optimizer(func_code, rda.GetMethodArea());
+
+    optimizer.BuildControlFlowGraph();
+    optimizer.MarkReachableBlocks();
+    optimizer.RemoveDeadCode();
+    optimizer.CompactCode();
+    optimizer.ConstantFolding();
+    optimizer.DeadStackElimination();
+    optimizer.RemoveRedundantJumps();
+    optimizer.CompactCode();
+
+#ifdef DEBUG_BUILD
+    std::cout << "[JIT] Optimized to " << func_code.size() << " operations" << std::endl;
+#endif
+
     asmjit::CodeHolder code;
     auto err = code.init(runtime->environment());
     if (err != asmjit::kErrorOk) {
@@ -101,7 +99,7 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
     a.lea(stackPtr, ptr(stackBase, ((function.locals_count * 4) + 15) / 16 * 16 + argc * 4));
     a.mov(heapPtr, asmjit::x86::rdx);
 
-    std::vector<asmjit::v1_21::Label> labels(function.code.size());
+    std::vector<asmjit::v1_21::Label> labels(func_code.size());
     for (auto& l : labels)
         l = a.new_label();
     
@@ -110,7 +108,7 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
 #endif
 
     size_t ip = 0;
-    for (const auto& op : function.code) {
+    for (const auto& op : func_code) {
 #ifdef DEBUG_BUILD
         std::cout << "[JIT-OP] Code: 0x" << std::hex << (uint16_t)op.code << std::dec 
                   << ", args: " << op.arguments.size() << " - ";
@@ -156,13 +154,6 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
         runtime,
         argc
     );
-    } catch (const std::exception& e) {
-        std::cerr << "[JIT] EXCEPTION in compileFunction: " << e.what() << std::endl;
-        return nullptr;
-    } catch (...) {
-        std::cerr << "[JIT] UNKNOWN EXCEPTION in compileFunction" << std::endl;
-        return nullptr;
-    }
 }
 
 void X86JitCompiler::CompileOperation(
@@ -192,7 +183,12 @@ void X86JitCompiler::CompileOperation(
                 uint16_t idx = (op.arguments[0] << 8) | op.arguments[1];
                 const Constant& c = rda.GetMethodArea().GetConstant(idx);
 
-                a.mov(eax, ValueToInteger<int32_t>(ConstantToValue(c)));
+                if (c.tag == ConstantTag::STRING) {
+                    a.mov(eax, (int32_t)(idx | 0xbf600000));
+                } else {
+                    a.mov(eax, ValueToInteger<int32_t>(ConstantToValue(c)));
+                }
+
                 push32(eax);
             }
             break;
@@ -397,6 +393,17 @@ void X86JitCompiler::CompileOperation(
             a.jne(labels[target]);
             break;
         }
+        case OperationCode::NOP:
+            break;
+        case OperationCode::PRINT: {
+            pop32(edx);                        // refId
+
+            // ─── call helper ───────────────────
+            a.mov(rcx, heapPtr);                // RCX = heap
+            a.mov(rax, (uint64_t)&JIT_Print);
+            a.call(rax);                        // EAX = int32 value
+            break;
+        }
 
         default: {
             std::cerr << "Some of this operations are unable to compile" << std::endl;
@@ -414,6 +421,7 @@ X86JitCompiler::~X86JitCompiler() {
 
 bool X86JitCompiler::CanCompile(czffvm::OperationCode opcode) {
     switch (opcode) {
+        case OperationCode::NOP:
         case OperationCode::LDC:
         case OperationCode::LDV:
         case OperationCode::STORE:
@@ -437,6 +445,7 @@ bool X86JitCompiler::CanCompile(czffvm::OperationCode opcode) {
         case OperationCode::JMP:
         case OperationCode::JZ:
         case OperationCode::JNZ:
+        case OperationCode::PRINT:
             return true;
     }
     return false;
@@ -478,6 +487,13 @@ extern "C" int32_t JIT_LoadElem(
     Value v = heap->LoadElem(ref, index);
 
     return ValueToInteger<int32_t>(v);
+}
+
+extern "C" void JIT_Print(
+    X86JitHeapHelper* heap,
+    uint32_t refId
+) {
+    heap->Print(refId);
 }
 
 
@@ -527,6 +543,17 @@ czffvm::Value X86JitHeapHelper::LoadElem(czffvm::HeapRef ref, uint32_t index) {
         throw std::runtime_error("LDELEM: OOB");
 
     return obj.fields[index];
+}
+
+void X86JitHeapHelper::Print(uint32_t index) {
+    if (index & 0xbf600000) {
+        const Constant& c =
+            rda_.GetMethodArea().GetConstant(index);
+        
+        std::cout << std::string(c.data.begin(), c.data.end());
+    } else {
+        std::cout << index;
+    }
 }
 
 

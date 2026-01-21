@@ -23,6 +23,7 @@ const uint32_t kDefaultMaxHeapSizeInKiB = kBytesInKiB * 50; // 5 MiB
 constexpr uint32_t kJitThreshold = 5;
 
 enum class OperationCode : uint16_t {
+    NOP = 0x0000,
     LDC = 0x0001,
     DUP = 0x0002,
     SWAP = 0x0003,
@@ -129,6 +130,44 @@ using Value = std::variant<
 >;
 
 Value ConstantToValue(const Constant& c);
+
+template<typename T>
+T ValueToInteger(czffvm::Value v) {
+    T value;
+    if (auto p = std::get_if<uint8_t>(&v))      value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint16_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint32_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint64_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int8_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int16_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int32_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int64_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<bool>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<czffvm::HeapRef>(&v))  value = static_cast<T>(p->id);
+    else {
+        throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
+    }
+    return value;
+}
+
+template<typename T>
+std::optional<T> SafeValueToInteger(czffvm::Value v) {
+    T value;
+    if (auto p = std::get_if<uint8_t>(&v))      value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint16_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint32_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<uint64_t>(&v)) value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int8_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int16_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int32_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<int64_t>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<bool>(&v))  value = static_cast<T>(*p);
+    else if (auto p = std::get_if<czffvm::HeapRef>(&v))  value = static_cast<T>(p->id);
+    else {
+        return std::nullopt;
+    }
+    return value;
+}
 
 std::string dump(const Value& v);
 
