@@ -1,3 +1,22 @@
+# How to use
+
+> [!IMPORTANT]
+> This language is only for use on Windows on x86 architecture
+
+## Build
+
+Use `build.ps1` Powershell script. You can use `-Generator` flag to specify cmake generator and also `-Configuration` flag to build VM in debug or release. 
+
+After building you will see note about standart place of builded files. If you use different generator from "Ninja" and "MinGW Makefiles" path to VM can differ.
+
+## Run
+
+Use `run.ps1` Powershell script to run program. Use `-Source` flag to specify source `.czff` file, use `-Config` flag to specify path to config.
+
+## Config
+
+`config.json` in the root of project directory is optimal to use, but you can change it or make your own configuration file. Use `config.json` as example.
+
 # CZFF-lang specification
 
 1. [Overview](#overview)
@@ -134,8 +153,8 @@
 
 | Component | Language | Justification |
 | --------- | -------- | ------- |
-| `Lexer/Parser` |  |  |
-| `Compiler` | |  |
+| `Lexer/Parser` | C# | High speed of development and easy to expand functionality |
+| `Compiler` | C# | High speed of development and easy to expand functionality |
 | `Virtual Machine` | C++ | High performance and low-level access |
 
 ## Language Syntax and Semantics
@@ -419,21 +438,20 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
 
 * Factorial calculation
 
-        =/
-        Factorial calculation
-        /=
-        func int Factorial(int n) {
-            if (n <= 1) {
-                return 1;
-            }
-
-            return n * Factorial(n - 1);
+        func int64 Factorial(int64 i) {
+           if (i <= 1L) {
+           return 1L;
+           } 
+           return Factorial(i - 1L) * i;
+        }
+         
+        func void Main() {
+           var int64 res = Factorial(20L);
+           print res;
+             
+           return;
         }
 
-        func void Main(array<string> args) {
-            var int n = 10;
-            print(Factorial(n));
-        }
 
 * Array Sorting
 
@@ -441,83 +459,89 @@ On JIT compilation see [JIT Compiler](./docs/virtual-machine/execution-engine/ji
         Merge Sort Implementation
         /=
         func void Merge(array<int> arr, int left, int mid, int right) {
-            var int it1 = 0;
-            var int it2 = 0;
-            var array<int> result = new int(right - left)[]; // create array with size right - left
-
-            while (left + it1 < mid) {
-                if (mid + it2 < right) {
-                    if (arr[left + it1] <= arr[mid + it2]) {
-                        result[it1 + it2] = arr[left + it1];
-                        it1 = it1 + 1;
-                    } else {
-                        result[it1 + it2] = arr[mid + it2];
-                        it2 = it2 + 1;
-                    }
-                }
-            }
-
-            while (left + it1 < mid) {
-                result[it1 + it2] = arr[left + it1];
-                it1 = it1 + 1;
-            }
-                            
-            while (mid + it2 < right) {
-                result[it1 + it2] = arr[mid + it2];
-                it2 = it2 + 1;
-            }
-
-            for (var int i = 0; i < it1 + it2; i = i + 1) {
-                arr[left + i] = result[i];
-            }
-            return;
+           var int it1 = 0;
+           var int it2 = 0;
+           var array<int> result = new int(right - left)[]; // create array with size right - left
+         
+           while (left + it1 < mid && mid + it2 < right) {
+              if (arr[left + it1] <= arr[mid + it2]) {
+                 result[it1 + it2] = arr[left + it1];
+                 it1 = it1 + 1;
+              } else {
+                 result[it1 + it2] = arr[mid + it2];
+                 it2 = it2 + 1;
+              }
+           }
+         
+           while (left + it1 < mid) {
+              result[it1 + it2] = arr[left + it1];
+              it1 = it1 + 1;
+           }
+                               
+           while (mid + it2 < right) {
+              result[it1 + it2] = arr[mid + it2];
+              it2 = it2 + 1;
+           }
+         
+           for (var int i = 0; i < it1 + it2; i = i + 1) {
+              arr[left + i] = result[i];
+           }
+           return;
         }
-
+         
         func void MergeSort(array<int> arr, int left, int right) {
-            if (left + 1 >= right) {
-                return;
-            }
-
-            var int mid = (left + right) / 2;
-            MergeSort(arr, left, mid);
-            MergeSort(arr, mid, right);
-            Merge(arr, left, mid, right);
-            return;
+           if (left + 1 >= right) {
+              return;
+           }
+         
+           var int mid = (left + right) / 2;
+           MergeSort(arr, left, mid);
+           MergeSort(arr, mid, right);
+           Merge(arr, left, mid, right);
+           return;
         }
-
+         
         func void Main() {
-            var int n = 5;
-            var array<int> arr = new int(n)[]; // create array with size n
-            for (var int i = 0; i < n; i = i + 1) {
-                arr[i] = n - i;
-            }
-            MergeSort(arr, 0, n);
-            for (var int i = 0; i < n; i = i + 1) {
-                print arr[i];
-            }
-            return;
+           var int n = 1000000;
+           var array<int> arr = new int(n)[]; // create array with size n
+           var int a = 0;
+           for (var int i = 0; i < n; i = i + 1) {
+              a = ((2 * a + i) * i) % n;
+              arr[i] = a;
+           }
+           MergeSort(arr, 0, n);
+           for (var int i = 0; i < n - 1; i = i + 1) {
+              if (arr[i] > arr[i + 1]) {
+                 print 0;
+                 return;
+              }
+           }
+           print 1;
+           return;
         }
+
 
 * Prime Number Generation
 
-        func void Main(array<string> args) {
-            var int n;
-            read(n);
-            var array<bool> prime = new(n + 1)[];
-            for (var int i = 2; i < n + 1; i = i + 1) {
-                prime[i] = true;
-            }
-            for (var int p = 2; p * p <= n; p = p + 1) {
-                if (prime[p] == true) {
-                    for (var int i = p * p; i <= n; i = i + p) {
-                        prime[i] = false;
-                    }
-                }
-            }
-
-            for (var int i = 2; i <= n; i = i + 1) {
-                if (prime[i] == true) {
-                    print i
-                }
-            }
+        func void Main() {
+           var int n = 100000;
+           var array<bool> prime = new bool(n + 1)[];
+           for (var int i = 2; i < n + 1; i = i + 1) {
+               prime[i] = true;
+           }
+      
+           for (var int p = 2; p * p <= n; p = p + 1) {
+               if (prime[p] == true) {
+                   for (var int i = p * p; i <= n; i = i + p) {
+                       prime[i] = false;
+                   }
+               }
+           }
+      
+           for (var int i = 2; i <= n; i = i + 1) {
+               if (prime[i] == true) {
+                   print i;
+               }
+           }
+           return;
         }
