@@ -35,7 +35,7 @@ internal class Options
 
 internal abstract class Program
 {
-    private static readonly byte[] Version = [0, 0, 5];
+    private static readonly byte[] Version = [0, 1, 0];
 
     public static void Main(string[] args)
     {
