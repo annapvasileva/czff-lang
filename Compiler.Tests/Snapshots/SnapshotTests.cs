@@ -30,10 +30,7 @@ public class SnapshotTests
 
         SymbolTable scope = analyzer.SymbolTable;
         
-        var generator = new Generator(new CompilerSettings()
-        {
-            Version = [0,0,0]
-        });
+        var generator = new Generator([0, 0, 0]);
         
         Ball ball = generator.Generate(ast, scope);
 
