@@ -1,0 +1,8 @@
+﻿{
+  "ConstantFolding": true,
+  "DeadCodeElimination": true,
+  "BallFilePath": "",
+  "MemoryLimit": 0,
+  "EnableGC": true,
+  "EnableJIT": true
+}

@@ -1,0 +1,208 @@
+using Compiler.Parser;
+using Compiler.Parser.AST.Nodes;
+using Compiler.Parser.AST.Nodes.Core;
+using Compiler.Parser.AST.Nodes.Expressions;
+using Compiler.Parser.AST.Nodes.Statements;
+using Compiler.SemanticAnalysis.Models;
+
+namespace Compiler.SemanticAnalysis;
+
+public class SymbolTableBuilder : INodeVisitor
+{
+    public SymbolTableManager SymbolTableManager { get; }
+    
+    public SymbolTable SymbolTable => SymbolTableManager.CurrentScope;
+
+    public SymbolTableBuilder()
+    {
+        SymbolTableManager = new SymbolTableManager();
+    }
+
+    public void Visit(LiteralExpressionNode literalExpressionNode) { }
+
+    public void Visit(IdentifierExpressionNode identifierExpressionNode)
+    {
+        SymbolTable.Lookup(identifierExpressionNode.Name);
+    }
+
+    public void Visit(SimpleTypeNode simpleTypeNode) { }
+
+    public void Visit(ArrayTypeNode arrayTypeNode)
+    {
+        arrayTypeNode.ElementType.Accept(this);
+    }
+
+    public void Visit(BinaryExpressionNode binaryExpressionNode)
+    {
+        binaryExpressionNode.LeftExpression.Accept(this);
+        binaryExpressionNode.RightExpression.Accept(this);
+    }
+
+    public void Visit(UnaryExpressionNode unaryExpressionNode)
+    {
+        unaryExpressionNode.Expression.Accept(this);
+    }
+
+    public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
+    {
+        foreach (var arg in functionCallExpressionNode.Arguments)
+        {
+            arg.Accept(this);
+        }
+    }
+
+    public void Visit(VariableDeclarationNode variableDeclarationNode)
+    {
+        SymbolTableManager.DeclareVariable(variableDeclarationNode.Name, variableDeclarationNode.Type.GetName);
+        variableDeclarationNode.Type.Accept(this);
+        if (variableDeclarationNode.Expression != null)
+        {
+            variableDeclarationNode.Expression.Accept(this);
+        }
+    }
+
+    public void Visit(FunctionDeclarationNode functionDeclarationNode)
+    {
+        var funcSymb = (FunctionSymbol)SymbolTable.Lookup(functionDeclarationNode.Name);
+        SymbolTableManager.EnterScope(true);
+        functionDeclarationNode.Parameters.Accept(this);
+        foreach (var parameter in functionDeclarationNode.Parameters.Parameters)
+        {
+            var varSymb = (VariableSymbol)SymbolTable.Lookup(parameter.Name);
+            funcSymb.Parameters.Add(varSymb);
+        }
+        functionDeclarationNode.Body.Accept(this);
+        SymbolTableManager.SetFunctionLocalsLength(functionDeclarationNode.Name);
+        SymbolTableManager.ExitScope();
+    }
+
+    public void Visit(ClassDeclarationNode classDeclarationNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(FunctionParametersNode functionParametersNode)
+    {
+        foreach (var parameter in functionParametersNode.Parameters)
+        {
+            SymbolTableManager.DeclareVariable(parameter.Name, parameter.Type.GetName);
+            parameter.Type.Accept(this);
+        }
+    }
+
+    public void Visit(ExpressionStatementNode expressionStatementNode)
+    {
+        expressionStatementNode.Expression.Accept(this);
+    }
+
+    public void Visit(ArrayAssignmentStatementNode assigmentStatementNode)
+    {
+        assigmentStatementNode.Left.Accept(this);
+        assigmentStatementNode.Right.Accept(this);
+    }
+    
+    public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
+    {
+        assigmentStatementNode.Left.Accept(this);
+        assigmentStatementNode.Right.Accept(this);
+    }
+
+    public void Visit(BlockNode blockNode)
+    {
+        blockNode.Scope = SymbolTableManager.CurrentScope;
+        foreach (var statement in blockNode.Statements)
+        {
+            statement.Accept(this);
+        }
+    }
+
+    public void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode)
+    {
+        arrayCreationExpressionNode.ElementType.Accept(this);
+        arrayCreationExpressionNode.Size.Accept(this);
+    }
+
+    public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
+    {
+        arrayIndexExpressionNode.Array.Accept(this);
+        arrayIndexExpressionNode.Index.Accept(this);
+    }
+
+    public void Visit(MemberAccessNode memberAccessNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(BreakStatementNode breakStatementNode) { }
+
+    public void Visit(ContinueStatementNode continueStatementNode) { }
+
+    public void Visit(ReturnStatementNode returnStatementNode)
+    {
+        if (returnStatementNode.Expression != null)
+        {
+            returnStatementNode.Expression.Accept(this);
+        }
+    }
+
+    public void Visit(IfStatementNode ifStatementNode)
+    {
+        SymbolTableManager.EnterScope(false);
+        ifStatementNode.Condition.Accept(this);
+        ifStatementNode.IfBlock.Accept(this);
+        SymbolTableManager.ExitScope();
+        if (ifStatementNode.ElseBlock != null)
+        {
+            SymbolTableManager.EnterScope(false);
+            ifStatementNode.ElseBlock.Accept(this);
+            SymbolTableManager.ExitScope();
+        }
+    }
+
+    public void Visit(ElifStatementNode elifStatementNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(WhileStatementNode whileStatementNode)
+    {
+        SymbolTableManager.EnterScope(false);
+        whileStatementNode.Condition.Accept(this);
+        whileStatementNode.Body.Accept(this);
+        SymbolTableManager.ExitScope();
+    }
+
+    public void Visit(ForStatementNode forStatementNode)
+    {
+        SymbolTableManager.EnterScope(false);
+        forStatementNode.Init.Accept(this);
+        forStatementNode.Condition.Accept(this);
+        forStatementNode.Post.Accept(this);
+        forStatementNode.Body.Accept(this);
+        SymbolTableManager.ExitScope();
+    }
+
+    public void Visit(PrintStatementNode printStatementNode)
+    {
+        printStatementNode.Expression.Accept(this);
+    }
+
+    public void Visit(ProgramNode programNode)
+    {
+        if (!programNode.Functions.Select(f => f.Name).Contains("Main"))
+        {
+            throw new SemanticException("Program does not contain the Main function");
+        }
+
+        // прежде записываем информацию о всех функциях,
+        // чтобы можно было вызывать одну функцию из другой в независимости от порядка объявления
+        foreach (var funcDeclaration in programNode.Functions)
+        {
+            SymbolTableManager.DeclareFunction(funcDeclaration.Name, funcDeclaration.ReturnType.GetName);
+        }
+        foreach (var funcDeclaration in programNode.Functions)
+        {
+            funcDeclaration.Accept(this);
+        }
+    }
+}

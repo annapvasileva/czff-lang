@@ -1,7 +1,8 @@
-name: Build Compiler + VM
+name: Build Compiler + VM (Windows + MinGW)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # ручной запуск
+
 
 jobs:
   build:
@@ -10,11 +11,13 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: "8.0.x"
+        dotnet-version: '10.0.x'
 
     - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
@@ -23,14 +26,88 @@ jobs:
         install: >
           mingw-w64-x86_64-toolchain
           mingw-w64-x86_64-cmake
-          mingw-w64-x86_64-make
+          mingw-w64-x86_64-ninja
 
     - name: Add MSYS2 to PATH
       shell: bash
       run: |
         echo "$MINGW_PREFIX/bin" >> $GITHUB_PATH
 
-    - name: Build Compiler and VM
+    - name: Build C# Compiler
       shell: pwsh
       run: |
-        ./build.ps1
+        dotnet restore Compiler/Compiler.csproj
+        dotnet publish Compiler/Compiler.csproj -c Release -o build/compiler
+
+    - name: Build C++ VM
+      shell: bash
+      run: |
+        mkdir -p build/vm
+        cmake -S virtual-machine -B build/vm -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake --build build/vm
+
+    - name: Run tests with output comparison
+      shell: pwsh
+      run: |
+        $compiler = Join-Path $PWD "build\compiler\Compiler.exe"
+        $vm = Join-Path $PWD "build\vm\czffvm.exe"
+        
+        $testFiles = Get-ChildItem -Path test_files -Filter *.czff
+
+        $allPassed = $true
+        foreach ($file in $testFiles) {
+            Write-Host "=== Running test: $($file.Name) ===" -ForegroundColor Cyan
+            
+            $target = "build/$($file.BaseName).ball"
+            $expectedOutputFile = Join-Path $file.Directory "$($file.BaseName).out"
+
+            $compileTimer = [System.Diagnostics.Stopwatch]::StartNew()
+            & "$compiler" -s "$($file.FullName)" -t "$target" --use-cf --use-dce
+            $compileTimer.Stop()
+            
+            Write-Host "Compilation time: $($compileTimer.Elapsed.TotalMilliseconds) ms" -ForegroundColor Yellow
+            
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "Compilation failed for $($file.Name)" -ForegroundColor Red
+                $allPassed = $false
+                continue
+            }
+
+            $runTimer = [System.Diagnostics.Stopwatch]::StartNew()
+            $actualOutput = & "$vm" -p "$target"
+            $runTimer.Stop()
+
+            Write-Host ""
+            Write-Host "VM run time: $($runTimer.Elapsed.TotalMilliseconds) ms" -ForegroundColor Yellow
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "VM execution failed for $($file.Name)" -ForegroundColor Red
+                $allPassed = $false
+                continue
+            }
+
+            if (Test-Path $expectedOutputFile) {
+                $expectedOutput = Get-Content $expectedOutputFile -Raw
+                if ($actualOutput.Trim() -ne $expectedOutput.Trim()) {
+                    Write-Host "❌ Output mismatch for $($file.Name)" -ForegroundColor Red
+                    Write-Host "Expected: $expectedOutput" -ForegroundColor Red
+                    Write-Host "Actual: $actualOutput" -ForegroundColor Red
+                    $allPassed = $false
+                } else {
+                    Write-Host "✅ Output matches for $($file.Name)" -ForegroundColor Green
+                }
+            } else {
+                Write-Host "⚠️ Expected output file not found for $($file.Name), skipping comparison." -ForegroundColor Yellow
+            }
+
+            Remove-Item $target -Force
+        }
+
+        if (-not $allPassed) {
+            Write-Host "Some tests failed!" -ForegroundColor Red
+            exit 1
+        }
+
+        Write-Host "All tests passed!" -ForegroundColor Green
+
+

@@ -1,9 +1,7 @@
-#include "jit/jit_compiler.hpp"
+#include "jit/jit_dummy.hpp"
 
 namespace czffvm_jit {
 
-class DummyJitCompiler : public JitCompiler {
-    // TODO
-};
+// TODO
 
 }  // namespace czffvm_jit

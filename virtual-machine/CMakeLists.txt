@@ -13,23 +13,56 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ===== Options =====
 option(CZFF_ENABLE_WARNINGS "Enable compiler warnings" ON)
-option(CZFF_ENABLE_SANITIZERS "Enable sanitizers (debug only)" ON)
+
+if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "[CZFF] CMAKE_BUILD_TYPE is not set! Setting it to Release")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+else()
+    message(STATUS "[CZFF] CMAKE_BUILD_TYPE is set to ${CMAKE_BUILD_TYPE}")
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_CONFIGURATION_TYPES MATCHES "Debug")
+    add_compile_definitions(DEBUG_BUILD)
+
+    if(MSVC)
+        add_compile_options(/Zi /EHsc /W4 /DEBUG)
+    else()
+        add_compile_options(-g3 -O0 -Wall -Wextra -pedantic)
+    endif()
+endif()
 
 # ===== Library =====
 add_library(czff_virtual_machine_lib
     src/virtual_machine.cpp
     src/interpreter.cpp
     src/class_loader.cpp
-
-    src/call_frame.cpp
-    src/runtime_data_area.cpp
-    src/heap_data_area.cpp
-    src/stack_data_area.cpp
+    src/common.cpp
+    src/runtime_data_area/call_frame.cpp
+    src/runtime_data_area/runtime_data_area.cpp
+    src/runtime_data_area/method_area.cpp
+    src/runtime_data_area/heap_data_area.cpp
+    src/runtime_data_area/stack_data_area.cpp
+    src/util/int128.cpp
+    src/util/uint128.cpp
+    src/util/ball_disassembler.cpp
 )
+
+# ===== AsmJit Library =====
+set(ASMJIT_STATIC ON CACHE BOOL "Build AsmJit as static library" FORCE)
+set(ASMJIT_EMBED OFF CACHE BOOL "Don't embed AsmJit" FORCE)
+
+if(WIN32)
+    add_definitions(-DASMJIT_STATIC)
+endif()
+
+add_subdirectory(extern/asmjit)
 
 target_include_directories(czff_virtual_machine_lib
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/include/runtime_data_area
+        ${PROJECT_SOURCE_DIR}/include/util
+        ${PROJECT_SOURCE_DIR}/extern/asmjit
 )
 
 # ===== Warnings =====
@@ -40,15 +73,6 @@ if (CZFF_ENABLE_WARNINGS)
         target_compile_options(czff_virtual_machine_lib PRIVATE -Wall -Wextra -Wpedantic)
     endif()
 endif()
-
-# ===== Sanitizers (Debug only) =====
-if (CZFF_ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if (NOT MSVC)
-        target_compile_options(czff_virtual_machine_lib PRIVATE -fsanitize=address,undefined)
-        target_link_options(czff_virtual_machine_lib PRIVATE -fsanitize=address,undefined)
-    endif()
-endif()
-
 
 # ===== JIT compiler architecture detection =====
 set(CZFF_JIT_ARCH "auto"
@@ -78,7 +102,10 @@ if(JIT_ARCH STREQUAL "x86_64") # supported architectures
     message(STATUS "[CZFF] Selected JIT architecture: ${JIT_ARCH}")
 
     add_library(czff_jit_${JIT_ARCH}
+        src/jit/jit_compiler.cpp
+        src/jit/generic_jit_optimizer.cpp
         src/jit/jit_${JIT_ARCH}.cpp
+        src/jit/jit_dummy.cpp
     )
 
     string(TOUPPER "${JIT_ARCH}" DEF_JIT_ARCH)
@@ -86,6 +113,18 @@ if(JIT_ARCH STREQUAL "x86_64") # supported architectures
     target_compile_definitions(czff_jit_${JIT_ARCH}
         PUBLIC
             CZFF_JIT_${DEF_JIT_ARCH}
+    )
+
+    target_include_directories(czff_jit_${JIT_ARCH}
+        PUBLIC
+            ${PROJECT_SOURCE_DIR}/include
+            ${PROJECT_SOURCE_DIR}/extern/asmjit
+    )
+
+    target_link_libraries(czff_jit_${JIT_ARCH}
+        PRIVATE
+            asmjit
+            czff_virtual_machine_lib
     )
 else()
     if (JIT_ARCH STREQUAL "none")
@@ -97,6 +136,8 @@ else()
     endif()
 
     add_library(czff_jit_${JIT_ARCH}
+        src/jit/jit_compiler.cpp
+        src/jit/generic_jit_optimizer.cpp
         src/jit/jit_dummy.cpp
     )
     
@@ -104,23 +145,17 @@ else()
         PUBLIC
             CZFF_JIT_DISABLED
     )
+    
+    target_include_directories(czff_jit_${JIT_ARCH}
+        PUBLIC
+            ${PROJECT_SOURCE_DIR}/include
+    )
 
+    target_link_libraries(czff_jit_${JIT_ARCH}
+        PRIVATE
+            czff_virtual_machine_lib
+    )
 endif()
-
-target_include_directories(czff_jit_${JIT_ARCH}
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-)
-
-
-add_library(czff_garbage_collector
-    src/garbage_collector/classic_garbage_collector.cpp
-)
-
-target_include_directories(czff_garbage_collector
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-)
 
 # ===== Executable =====
 add_executable(czffvm
@@ -129,7 +164,12 @@ add_executable(czffvm
 
 target_link_libraries(czffvm
     PRIVATE
-        czff_jit_${JIT_ARCH}
         czff_virtual_machine_lib
-        czff_garbage_collector
+        czff_jit_${JIT_ARCH}
 )
+
+target_link_options(czffvm PRIVATE -Wl,--allow-multiple-definition)
+
+# ===== Tests =====
+enable_testing()
+add_subdirectory(tests)

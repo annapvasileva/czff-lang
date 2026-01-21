@@ -1,0 +1,225 @@
+using Compiler.Parser;
+using Compiler.Parser.AST.Nodes;
+using Compiler.Parser.AST.Nodes.Core;
+using Compiler.Parser.AST.Nodes.Expressions;
+using Compiler.Parser.AST.Nodes.Statements;
+using Compiler.SemanticAnalysis;
+using Compiler.SemanticAnalysis.Models;
+
+namespace Compiler.Optimizations;
+
+public class DeadCodeEliminationSecondStage(SymbolTable scope) : INodeVisitor
+{
+    private SymbolTable _scope = scope;
+    private Stack<HashSet<string>> _declStack = new();
+
+    public void Visit(LiteralExpressionNode literalExpressionNode)
+    { }
+
+    public void Visit(IdentifierExpressionNode identifierExpressionNode)
+    { }
+
+    public void Visit(SimpleTypeNode simpleTypeNode)
+    { }
+
+    public void Visit(ArrayTypeNode arrayTypeNode)
+    {
+        arrayTypeNode.ElementType.Accept(this);
+    }
+
+    public void Visit(BinaryExpressionNode binaryExpressionNode)
+    {
+        binaryExpressionNode.LeftExpression.Accept(this);
+        binaryExpressionNode.RightExpression.Accept(this);
+    }
+
+    public void Visit(UnaryExpressionNode unaryExpressionNode)
+    {
+        unaryExpressionNode.Expression.Accept(this);
+    }
+
+    public void Visit(FunctionCallExpressionNode functionCallExpressionNode)
+    {
+        foreach (var argument in functionCallExpressionNode.Arguments)
+        {
+            argument.Accept(this);
+        }
+    }
+
+    public void Visit(VariableDeclarationNode variableDeclarationNode)
+    {
+        _declStack.Peek().Add(variableDeclarationNode.Name);
+        variableDeclarationNode.Type.Accept(this);
+        if (variableDeclarationNode.Expression != null)
+        {
+            variableDeclarationNode.Expression.Accept(this);
+        }
+    }
+
+    public void Visit(FunctionDeclarationNode functionDeclarationNode)
+    {
+        _scope = functionDeclarationNode.Body.Scope;
+        EnterScope();
+        functionDeclarationNode.ReturnType.Accept(this);
+        functionDeclarationNode.Parameters.Accept(this);
+        functionDeclarationNode.Body.Accept(this);
+        ExitScope();
+        _scope = _scope.Parent!;
+    }
+
+    public void Visit(ClassDeclarationNode classDeclarationNode)
+    { }
+
+    public void Visit(FunctionParametersNode functionParametersNode)
+    {
+        foreach (var parameter in functionParametersNode.Parameters)
+        {
+            parameter.Type.Accept(this);
+            _declStack.Peek().Add(parameter.Name);
+        }
+    }
+
+    public void Visit(ExpressionStatementNode expressionStatementNode)
+    {
+        expressionStatementNode.Expression.Accept(this);
+    }
+
+    public void Visit(IdentifierAssignmentStatementNode assigmentStatementNode)
+    {
+        assigmentStatementNode.Left.Accept(this);
+        assigmentStatementNode.Right.Accept(this);
+    }
+
+    public void Visit(ArrayAssignmentStatementNode assigmentStatementNode)
+    {
+        assigmentStatementNode.Left.Accept(this);
+        assigmentStatementNode.Right.Accept(this);
+    }
+
+    public void Visit(BlockNode blockNode)
+    {
+        var newStatements = new List<StatementNode>();
+        foreach (var statement in blockNode.Statements)
+        {
+            if (statement is IdentifierAssignmentStatementNode identifierAssignmentStatementNode &&
+                !CheckDeclared(identifierAssignmentStatementNode.Left.Name))
+            {
+                continue;
+            }
+            else if (statement is ArrayAssignmentStatementNode arrayAssignmentStatementNode &&
+                     arrayAssignmentStatementNode.Left.Array is IdentifierExpressionNode arrayIdentifierExpression &&
+                     !CheckDeclared(arrayIdentifierExpression.Name))
+            {
+                continue;
+            }
+            statement.Accept(this);
+            newStatements.Add(statement);
+        }
+        blockNode.Statements = newStatements;
+    }
+
+    public void Visit(ArrayCreationExpressionNode arrayCreationExpressionNode)
+    {
+        arrayCreationExpressionNode.ElementType.Accept(this);
+        arrayCreationExpressionNode.Size.Accept(this);
+    }
+
+    public void Visit(ArrayIndexExpressionNode arrayIndexExpressionNode)
+    {
+        arrayIndexExpressionNode.Array.Accept(this);
+        arrayIndexExpressionNode.Index.Accept(this);
+    }
+
+    public void Visit(MemberAccessNode memberAccessNode)
+    { }
+
+    public void Visit(BreakStatementNode breakStatementNode)
+    { }
+
+    public void Visit(ContinueStatementNode continueStatementNode)
+    { }
+
+    public void Visit(ReturnStatementNode returnStatementNode)
+    { }
+
+    public void Visit(IfStatementNode ifStatementNode)
+    {
+        _scope = ifStatementNode.IfBlock.Scope;
+        EnterScope();
+        ifStatementNode.Condition.Accept(this);
+        ifStatementNode.IfBlock.Accept(this);
+        ExitScope();
+        _scope = _scope.Parent!;
+        if (ifStatementNode.ElseBlock != null)
+        {
+            _scope = ifStatementNode.ElseBlock.Scope;
+            EnterScope();
+            ifStatementNode.ElseBlock.Accept(this);
+            ExitScope();
+            _scope = _scope.Parent!;
+        }
+    }
+
+    public void Visit(ElifStatementNode elifStatementNode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(WhileStatementNode whileStatementNode)
+    {
+        _scope = whileStatementNode.Body.Scope;
+        EnterScope();
+        whileStatementNode.Condition.Accept(this);
+        whileStatementNode.Body.Accept(this);
+        ExitScope();
+        _scope = _scope.Parent!;
+    }
+
+    public void Visit(ForStatementNode forStatementNode)
+    {
+        _scope = forStatementNode.Body.Scope;
+        EnterScope();
+        forStatementNode.Init.Accept(this);
+        forStatementNode.Condition.Accept(this);
+        forStatementNode.Post.Accept(this);
+        forStatementNode.Body.Accept(this);
+        ExitScope();
+        _scope = _scope.Parent!;
+    }
+
+    public void Visit(PrintStatementNode printStatementNode)
+    {
+        printStatementNode.Expression.Accept(this);
+    }
+
+    public void Visit(ProgramNode programNode)
+    {
+        foreach (var func in programNode.Functions)
+        {
+            func.Accept(this);
+        }
+    }
+    
+    public void EnterScope()
+    {
+        _declStack.Push(new HashSet<string>());
+    }
+
+    public void ExitScope()
+    {
+        _declStack.Pop();
+    }
+
+    private bool CheckDeclared(string name)
+    {
+        foreach (var decl in _declStack)
+        {
+            if (decl.Contains(name))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

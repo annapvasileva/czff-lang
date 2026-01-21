@@ -1,0 +1,19 @@
+=/
+Our fourth simple program on CZFF 
+/=
+
+func void Main() {
+    
+    var int x = 0;
+    for (var int i = 0; i < 5; i = i + 1) {
+        x = x + i;
+    }
+
+    print x;
+    if (x < 10) {
+        print 1;
+    } else {
+        print 2;
+    }
+    return;
+}
