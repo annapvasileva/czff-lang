@@ -19,6 +19,17 @@ protected:
         opt.CompactCode();
     }
 
+    void runDSE() {
+        GenericJitOptimizer opt(code, method_area);
+        opt.DeadStackElimination();
+    }
+
+    void runRRJ() {
+        GenericJitOptimizer opt(code, method_area);
+        opt.RemoveRedundantJumps();
+    }
+
+
     Operation makeLDC(int value) {
         Constant c{ConstantTag::U2, {uint8_t((value >> 8) & 0xFF), uint8_t(value & 0xFF)}};
         int idx = method_area.RegisterConstant(c);
@@ -388,6 +399,160 @@ TEST_F(ConstantFoldingTest, ChainAdd) {
     EXPECT_EQ(code[1].code, OperationCode::RET);
 }
 
+TEST_F(GenericJitOptimizerTest, DSE_RemovesUnusedLDC) {
+    // 0: LDC 10
+    // 1: RET
+
+    code = {
+        makeLDC(10),
+        makeOp(OperationCode::RET)
+    };
+
+    runDSE();
+
+    ASSERT_EQ(code.size(), 2);
+    EXPECT_EQ(code[0].code, OperationCode::LDC);
+    EXPECT_EQ(code[1].code, OperationCode::RET);
+}
+
+TEST_F(GenericJitOptimizerTest, DSE_RemovesUnusedArithmeticChain) {
+    // 0: LDC 1
+    // 1: LDC 2
+    // 2: ADD
+    // 3: RET
+
+    code = {
+        makeLDC(1),
+        makeLDC(2),
+        makeOp(OperationCode::ADD),
+        makeOp(OperationCode::RET)
+    };
+
+    runDSE();
+
+    ASSERT_EQ(code.size(), 4);
+    EXPECT_EQ(code[0].code, OperationCode::LDC);
+    EXPECT_EQ(code[1].code, OperationCode::LDC);
+    EXPECT_EQ(code[2].code, OperationCode::ADD);
+    EXPECT_EQ(code[3].code, OperationCode::RET);
+}
+
+TEST_F(GenericJitOptimizerTest, DSE_KeepsValueUsedByPrint) {
+    // 0: LDC 5
+    // 1: PRINT
+    // 2: RET
+
+    code = {
+        makeLDC(5),
+        makeOp(OperationCode::PRINT),
+        makeOp(OperationCode::RET)
+    };
+
+    runDSE();
+
+    ASSERT_EQ(code.size(), 3);
+    EXPECT_EQ(code[0].code, OperationCode::LDC);
+    EXPECT_EQ(code[1].code, OperationCode::PRINT);
+    EXPECT_EQ(code[2].code, OperationCode::RET);
+}
+
+TEST_F(GenericJitOptimizerTest, DSE_KeepsValueStored) {
+    // 0: LDC 42
+    // 1: STORE 0
+    // 2: RET
+
+    code = {
+        makeLDC(42),
+        Operation{OperationCode::STORE, {0, 0}},
+        makeOp(OperationCode::RET)
+    };
+
+    runDSE();
+
+    ASSERT_EQ(code.size(), 3);
+    EXPECT_EQ(code[0].code, OperationCode::LDC);
+    EXPECT_EQ(code[1].code, OperationCode::STORE);
+    EXPECT_EQ(code[2].code, OperationCode::RET);
+}
+
+TEST_F(GenericJitOptimizerTest, DSE_DupOneValueUnused) {
+    // 0: LDC 7
+    // 1: DUP
+    // 2: PRINT
+    // 3: RET
+
+    code = {
+        makeLDC(7),
+        makeOp(OperationCode::DUP),
+        makeOp(OperationCode::PRINT),
+        makeOp(OperationCode::RET)
+    };
+
+    runDSE();
+
+    // DUP нужен, но второй LDC не удаляется
+    ASSERT_EQ(code.size(), 4);
+    EXPECT_EQ(code[1].code, OperationCode::DUP);
+}
+
+TEST_F(GenericJitOptimizerTest, DSE_KeepsUsedArithmetic) {
+    // 0: LDC 2
+    // 1: LDC 3
+    // 2: MUL
+    // 3: PRINT
+    // 4: RET
+
+    code = {
+        makeLDC(2),
+        makeLDC(3),
+        makeOp(OperationCode::MUL),
+        makeOp(OperationCode::PRINT),
+        makeOp(OperationCode::RET)
+    };
+
+    runDSE();
+
+    ASSERT_EQ(code.size(), 5);
+    EXPECT_EQ(code[2].code, OperationCode::MUL);
+}
+
+TEST_F(GenericJitOptimizerTest, DSE_ClearsStackOnJump) {
+    // 0: LDC 1
+    // 1: JMP -> 3
+    // 2: LDC 2 (dead)
+    // 3: RET
+
+    code = {
+        makeLDC(1),
+        makeJump(OperationCode::JMP, 3),
+        makeLDC(2),
+        makeOp(OperationCode::RET)
+    };
+
+    runDSE();
+    runDCE();
+    runRRJ();
+
+    ASSERT_EQ(code.size(), 2);
+    EXPECT_EQ(code[0].code, OperationCode::LDC);
+    EXPECT_EQ(code[1].code, OperationCode::RET);
+}
+
+TEST_F(GenericJitOptimizerTest, DSE_RemovesUnusedLDV) {
+    // 0: LDV 0
+    // 1: RET
+
+    code = {
+        Operation{OperationCode::LDV, {0, 0}},
+        makeOp(OperationCode::RET)
+    };
+
+    runDSE();
+
+    ASSERT_EQ(code.size(), 2);
+    EXPECT_EQ(code[0].code, OperationCode::LDV);
+    EXPECT_EQ(code[1].code, OperationCode::RET);
+}
 
 
 
