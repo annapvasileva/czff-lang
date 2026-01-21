@@ -37,7 +37,6 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
     std::cout << "[JIT] Function has " << function.code.size() << " operations" << std::endl;
 #endif
 
-    try {
     asmjit::CodeHolder code;
     auto err = code.init(runtime->environment());
     if (err != asmjit::kErrorOk) {
@@ -137,13 +136,6 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
         runtime,
         argc
     );
-    } catch (const std::exception& e) {
-        std::cerr << "[JIT] EXCEPTION in compileFunction: " << e.what() << std::endl;
-        return nullptr;
-    } catch (...) {
-        std::cerr << "[JIT] UNKNOWN EXCEPTION in compileFunction" << std::endl;
-        return nullptr;
-    }
 }
 
 void X86JitCompiler::CompileOperation(
