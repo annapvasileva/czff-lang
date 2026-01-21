@@ -62,6 +62,10 @@ public:
         czffvm::HeapRef ref,
         uint32_t index
     );
+
+    void Print(
+        uint32_t index
+    );
 };
 
 class X86JitCompiler : public JitCompiler {
@@ -124,6 +128,11 @@ JIT_LoadElem(
     X86JitHeapHelper* heap,
     uint32_t refId,
     uint32_t index
+);
+extern "C" void
+JIT_Print(
+    X86JitHeapHelper* heap,
+    uint32_t refId
 );
 
 } // namespace czffvm_jit

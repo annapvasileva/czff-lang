@@ -380,6 +380,15 @@ void X86JitCompiler::CompileOperation(
         }
         case OperationCode::NOP:
             break;
+        case OperationCode::PRINT: {
+            pop32(edx);                        // refId
+
+            // ─── call helper ───────────────────
+            a.mov(rcx, heapPtr);                // RCX = heap
+            a.mov(rax, (uint64_t)&JIT_Print);
+            a.call(rax);                        // EAX = int32 value
+            break;
+        }
 
         default: {
             std::cerr << "Some of this operations are unable to compile" << std::endl;
@@ -421,6 +430,7 @@ bool X86JitCompiler::CanCompile(czffvm::OperationCode opcode) {
         case OperationCode::JMP:
         case OperationCode::JZ:
         case OperationCode::JNZ:
+        case OperationCode::PRINT:
             return true;
     }
     return false;
@@ -462,6 +472,13 @@ extern "C" int32_t JIT_LoadElem(
     Value v = heap->LoadElem(ref, index);
 
     return ValueToInteger<int32_t>(v);
+}
+
+extern "C" void JIT_Print(
+    X86JitHeapHelper* heap,
+    uint32_t refId
+) {
+    heap->Print(refId);
 }
 
 
@@ -511,6 +528,17 @@ czffvm::Value X86JitHeapHelper::LoadElem(czffvm::HeapRef ref, uint32_t index) {
         throw std::runtime_error("LDELEM: OOB");
 
     return obj.fields[index];
+}
+
+void X86JitHeapHelper::Print(uint32_t index) {
+    if (index & 0xbf600000) {
+        const Constant& c =
+            rda_.GetMethodArea().GetConstant(index);
+        
+        std::cout << std::string(c.data.begin(), c.data.end());
+    } else {
+        std::cout << index;
+    }
 }
 
 
