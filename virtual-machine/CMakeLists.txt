@@ -17,11 +17,11 @@ option(CZFF_ENABLE_WARNINGS "Enable compiler warnings" ON)
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "[CZFF] CMAKE_BUILD_TYPE is not set! Setting it to Release")
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+else()
+    message(STATUS "[CZFF] CMAKE_BUILD_TYPE is set to ${CMAKE_BUILD_TYPE}")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_CONFIGURATION_TYPES MATCHES "Debug")
-    message(STATUS "[CZFF] Debug build configuration detected")
-
     add_compile_definitions(DEBUG_BUILD)
 
     if(MSVC)
