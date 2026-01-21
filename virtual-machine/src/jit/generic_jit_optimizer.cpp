@@ -259,6 +259,99 @@ void GenericJitOptimizer::ConstantFolding() {
     CompactCode();
 }
 
+void GenericJitOptimizer::DeadStackElimination() {
+    BuildControlFlowGraph();
+
+    const size_t N = code_.size();
+
+    std::vector<bool> produces(N, false);
+    std::vector<bool> used(N, false);
+
+    // === стек на входе в каждый basic block ===
+    std::vector<StackState> in_stack(basic_blocks_.size());
+
+    bool changed = true;
+    while (changed) {
+        changed = false;
+
+        for (auto& bb : basic_blocks_) {
+            StackState stack;
+
+            // === merge предков ===
+            if (!bb.preds.empty()) {
+                stack = in_stack[bb.preds[0]];
+
+                for (size_t p = 1; p < bb.preds.size(); ++p) {
+                    const auto& other = in_stack[bb.preds[p]];
+
+                    if (other.size() != stack.size()) {
+                        stack.clear();
+                        break;
+                    }
+
+                    for (size_t i = 0; i < stack.size(); ++i) {
+                        if (stack[i].producer != other[i].producer) {
+                            stack.clear();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            StackState cur = stack;
+
+            // === симуляция инструкций блока ===
+            for (size_t ip = bb.start; ip < bb.end; ++ip) {
+                const Operation& instr = code_[ip];
+
+                // consume
+                int consumes = StackConsumes(instr.code);
+                for (int c = 0; c < consumes; ++c) {
+                    if (!cur.empty()) {
+                        auto v = cur.back();
+                        cur.pop_back();
+
+                        // 🔥 STORE / PRINT / CALL — использование
+                        used[v.producer] = true;
+                    }
+                }
+
+                // produce
+                int prod = StackProduces(instr.code);
+                if (prod > 0) {
+                    produces[ip] = true;
+                    for (int i = 0; i < prod; ++i) {
+                        cur.push_back(StackSlot{ip});
+                    }
+                }
+
+                // барьеры потока управления
+                if (IsJump(instr) || IsReturn(instr) || instr.code == OperationCode::HALT) {
+                    for (auto& v : cur) {
+                        used[v.producer] = true;
+                    }
+                    cur.clear();
+                }
+            }
+
+            if (cur != in_stack[bb.id]) {
+                in_stack[bb.id] = cur;
+                changed = true;
+            }
+        }
+    }
+
+    // === удаление мёртвых инструкций ===
+    for (size_t i = 0; i < N; ++i) {
+        if (produces[i] && !used[i] && !HasSideEffects(code_[i].code)) {
+            code_[i].code = OperationCode::NOP;
+            code_[i].arguments.clear();
+        }
+    }
+
+    CompactCode();
+}
+
 void GenericJitOptimizer::RemoveRedundantJumps() {
     for (size_t i = 0; i < code_.size(); ++i) {
         Operation& instr = code_[i];

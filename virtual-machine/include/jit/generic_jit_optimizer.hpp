@@ -178,7 +178,6 @@ public:
     void CompactCode();
     void ConstantFolding();
     void DeadStackElimination();
-    void DeadStackEliminationCFG();
     void RemoveRedundantJumps();
 };
 
