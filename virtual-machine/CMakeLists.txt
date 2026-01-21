@@ -168,6 +168,8 @@ target_link_libraries(czffvm
         czff_jit_${JIT_ARCH}
 )
 
+target_link_options(czffvm PRIVATE -Wl,--allow-multiple-definition)
+
 # ===== Tests =====
 enable_testing()
 add_subdirectory(tests)
