@@ -32,9 +32,79 @@ bool IsReturn(const Operation& op) {
     return op.code == OperationCode::RET;
 }
 
+bool IsStore(OperationCode op) {
+    return op == OperationCode::STORE;
+}
+
+bool IsLoad(OperationCode op) {
+    return op == OperationCode::LDV;
+}
+
 bool IsTerminator(const Operation& op) {
     return IsJump(op) || IsReturn(op);
 }
+
+int StackProduces(OperationCode op) {
+    switch (op) {
+        case OperationCode::LDC:
+        case OperationCode::LDV:
+        case OperationCode::NEWARR:
+        case OperationCode::LDELEM:
+            return 1;
+
+        case OperationCode::ADD:
+        case OperationCode::SUB:
+        case OperationCode::MUL:
+        case OperationCode::DIV:
+        case OperationCode::MOD:
+        case OperationCode::EQ:
+        case OperationCode::LT:
+        case OperationCode::LEQ:
+        case OperationCode::LOR:
+        case OperationCode::LAND:
+            return 1;
+
+        case OperationCode::DUP:
+            return 2;
+
+        default:
+            return 0;
+    }
+}
+
+int StackConsumes(OperationCode op) {
+    switch (op) {
+        case OperationCode::STELEM:
+            return 3;
+
+        case OperationCode::ADD:
+        case OperationCode::SUB:
+        case OperationCode::MUL:
+        case OperationCode::DIV:
+        case OperationCode::MOD:
+        case OperationCode::EQ:
+        case OperationCode::LT:
+        case OperationCode::LEQ:
+        case OperationCode::LAND:
+        case OperationCode::LOR:
+        case OperationCode::LDELEM:
+            return 2;
+
+        case OperationCode::NEG:
+        case OperationCode::STORE:
+        case OperationCode::PRINT:
+        case OperationCode::RET:
+        case OperationCode::JZ:
+        case OperationCode::JNZ:
+        case OperationCode::NEWARR:
+        case OperationCode::DUP:
+            return 1;
+
+        default:
+            return 0;
+    }
+}
+
 
 struct BasicBlock {
     int id;
