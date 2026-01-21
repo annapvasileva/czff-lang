@@ -4,8 +4,9 @@
 #include <iostream>
 #include <asmjit/x86.h>
 
-#include "jit/jit_x86_64.hpp"
 #include "common.hpp"
+#include "jit/generic_jit_optimizer.hpp"
+#include "jit/jit_x86_64.hpp"
 
 namespace czffvm_jit {
 
@@ -35,6 +36,23 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
 #ifdef DEBUG_BUILD
     std::cout << "[JIT] Starting compilation..." << std::endl;
     std::cout << "[JIT] Function has " << function.code.size() << " operations" << std::endl;
+#endif
+
+    std::vector<czffvm::Operation> func_code = function.code;
+
+    GenericJitOptimizer optimizer(func_code, rda.GetMethodArea());
+
+    optimizer.BuildControlFlowGraph();
+    optimizer.MarkReachableBlocks();
+    optimizer.RemoveDeadCode();
+    optimizer.CompactCode();
+    optimizer.ConstantFolding();
+    optimizer.DeadStackElimination();
+    optimizer.RemoveRedundantJumps();
+    optimizer.CompactCode();
+
+#ifdef DEBUG_BUILD
+    std::cout << "[JIT] Optimized to " << func_code.size() << " operations" << std::endl;
 #endif
 
     asmjit::CodeHolder code;
@@ -81,7 +99,7 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
     a.lea(stackPtr, ptr(stackBase, ((function.locals_count * 4) + 15) / 16 * 16 + argc * 4));
     a.mov(heapPtr, asmjit::x86::rdx);
 
-    std::vector<asmjit::v1_21::Label> labels(function.code.size());
+    std::vector<asmjit::v1_21::Label> labels(func_code.size());
     for (auto& l : labels)
         l = a.new_label();
     
@@ -90,7 +108,7 @@ std::unique_ptr<CompiledRuntimeFunction> X86JitCompiler::CompileFunction(const c
 #endif
 
     size_t ip = 0;
-    for (const auto& op : function.code) {
+    for (const auto& op : func_code) {
 #ifdef DEBUG_BUILD
         std::cout << "[JIT-OP] Code: 0x" << std::hex << (uint16_t)op.code << std::dec 
                   << ", args: " << op.arguments.size() << " - ";
