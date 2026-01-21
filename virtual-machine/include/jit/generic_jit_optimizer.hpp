@@ -120,6 +120,16 @@ struct BasicBlock {
     }
 };
 
+struct StackSlot {
+    size_t producer;
+};
+
+bool operator==(const czffvm_jit::StackSlot& lhs, const czffvm_jit::StackSlot& rhs) {
+    return lhs.producer == rhs.producer;
+}
+
+using StackState = std::vector<StackSlot>;
+
 
 class GenericJitOptimizer {
 private:
