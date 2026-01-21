@@ -16,11 +16,11 @@ Write-Host "Configuration: $Configuration"
 Write-Host "Generator: $Generator"
 
 # Configure
-cmake -G "$Generator" -S virtual-machine -B build/vm -DCMAKE_BUILD_TYPE=$Configuration
+cmake -G "$Generator" -S virtual-machine -B build/vm -DCMAKE_BUILD_TYPE="$Configuration"
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
 # Build
-cmake --build build/vm --config $Configuration
+cmake --build build/vm --config "$Configuration"
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
 Write-Host ""
