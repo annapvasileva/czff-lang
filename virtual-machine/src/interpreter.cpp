@@ -881,7 +881,11 @@ void Interpreter::ExecuteJitFunction(RuntimeFunction* function, CallFrame& calle
         else if (auto p = std::get_if<int64_t>(&args[i]))  value = *p;
         else if (auto p = std::get_if<bool>(&args[i]))  value = static_cast<bool>(*p);
         else if (auto p = std::get_if<HeapRef>(&args[i]))  value = static_cast<int32_t>(p->id);
-        else {
+        else if (auto p = std::get_if<StringRef>(&args[i])) {
+            Constant c{ConstantTag::STRING, std::vector<uint8_t>((*p)->begin(), (*p)->end())};
+            int idx = rda_.GetMethodArea().RegisterConstant(c);
+            value = static_cast<int32_t>(idx | 0xbf600000); // magic number
+        } else {
             throw std::runtime_error("Wrong type for JIT-compilation, only integers supported");
         }
         stack[i + lc] = value;

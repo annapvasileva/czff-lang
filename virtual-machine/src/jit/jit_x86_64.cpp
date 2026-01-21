@@ -173,7 +173,12 @@ void X86JitCompiler::CompileOperation(
                 uint16_t idx = (op.arguments[0] << 8) | op.arguments[1];
                 const Constant& c = rda.GetMethodArea().GetConstant(idx);
 
-                a.mov(eax, ValueToInteger<int32_t>(ConstantToValue(c)));
+                if (c.tag == ConstantTag::STRING) {
+                    a.mov(eax, (int32_t)(idx | 0xbf600000));
+                } else {
+                    a.mov(eax, ValueToInteger<int32_t>(ConstantToValue(c)));
+                }
+
                 push32(eax);
             }
             break;
