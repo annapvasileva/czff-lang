@@ -105,6 +105,22 @@ int StackConsumes(OperationCode op) {
     }
 }
 
+bool HasSideEffects(OperationCode op) {
+    switch (op) {
+        case OperationCode::CALL:
+        case OperationCode::PRINT:
+        case OperationCode::STORE:
+        case OperationCode::STELEM:
+        case OperationCode::NEWARR:
+        case OperationCode::RET:
+        case OperationCode::HALT:
+            return true;
+        default:
+            return false;
+    }
+}
+
+
 
 struct BasicBlock {
     int id;
