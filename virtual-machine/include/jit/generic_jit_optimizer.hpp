@@ -161,6 +161,9 @@ public:
     void RemoveDeadCode();
     void CompactCode();
     void ConstantFolding();
+    void DeadStackElimination();
+    void DeadStackEliminationCFG();
+    void RemoveRedundantJumps();
 };
 
 }  // namespace czffvm_jit
