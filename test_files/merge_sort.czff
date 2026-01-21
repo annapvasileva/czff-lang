@@ -47,8 +47,10 @@
   func void Main() {
       var int n = 1000000;
       var array<int> arr = new int(n)[]; // create array with size n
+      var int a = 0;
       for (var int i = 0; i < n; i = i + 1) {
-        arr[i] = n - i;
+        a = ((2 * a + i) * i) % n;
+        arr[i] = a;
       }
       MergeSort(arr, 0, n);
       for (var int i = 0; i < n - 1; i = i + 1) {
