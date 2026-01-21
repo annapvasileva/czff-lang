@@ -259,5 +259,22 @@ void GenericJitOptimizer::ConstantFolding() {
     CompactCode();
 }
 
+void GenericJitOptimizer::RemoveRedundantJumps() {
+    for (size_t i = 0; i < code_.size(); ++i) {
+        Operation& instr = code_[i];
+
+        if (instr.code == OperationCode::JMP) {
+            int target = decodeJumpTarget(instr);
+
+            // JMP на следующую инструкцию — бессмысленный
+            if (target == static_cast<int>(i + 1)) {
+                instr.code = OperationCode::NOP;
+                instr.arguments.clear();
+            }
+        }
+    }
+
+    CompactCode();
+}
 
 }  // namespace czffvm_jit
