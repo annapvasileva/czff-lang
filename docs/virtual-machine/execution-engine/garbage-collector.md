@@ -1,41 +1,126 @@
 # Garbage Collector
 
-The Garbage Collector (GC) serves as an automatic memory manager. It provides reclaiming memory by deleting objects that the program can no longer reach. This prevents unused objects from occupying memory forever.
+The Garbage Collector (GC) in CzffVM is implemented as a **mark-and-sweep** memory management system.  
+It automatically reclaims memory occupied by objects that are no longer reachable by the program.
 
-When no variable references an object, it becomes eligible for garbage collection.
+Unlike generational collectors, this implementation **does not use generations** and **does not perform heap compaction**.  
+Freed memory slots are reused through a free list mechanism.
 
-Garbage collection starts in the generation when an allocation fails due to the lack of space.
+Garbage collection is triggered **only when memory allocation fails** due to heap size limits (unless GC is disabled).
 
-## Generations
+---
 
-In Czff Garbage collector organizes objects in the heap into generations.
+## Allocation Policy
 
-### Generation 0
+Before allocating a new object, the heap:
 
-In Generation 0 newly allocated objects are stored. Since most objects die quickly, GC frequently collects Generation 0, reclaiming memory immediately.
+1. Estimates the required memory size.
+2. Checks if the allocation would exceed the configured heap limit.
+3. If the limit would be exceeded and GC is enabled → **GC is executed**.
+4. If memory is still insufficient after GC → throws  
+   `Heap memory limit exceeded`.
 
-**Examples**: local variables, temporary objects like strings created inside a loop or lightweight helper objects.
+Freed object slots are stored in a **free list** and reused for future allocations.
 
-**Promotion**: objects that endure one or more garbage collection cycles are moved to Generation 1.
+---
 
-### Generation 1
+## Memory Model
 
-Generation 1 serves as an intermediate layer separating short-lived objects from long-lived ones.
+- All objects are stored in a contiguous vector `objects_`
+- Deleted objects leave empty slots (`std::optional`)
+- These empty slots are tracked in `free_list_`
+- New objects reuse these slots before expanding the heap
 
-**Exmaples**: objects that outlive a single method invocation but do not persist for the entire application's duration.
+---
 
-**Promotion**: objects that survive multiple garbage collection cycles are moved to Generation 2.
+## Garbage Collection Process
 
-### Generation 2
+GC consists of two main phases:
 
-**Examples**: long-lived objects, such as static data or large objects that persist for the lifetime of the program.
+### 1. Mark Phase
 
-**Promotion**: objects in generation 2 that survive a collection remain in generation 2 until they're determined to be unreachable in a future collection.
+The collector starts from **root references**:
 
-## Detecting Garbage
+- Local variables in stack frames
+- Operand stack values
 
-During a garbage collection cycle, the collector frees memory occupied by objects the application no longer needs. It identifies these unused objects by starting from the application's _roots_ (e. g. class loaders, Metaspace/Method Area objects, root runtime structures). The collector queries the runtime to obtain this list of roots and builds a graph of all objects reachable from them. Objects absent from this graph are considered unreachable and thus treated as garbage, with their allocated memory reclaimed.
+For each root reference:
 
-## Deleting Garbage
+- Recursively traverses all referenced heap objects
+- Marks every reachable object (`marked = true`)
+- Follows all nested `HeapRef` fields
 
-While scanning the managed heap, the collector locates memory blocks held by unreachable objects. For each one found, it compacts the remaining reachable objects by copying them together, thereby consolidating free space. After compaction, it updates all pointers in the roots to reflect the objects’ new addresses and adjusts the heap pointer to begin right after the last reachable object.
+This builds a graph of **reachable objects**.
+
+---
+
+### 2. Sweep Phase
+
+The heap is scanned linearly:
+
+- **Unmarked objects**
+  - Considered garbage
+  - Memory size is subtracted from `used_bytes_`
+  - Slot is cleared
+  - Index is added to `free_list_`
+
+- **Marked objects**
+  - Survive collection
+  - Mark flag is reset for the next GC cycle
+
+No object relocation or compaction is performed.
+
+---
+
+## Roots Detection
+
+Roots are extracted from the runtime stack:
+
+- Frame local variables
+- Operand stacks
+
+Only values of type `HeapRef` are treated as references.
+All others are ignored.
+
+---
+
+## Memory Reclamation
+
+When an object is collected:
+
+- Its slot in `objects_` becomes empty
+- The index is added to `free_list_`
+- Future allocations reuse these slots
+
+This avoids heap fragmentation growth but does **not move objects**.
+
+---
+
+## Size Estimation
+
+Memory usage is approximated using:
+
+- Base object size
+- Type string size
+- Number of fields
+- Size of stored values
+- Actual size of string contents
+
+This estimation is used to:
+- Track used heap size
+- Decide when to trigger GC
+
+---
+
+## Summary
+
+The GC in CzffVM is a **simple, deterministic mark-and-sweep collector**:
+
+- Triggered only on allocation failure
+- Traverses references from stack roots
+- Reclaims unreachable objects
+- Reuses freed memory slots
+- Does not relocate objects
+- Does not implement generational optimization
+
+This design prioritizes **simplicity and predictability** over performance optimizations.
