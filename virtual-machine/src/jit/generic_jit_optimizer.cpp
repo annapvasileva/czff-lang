@@ -159,7 +159,7 @@ void GenericJitOptimizer::CompactCode() {
 void GenericJitOptimizer::ConstantFolding() {
     struct StackEntry {
         std::optional<Value> value;
-        size_t addr; // индекс инструкции в code_
+        size_t addr;
     };
 
     std::vector<StackEntry> stack;
@@ -201,7 +201,6 @@ void GenericJitOptimizer::ConstantFolding() {
                 break;
             }
 
-            // Преобразуем Value к int64_t
             auto pa = SafeValueToInteger<int64_t>(a.value.value());
             auto pb = SafeValueToInteger<int64_t>(b.value.value());
             if (!pa.has_value() || !pb.has_value()) {
@@ -224,7 +223,6 @@ void GenericJitOptimizer::ConstantFolding() {
                 default: break;
             }
 
-            // Теперь заменяем инструкции по их адресам
             size_t addr1 = a.addr;
             size_t addr2 = b.addr;
             size_t op_addr = i;
@@ -267,7 +265,6 @@ void GenericJitOptimizer::DeadStackElimination() {
     std::vector<bool> produces(N, false);
     std::vector<bool> used(N, false);
 
-    // === стек на входе в каждый basic block ===
     std::vector<StackState> in_stack(basic_blocks_.size());
 
     bool changed = true;
@@ -277,7 +274,6 @@ void GenericJitOptimizer::DeadStackElimination() {
         for (auto& bb : basic_blocks_) {
             StackState stack;
 
-            // === merge предков ===
             if (!bb.preds.empty()) {
                 stack = in_stack[bb.preds[0]];
 
@@ -300,23 +296,19 @@ void GenericJitOptimizer::DeadStackElimination() {
 
             StackState cur = stack;
 
-            // === симуляция инструкций блока ===
             for (size_t ip = bb.start; ip < bb.end; ++ip) {
                 const Operation& instr = code_[ip];
 
-                // consume
                 int consumes = StackConsumes(instr.code);
                 for (int c = 0; c < consumes; ++c) {
                     if (!cur.empty()) {
                         auto v = cur.back();
                         cur.pop_back();
 
-                        // 🔥 STORE / PRINT / CALL — использование
                         used[v.producer] = true;
                     }
                 }
 
-                // produce
                 int prod = StackProduces(instr.code);
                 if (prod > 0) {
                     produces[ip] = true;
@@ -325,7 +317,6 @@ void GenericJitOptimizer::DeadStackElimination() {
                     }
                 }
 
-                // барьеры потока управления
                 if (IsJump(instr) || IsReturn(instr) || instr.code == OperationCode::HALT) {
                     for (auto& v : cur) {
                         used[v.producer] = true;
@@ -341,7 +332,6 @@ void GenericJitOptimizer::DeadStackElimination() {
         }
     }
 
-    // === удаление мёртвых инструкций ===
     for (size_t i = 0; i < N; ++i) {
         if (produces[i] && !used[i] && !HasSideEffects(code_[i].code)) {
             code_[i].code = OperationCode::NOP;
@@ -359,7 +349,6 @@ void GenericJitOptimizer::RemoveRedundantJumps() {
         if (instr.code == OperationCode::JMP) {
             int target = decodeJumpTarget(instr);
 
-            // JMP на следующую инструкцию — бессмысленный
             if (target == static_cast<int>(i + 1)) {
                 instr.code = OperationCode::NOP;
                 instr.arguments.clear();
